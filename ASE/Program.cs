@@ -250,6 +250,12 @@ namespace ASE
         [STAThread]
         static void Main(string[] args)
         {
+            // First of all, before a single line is logged: ASE is a windowed executable, so on
+            // Windows it has to attach itself to the console that launched it (if any) to keep
+            // printing there. It reads the command line for --console alone; everything else is
+            // parsed below, by which time the log is already running.
+            ConsoleHost.Initialize(args);
+
             RegisterNativeLibraryResolvers();
 
             Config = new Config();
@@ -260,17 +266,14 @@ namespace ASE
             if (!CheckNativeCpuCore())
                 return;
 
+            // Fire and forget: GitHub can take seconds to answer — or, on a captive network, until
+            // the request times out — and none of the machine below depends on what it says. The
+            // checker logs the release itself; the window offering to update is raised by
+            // MainWindow, which waits for the query there instead of here (see
+            // MainWindow.ShowUpdateWindowIfNeeded). A failed query (no network, GitHub down)
+            // simply never reports anything.
             if (ConfigOptions.RunninConfig.CheckForUpdates)
-            {
-                ReleaseChecker.IsNewVersionAvailableAsync().Wait();
-
-                // The window offering to update is raised by MainWindow.OnOpened: Avalonia is not
-                // running yet at this point. This line stays for the console log.
-                // ReleaseInfo is null when the query failed (no network, GitHub down): not a reason
-                // to keep the emulator from starting.
-                if (ReleaseChecker.ReleaseInfo?.ExistsNewVersion == true)
-                    ColoredConsole.WriteLine($"⭐⭐ New release [[yellow]]{ReleaseChecker.ReleaseInfo.TagName}[[/yellow]] available!! from [[magenta]]{ReleaseChecker.ReleaseInfo.HtmlUrl}[[/magenta]] ⭐⭐", ConfigOptions.DebugModes.Quiet);
-            }
+                ReleaseChecker.Start();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_MAC_BACKGROUND_APP, "1");

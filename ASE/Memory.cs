@@ -1221,15 +1221,6 @@ namespace ASE
                 // of the block falling through to the generic port latch, where the write did
                 // nothing at all.
                 //
-                // That is not a curiosity: it is how the fast replayers program the chip. A
-                // MOVEM.L of four registers to $FFFF8800 is eight consecutive word writes
-                // ($FF8800, $FF8802, $FF8804 ... $FF880E), which the shadows turn into four
-                // select/data pairs — four PSG registers set by one instruction. Wings of Death
-                // and Toki (Jochen Hippel's replayer) drive their music entirely through
-                // "movem.l d0-d3,$FFFF8800.w": with only the first pair decoded, one register
-                // out of four reached the chip, every volume stayed at zero and the games ran in
-                // complete silence. MOVEP over the odd shadows is the other common idiom.
-                //
                 // Semantics from Hatari's psg.c, which documents the same decoding and the same
                 // instruction sequences measured on real hardware.
                 if (addr >= STPortAdress.ST_PSGREADSELECT && addr <= STPortAdress.ST_PSGEND)
@@ -1240,6 +1231,20 @@ namespace ASE
                         ASEMain._ym.PSGRegisterSelect(v);
                     else
                         ASEMain._ym.PSGWriteRegister(v);
+                    return;
+                }
+
+                // Video base high/mid ($FF8201/$FF8203). On the STE, writing either of them
+                // CLEARS the base low byte ($FF820D) — the third register the STE adds, which a
+                // plain ST does not have. That is not a courtesy, it is what keeps the two-register
+                // ST idiom working on an STE: a program that sets its screen with the ST pair
+                // alone always lands on a 256-byte boundary, whatever fine-scroll offset the low
+                // byte happened to be left holding. Semantics from Hatari's
+                // Video_ScreenBase_WriteByte ("On STE/TT, reset screen base low register").
+                if (IsSTE && (addr == STPortAdress.ST_SCRHIGHADDR || addr == STPortAdress.ST_SCRMIDADDR))
+                {
+                    Ports[addr - PortsBase] = v;
+                    Ports[STPortAdress.ST_SCRLOWADDR - PortsBase] = 0;
                     return;
                 }
 

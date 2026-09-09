@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Annotation context only (the project compiles with <Nullable>disable</Nullable>): Identify
+// answers null for a file name that matches no menu disk, and the signature should say so.
+#nullable enable annotations
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

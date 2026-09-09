@@ -46,6 +46,10 @@ namespace ASE
         // closing whether the user changed it — see OnClosing.
         readonly bool _fullScreenAtStartup = Config.ConfigOptions.RunninConfig.FullScreen;
 
+        // Set when the window is gone, so work that outlives it (the update check, which answers
+        // whenever GitHub feels like it) does not try to parent a dialog on a dead window.
+        bool _closed;
+
         Bitmap BitmapLedDriveOn;
         Bitmap BitmapLedDriveOff;
 
@@ -241,14 +245,21 @@ namespace ASE
         }
 
         /// <summary>
-        /// Announces the newer release found at startup. The check runs in Program.Main, before
-        /// Avalonia is up, so the window can only be raised here — posted rather than awaited,
-        /// since ShowDialog needs an owner whose OnOpened has already returned. The dialog holds
-        /// a UI pause, so the machine waits frozen for the answer instead of booting behind it.
+        /// Announces the newer release found at startup. The query itself runs in the background
+        /// (started by Program.Main, before Avalonia is up), so its answer is awaited here rather
+        /// than the launch waiting for GitHub: the machine boots straight away and the window
+        /// appears when the reply lands — normally within the first second, and from there it
+        /// holds a UI pause, so the machine does wait frozen for what the user decides. Awaited
+        /// and then still posted, because a query that had already finished would continue
+        /// synchronously and ShowDialog needs an owner whose OnOpened has returned.
         /// </summary>
-        private void ShowUpdateWindowIfNeeded()
+        private async void ShowUpdateWindowIfNeeded()
         {
-            if (ReleaseChecker.ReleaseInfo?.ExistsNewVersion != true)
+            // Never faults: the checker reports its own failures and leaves ReleaseInfo null.
+            await ReleaseChecker.Check;
+
+            // The answer can outlive a window closed while the query was still in flight.
+            if (_closed || ReleaseChecker.ReleaseInfo?.ExistsNewVersion != true)
                 return;
 
             Dispatcher.UIThread.Post(() => _ = new UpdateWindow().ShowDialog(this), DispatcherPriority.Loaded);
@@ -273,6 +284,8 @@ namespace ASE
 
         protected override void OnClosed(EventArgs e)
         {
+            _closed = true;
+
             base.OnClosed(e);
             ASEMain.Shutdown();
         }

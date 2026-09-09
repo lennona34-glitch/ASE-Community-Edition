@@ -200,6 +200,41 @@
     <Setter Property="HorizontalContentAlignment" Value="Center"/>
   </Style>
 
+  <!--
+    Info hint: a button whose only job is to carry a tooltip, drawn as a bare icon so it reads as
+    part of the label beside it. It is a Button and not a plain Svg so that it takes the pointer
+    and the focus like any other control. The template setters are what keep Fluent from painting
+    its hover and pressed plates around the icon; the opacity change is the whole feedback.
+  -->
+  <Style Selector="Button.infoHint">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="2"/>
+    <Setter Property="MinWidth" Value="0"/>
+    <Setter Property="MinHeight" Value="0"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Opacity" Value="0.6"/>
+  </Style>
+
+  <Style Selector="Button.infoHint:pointerover">
+    <Setter Property="Opacity" Value="1"/>
+  </Style>
+
+  <Style Selector="Button.infoHint /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+
+  <Style Selector="Button.infoHint:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+
+  <Style Selector="Button.infoHint:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+  </Style>
+
   <!-- Tabs -->
   <!--
     Only tabs inside Window.aseDialog use the filled Fuji-orange pill style.
@@ -249,6 +284,21 @@
   <!-- App's legacy selected-tab icon is orange; on a filled orange tab it must be white. -->
   <Style Selector="Window.aseDialog TabItem:selected Svg">
     <Setter Property="Svg.Css" Value="{DynamicResource SelectedTabIconCss}"/>
+  </Style>
+
+  <!-- Vertical navigation used by settings windows with several categories. -->
+  <Style Selector="TabControl.settingsNavigation TabItem">
+    <Setter Property="Width" Value="176"/>
+    <Setter Property="MinHeight" Value="42"/>
+    <Setter Property="Padding" Value="13,9"/>
+    <Setter Property="Margin" Value="0,0,16,5"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+
+  <Style Selector="TabControl.settingsNavigation StackPanel.settingsContent">
+    <Setter Property="Margin" Value="4,0,0,8"/>
   </Style>
 
 </Styles>

@@ -779,10 +779,8 @@ namespace ASE
             // way: it times out after 2 s (1 s with the motor already running) and issues the
             // Force Interrupt itself ($E0175A in TOS 1.06).
             //
-            // Only Type I is modelled here. A Type II/III command with no drive answering hangs
-            // on the real chip too (it hunts for an ID field it needs index pulses to give up
-            // on), but it still completes with Record Not Found in ASE — nothing has needed it
-            // and that path is where every loader lives.
+            // A Type II/III command is parked the same way, a few lines below: it hunts for an
+            // ID field and only abandons the search after five index pulses, which never come.
             if (command < 0x80 && (command & 0x08) == 0 && !motorWasOn && !DriveSelected)
             {
                 // Busy is already set and the interrupt already cleared above: parking the
@@ -809,14 +807,18 @@ namespace ASE
 
             if (hiNibble == CMD_RESTORE)
             {
+                // Steps really sent: from wherever the head is out to track 0, or the full 255
+                // the chip tries before giving up when TR00 never answers.
+                int steps = DriveSelected ? headTrack : RESTORE_STEP_LIMIT;
                 ExecuteRestore();
-                EndCommandOK();
+                EndTypeICommand(command, steps);
                 return;
             }
             if (hiNibble == CMD_SEEK)
             {
+                int steps = Math.Abs(dataRegister - trackRegister);
                 ExecuteSeek();
-                EndCommandOK();
+                EndTypeICommand(command, steps);
                 return;
             }
 
@@ -826,21 +828,41 @@ namespace ASE
             if (typeI == 0x20) // STEP
             {
                 ExecuteStep(command);
-                EndCommandOK();
+                EndTypeICommand(command, 1);
                 return;
             }
             if (typeI == 0x40) // STEP-IN
             {
                 stepDirection = 1;
                 ExecuteStep(command);
-                EndCommandOK();
+                EndTypeICommand(command, 1);
                 return;
             }
             if (typeI == 0x60) // STEP-OUT
             {
                 stepDirection = -1;
                 ExecuteStep(command);
-                EndCommandOK();
+                EndTypeICommand(command, 1);
+                return;
+            }
+
+            // Type II/III addressed to a drive that is not there: no index pulses, so the
+            // chip never reaches the five-revolution limit at which it would give up, and the
+            // command stays busy exactly like the Type I above. Answering Record Not Found
+            // straight away instead is a different fact about the machine, and software reads
+            // it as one: a loader searching for the disk it asked for tells "the drive is
+            // there and this is the wrong disk" from "there is no such drive" by whether the
+            // controller ever answers, so an instant error stops the search at the empty
+            // socket instead of moving on to the drive that does have the disk. Nothing on
+            // screen says so either — the LED of an unplugged drive is not even shown.
+            if (command >= 0x80 && (command & 0xF0) != CMD_FORCE_INTERRUPT && !DriveSelected)
+            {
+                ColoredConsole.WriteLine(
+                    $"[[cyan]]FDC[[/cyan]] Type II/III ${command:X2} parked waiting for index pulses " +
+                    $"(drive={currentDrive}) — only a Force Interrupt can retire it",
+                    ConfigOptions.DebugModes.Information);
+
+                stxOp = new StxOp { CompleteClock = long.MaxValue, WaitingForIndex = true };
                 return;
             }
 
@@ -937,6 +959,52 @@ namespace ASE
         {
             statusRegister &= unchecked((byte)~STATUS_BUSY);
             PulseInterrupt();
+        }
+
+        // *** Type I head positioning takes real time ***
+        //
+        // Bits 1-0 of every Type I command are the step rate: how long the WD1772 waits
+        // between one step pulse and the next. The command is not finished until the last
+        // pulse has been sent -- busy stays set, no interrupt arrives -- so its duration is
+        // the number of steps times that rate, and a RESTORE that never sees TR00 sends the
+        // full 255 pulses the chip tries before giving up with a seek error.
+        //
+        // Completing all of that at once is invisible to a program that simply waits for the
+        // interrupt, but it is NOT invisible to one that measures how long the wait took, and
+        // measuring it is the standard way software asks whether a drive is fitted: with an
+        // empty cable TR00 never comes back, so a RESTORE takes 255 x 6 ms = 1.53 s at the
+        // default rate and any probe with a shorter timeout reads that as "no drive". Answered
+        // instantly, the same probe is told the drive is there and already at track 0 — after
+        // which the program addresses a unit that cannot answer, and every access to it comes
+        // back Record Not Found with nothing on screen to say why. The related case of a
+        // stopped motor never producing the spin-up index pulses is handled in ExecuteCommand.
+        //
+        // Timings from the WD1772 datasheet, same values as Hatari's FDC_StepRate_ms.
+        private const int RESTORE_STEP_LIMIT = 255;
+        private static readonly int[] StepRateMs = { 6, 12, 2, 3 };
+        private const long CYCLES_PER_MS = CYCLES_PER_REVOLUTION / 200;   // one revolution = 200 ms
+
+        /// <summary>
+        /// Finishes a Type I command once its step pulses have been sent. The status register
+        /// is already composed by the Execute* routine; busy goes back on and the interrupt is
+        /// held back until the head would really have arrived.
+        /// </summary>
+        private static void EndTypeICommand(byte command, int steps)
+        {
+            if (steps <= 0)
+            {
+                EndCommandOK();
+                return;
+            }
+
+            byte finalStatus = (byte)(statusRegister & ~STATUS_BUSY);
+            statusRegister |= STATUS_BUSY;
+
+            stxOp = new StxOp
+            {
+                CompleteClock = CPU._moira.Clock + steps * StepRateMs[command & 3] * CYCLES_PER_MS,
+                FinalStatus = finalStatus
+            };
         }
 
         /// <summary>

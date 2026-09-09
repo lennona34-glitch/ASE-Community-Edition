@@ -1060,27 +1060,31 @@ namespace ASE
             }, DispatcherPriority.Input);
         }
 
-        public static void GamepadButton(ConfigOptions.GamepadButtonsMapping buttonMapping, bool pressed)
+        public static void GamepadButton(ConfigOptions.GamepadButtonsMapping buttonMapping, bool pressed,
+            int source = HostInput.GamepadButtons)
         {
             switch (buttonMapping)
             {
                 case ConfigOptions.GamepadButtonsMapping.Fire:
-                    ACIA.UpdateJoystick(ACIA.JOY_FIRE, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_FIRE, pressed);
                     break;
                 case ConfigOptions.GamepadButtonsMapping.Up:
-                    ACIA.UpdateJoystick(ACIA.JOY_UP, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_UP, pressed);
                     break;
                 case ConfigOptions.GamepadButtonsMapping.Space:
-                    ACIA.PushIkbd((byte)(pressed ? 0x39 : (0x39 | 0x80)));
+                    HostInput.Key(source, 0x39, pressed);
                     break;
                 case ConfigOptions.GamepadButtonsMapping.Y:
-                    ACIA.PushIkbd((byte)(pressed ? 0x15 : (0x15 | 0x80)));
+                    HostInput.Key(source, 0x15, pressed);
                     break;
                 case ConfigOptions.GamepadButtonsMapping.N:
-                    ACIA.PushIkbd((byte)(pressed ? 0x31 : (0x31 | 0x80)));
+                    HostInput.Key(source, 0x31, pressed);
                     break;
                 case ConfigOptions.GamepadButtonsMapping.T:
-                    ACIA.PushIkbd((byte)(pressed ? 0x14 : (0x14 | 0x80)));
+                    HostInput.Key(source, 0x14, pressed);
+                    break;
+                default:
+                    HostInput.Key(source, 0, false);
                     break;
             }
         }
@@ -1088,6 +1092,28 @@ namespace ASE
         public static void HandleEvents(SDL_Event e)
         {
             bool IgnoreCtlrKeyUp = false;
+
+            if (e.type == SDL_EventType.SDL_WINDOWEVENT &&
+                e.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST)
+            {
+                HostInput.ReleaseAll();
+                ACIA.MouseButtonChanged(left: true, pressed: false);
+                ACIA.MouseButtonChanged(left: false, pressed: false);
+                return;
+            }
+
+            // Only the controller opened by ASE owns the gamepad bindings. SDL also
+            // reports events for other open controllers; their button numbers overlap.
+            if (e.type == SDL_EventType.SDL_CONTROLLERBUTTONDOWN || e.type == SDL_EventType.SDL_CONTROLLERBUTTONUP)
+            {
+                if (GamepadController == nint.Zero || e.cbutton.which !=
+                    SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(GamepadController))) return;
+            }
+            if (e.type == SDL_EventType.SDL_CONTROLLERAXISMOTION)
+            {
+                if (GamepadController == nint.Zero || e.caxis.which !=
+                    SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(GamepadController))) return;
+            }
 
             // While the emulation is paused a UI window owns the host input: swallow the
             // "press" events so keystrokes typed there (e.g. in the library search box)
@@ -1113,17 +1139,18 @@ namespace ASE
             {
                 bool pressed = (e.type == SDL_EventType.SDL_KEYDOWN);
                 bool isJoyKey = true;
+                int source = (int)e.key.keysym.scancode;
 
                 if(e.key.keysym.scancode == ConfigOptions.RunninConfig.KeyJoy1Up)
-                    ACIA.UpdateJoystick(ACIA.JOY_UP, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_UP, pressed);
                 else if (e.key.keysym.scancode == ConfigOptions.RunninConfig.KeyJoy1Down)
-                    ACIA.UpdateJoystick(ACIA.JOY_DOWN, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_DOWN, pressed);
                 else if (e.key.keysym.scancode == ConfigOptions.RunninConfig.KeyJoy1Left)
-                    ACIA.UpdateJoystick(ACIA.JOY_LEFT, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_LEFT, pressed);
                 else if (e.key.keysym.scancode == ConfigOptions.RunninConfig.KeyJoy1Right)
-                    ACIA.UpdateJoystick(ACIA.JOY_RIGHT, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_RIGHT, pressed);
                 else if (e.key.keysym.scancode == ConfigOptions.RunninConfig.KeyJoy1Fire)
-                    ACIA.UpdateJoystick(ACIA.JOY_FIRE, pressed);
+                    HostInput.Joystick(source, ACIA.JOY_FIRE, pressed);
                 else
                     isJoyKey = false;
 
@@ -1135,44 +1162,45 @@ namespace ASE
             {
                 bool pressed = (e.type == SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN);
                 var btn = (SDL.SDL_GameControllerButton)e.cbutton.button;
+                int source = HostInput.GamepadButtons + e.cbutton.button;
 
                 switch (btn)
                 {
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
-                        ACIA.UpdateJoystick(ACIA.JOY_UP, pressed);
+                        HostInput.Joystick(source, ACIA.JOY_UP, pressed);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-                        ACIA.UpdateJoystick(ACIA.JOY_DOWN, pressed);
+                        HostInput.Joystick(source, ACIA.JOY_DOWN, pressed);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-                        ACIA.UpdateJoystick(ACIA.JOY_LEFT, pressed);
+                        HostInput.Joystick(source, ACIA.JOY_LEFT, pressed);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-                        ACIA.UpdateJoystick(ACIA.JOY_RIGHT, pressed);
+                        HostInput.Joystick(source, ACIA.JOY_RIGHT, pressed);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonA, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonA, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonB, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonB, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonX, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonX, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonY, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonY, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonLB, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonLB, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonRB, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonRB, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonLS, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonLS, pressed, source);
                         break;
                     case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK:
-                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonRS, pressed);
+                        GamepadButton(Config.ConfigOptions.RunninConfig.GamepadButtonRS, pressed, source);
                         break;
                 }
 
@@ -1204,12 +1232,8 @@ namespace ASE
                         SDL.SDL_GameControllerClose(GamepadController);
                         GamepadController = nint.Zero;
 
-                        // Reset joystick state
-                        ACIA.UpdateJoystick(ACIA.JOY_UP, false);
-                        ACIA.UpdateJoystick(ACIA.JOY_DOWN, false);
-                        ACIA.UpdateJoystick(ACIA.JOY_LEFT, false);
-                        ACIA.UpdateJoystick(ACIA.JOY_RIGHT, false);
-                        ACIA.UpdateJoystick(ACIA.JOY_FIRE, false);
+                        // Release gamepad-owned keys too, without releasing the keyboard.
+                        HostInput.ReleaseGamepad();
 
                         ColoredConsole.WriteLine("[[yellow]]Gamepad disconnected![[/yellow]]", ConfigOptions.DebugModes.Quiet);
                     }
@@ -1228,29 +1252,16 @@ namespace ASE
                     bool left = v < -GamepadDeadzone;
                     bool right = v > GamepadDeadzone;
 
-                    ACIA.UpdateJoystick(ACIA.JOY_LEFT, left);
-                    ACIA.UpdateJoystick(ACIA.JOY_RIGHT, right);
-
-                    // center stick
-                    if (!left && !right)
-                    {
-                        ACIA.UpdateJoystick(ACIA.JOY_LEFT, false);
-                        ACIA.UpdateJoystick(ACIA.JOY_RIGHT, false);
-                    }
+                    HostInput.Axis(HostInput.GamepadAxisX, IsPaused ? (byte)0
+                        : left ? ACIA.JOY_LEFT : right ? ACIA.JOY_RIGHT : (byte)0);
                 }
                 else if (axis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY)
                 {
                     bool up = v < -GamepadDeadzone;
                     bool down = v > GamepadDeadzone;
 
-                    ACIA.UpdateJoystick(ACIA.JOY_UP, up);
-                    ACIA.UpdateJoystick(ACIA.JOY_DOWN, down);
-
-                    if (!up && !down)
-                    {
-                        ACIA.UpdateJoystick(ACIA.JOY_UP, false);
-                        ACIA.UpdateJoystick(ACIA.JOY_DOWN, false);
-                    }
+                    HostInput.Axis(HostInput.GamepadAxisY, IsPaused ? (byte)0
+                        : up ? ACIA.JOY_UP : down ? ACIA.JOY_DOWN : (byte)0);
                 }
 
                 return;
@@ -1301,8 +1312,8 @@ namespace ASE
                 {
                     int scancode = (int)e.key.keysym.scancode;
 
-                    if (scancode < ACIA.AtariScancodes.Length && ACIA.AtariScancodes[scancode] != 0)
-                        ACIA.PushIkbd(ACIA.AtariScancodes[scancode]);
+                    if ((uint)scancode < ACIA.AtariScancodes.Length && ACIA.AtariScancodes[scancode] != 0)
+                        HostInput.Key(scancode, ACIA.AtariScancodes[scancode], true);
                 }
             }
 
@@ -1323,9 +1334,9 @@ namespace ASE
                 {
                     int scancode = (int)e.key.keysym.scancode;
 
-                    if (scancode < ACIA.AtariScancodes.Length && ACIA.AtariScancodes[scancode] != 0)
+                    if ((uint)scancode < ACIA.AtariScancodes.Length)
                         // Scancode | 0x80 -> scancode released on the ST
-                        ACIA.PushIkbd((byte)(ACIA.AtariScancodes[scancode] | 0x80));
+                        HostInput.Key(scancode, ACIA.AtariScancodes[scancode], false);
                 }
             }
 

@@ -24,16 +24,20 @@ namespace ASE
         /// </summary>
         /// <remarks>The method supports color names defined in the ConsoleColor enumeration. If an
         /// unrecognized color name is encountered, the text is written in the default console color. The console output
-        /// encoding is set to UTF-8 to support a wider range of characters.</remarks>
+        /// encoding is set to UTF-8 once at startup, by <see cref="ConsoleHost"/>, which is also what makes this a
+        /// no-op when the emulator was started with no console to write to.</remarks>
         /// <param name="text">The text to be written to the console, which may contain color tags in the format
         /// [[ColorName]]Content[[/ColorName]].</param>
         public static void Write(string text)
         {
+            // Started from Explorer or a shortcut on Windows: there is no console and no
+            // redirection, so composing the line would only feed Stream.Null.
+            if (!ConsoleHost.HasConsole)
+                return;
+
             var defaultColor = Console.ForegroundColor;
             var pattern = @"\[\[(\w+)\]\]([\s\S]*?)\[\[/\1\]\]";
             var lastIndex = 0;
-
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             foreach (Match match in Regex.Matches(text, pattern))
             {

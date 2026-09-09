@@ -56,6 +56,13 @@ namespace ASE
                 Mask = Config.ConfigOptions.RunninConfig.Mask,
                 Noise = Config.ConfigOptions.RunninConfig.Noise,
                 DisableCrtEffects = Config.ConfigOptions.RunninConfig.DisableCrtEffects,
+                ColorizeDithering = Config.ConfigOptions.RunninConfig.ColorizeDithering,
+                EdgeSmoothing = Config.ConfigOptions.RunninConfig.EdgeSmoothing,
+                VideoSignal = Config.ConfigOptions.RunninConfig.VideoSignal,
+                Scaling = Config.ConfigOptions.RunninConfig.Scaling,
+                Persistence = Config.ConfigOptions.RunninConfig.Persistence,
+                MaskType = Config.ConfigOptions.RunninConfig.MaskType,
+                AntiAliasing = Config.ConfigOptions.RunninConfig.AntiAliasing,
                 ShowBorders = Config.ConfigOptions.RunninConfig.ShowBorders,
                 MonochromeMonitor = Config.ConfigOptions.RunninConfig.MonochromeMonitor,
 
@@ -92,6 +99,15 @@ namespace ASE
             RebindJoymap();
 
             chkShowBorders.IsChecked = Config.ConfigOptions.RunninConfig.ShowBorders;
+            chkColorizeDithering.IsChecked = Config.ConfigOptions.RunninConfig.ColorizeDithering;
+            ComboEdgeSmoothing.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.EdgeSmoothing;
+            ComboAntiAliasing.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.AntiAliasing;
+            ComboVideoSignal.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.VideoSignal;
+            ComboScaling.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.Scaling;
+            SliderPersistence.Value = Config.ConfigOptions.RunninConfig.Persistence;
+            ComboMaskType.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.MaskType;
+            UpdateSignalDependents();
+            RefreshPresetSelection();
             // Segmented monitor selector: only the monochrome half carries the handler,
             // and setting both here runs before _uiReady, so it cannot request a reset.
             RadioMonochromeMonitor.IsChecked = Config.ConfigOptions.RunninConfig.MonochromeMonitor;
@@ -473,6 +489,13 @@ namespace ASE
             Config.ConfigOptions.RunninConfig.Mask = configBackup.Mask;
             Config.ConfigOptions.RunninConfig.Noise = configBackup.Noise;
             Config.ConfigOptions.RunninConfig.DisableCrtEffects = configBackup.DisableCrtEffects;
+            Config.ConfigOptions.RunninConfig.ColorizeDithering = configBackup.ColorizeDithering;
+            Config.ConfigOptions.RunninConfig.EdgeSmoothing = configBackup.EdgeSmoothing;
+            Config.ConfigOptions.RunninConfig.VideoSignal = configBackup.VideoSignal;
+            Config.ConfigOptions.RunninConfig.Scaling = configBackup.Scaling;
+            Config.ConfigOptions.RunninConfig.Persistence = configBackup.Persistence;
+            Config.ConfigOptions.RunninConfig.MaskType = configBackup.MaskType;
+            Config.ConfigOptions.RunninConfig.AntiAliasing = configBackup.AntiAliasing;
             Config.ConfigOptions.RunninConfig.ShowBorders = configBackup.ShowBorders;
             Config.ConfigOptions.RunninConfig.MonochromeMonitor = configBackup.MonochromeMonitor;
 
@@ -500,12 +523,12 @@ namespace ASE
                 long fileSize = new FileInfo(tospath).Length;
                 if ((Config.ConfigOptions.RunninConfig.STModel == Config.ConfigOptions.STModels.ST || Config.ConfigOptions.RunninConfig.STModel == Config.ConfigOptions.STModels.Mega) && fileSize != 192 * 1024)
                 {
-                    TinyDialogs.MessageBox("Error", $"TOS image for STF/FM must be 1.00 to 1.04", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+                    TinyDialogs.MessageBox("Error", $"TOS image for STF/FM must be 1.00 to 1.04 (196.608 bytes)", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
                     return false;
                 }
                 else if (Config.ConfigOptions.RunninConfig.STModel == Config.ConfigOptions.STModels.STE && (fileSize != 256 * 1024))
                 {
-                    TinyDialogs.MessageBox("Error", $"TOS image for STE must be 1.06 to 2.06", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+                    TinyDialogs.MessageBox("Error", $"TOS image for STE must be 1.06 to 2.06 (262.144 bytes)", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
                     return false;
                 }
             }
@@ -840,6 +863,7 @@ namespace ASE
                 Config.ConfigOptions.RunninConfig.DisableCrtEffects = !isChecked;
 
             UpdateEffectsSlidersEnabled();
+            NotePictureChanged();
         }
 
         void UpdateEffectsSlidersEnabled()
@@ -860,8 +884,10 @@ namespace ASE
             Config.ConfigOptions.RunninConfig.Bloom = 0.22f;
             Config.ConfigOptions.RunninConfig.Mask = 0.50f;
             Config.ConfigOptions.RunninConfig.Noise = 0.25f;
+            Config.ConfigOptions.RunninConfig.MaskType = Config.ConfigOptions.MaskTypes.Shadow;
 
             RebindGLSliders();
+            ComboMaskType.SelectedIndex = (int)Config.ConfigOptions.MaskTypes.Shadow;
         }
 
         private SDL.SDL_Scancode AvaloniaKeyToSDLScancode(Key key)
@@ -969,6 +995,171 @@ namespace ASE
         {
             if (((CheckBox)sender).IsChecked is bool isChecked)
                 Config.ConfigOptions.RunninConfig.ShowBorders = isChecked;
+        }
+
+        // Dithering colorization is deliberately *not* tied to the effects switch next to it:
+        // it corrects the picture rather than dressing it up, so it stays available with the CRT
+        // shader bypassed (and in high resolution, where the plain blit is always used).
+        private void ChkColorizeDithering_OnIsCheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (((CheckBox)sender).IsChecked is bool isChecked)
+                Config.ConfigOptions.RunninConfig.ColorizeDithering = isChecked;
+            NotePictureChanged();
+        }
+
+        // Edge smoothing (SuperEagle / xBR), independent of the effects switch for the same reason
+        // as its neighbour: it corrects the picture rather than dressing it up, so it stays
+        // available with the CRT shader bypassed and in high resolution. Items in enum order.
+        private void EdgeSmoothing_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = ((ComboBox)sender).SelectedIndex;
+            if (index >= 0 && Enum.IsDefined(typeof(Config.ConfigOptions.EdgeSmoothings), index))
+                Config.ConfigOptions.RunninConfig.EdgeSmoothing = (Config.ConfigOptions.EdgeSmoothings)index;
+            NotePictureChanged();
+        }
+
+        // Anti-aliasing (FXAA / SMAA), the third of the corrections and independent of the other
+        // two and of the effects switch like them. Applied live, no reset: the GL control picks
+        // the change up on its next frame.
+        private void AntiAliasing_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = ((ComboBox)sender).SelectedIndex;
+            if (index >= 0 && Enum.IsDefined(typeof(Config.ConfigOptions.AntiAliasingModes), index))
+                Config.ConfigOptions.RunninConfig.AntiAliasing = (Config.ConfigOptions.AntiAliasingModes)index;
+            NotePictureChanged();
+        }
+
+        // The video signal: with a television signal the two pattern-based corrections are
+        // bypassed by the GL chain, so their controls grey out and a line says why.
+        private void VideoSignal_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = ((ComboBox)sender).SelectedIndex;
+            if (index >= 0 && Enum.IsDefined(typeof(Config.ConfigOptions.VideoSignals), index))
+                Config.ConfigOptions.RunninConfig.VideoSignal = (Config.ConfigOptions.VideoSignals)index;
+            UpdateSignalDependents();
+            NotePictureChanged();
+        }
+
+        void UpdateSignalDependents()
+        {
+            bool rgb = Config.ConfigOptions.RunninConfig.VideoSignal == Config.ConfigOptions.VideoSignals.RGB;
+            chkColorizeDithering.IsEnabled = rgb;
+            ComboEdgeSmoothing.IsEnabled = rgb;
+            TextSignalHint.IsVisible = !rgb;
+        }
+
+        private void Scaling_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = ((ComboBox)sender).SelectedIndex;
+            if (index >= 0 && Enum.IsDefined(typeof(Config.ConfigOptions.ScalingModes), index))
+                Config.ConfigOptions.RunninConfig.Scaling = (Config.ConfigOptions.ScalingModes)index;
+            NotePictureChanged();
+        }
+
+        private void SliderPersistence_OnValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            Config.ConfigOptions.RunninConfig.Persistence = (int)Math.Round(SliderPersistence.Value);
+            NotePictureChanged();
+        }
+
+        private void MaskType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = ((ComboBox)sender).SelectedIndex;
+            if (index >= 0 && Enum.IsDefined(typeof(Config.ConfigOptions.MaskTypes), index))
+                Config.ConfigOptions.RunninConfig.MaskType = (Config.ConfigOptions.MaskTypes)index;
+        }
+
+        // ---- Presets: the ready-made looks of the Picture tab. Each is a full assignment of the
+        // picture options plus whether the CRT effects are on (not how they are tuned: the
+        // sliders are left alone), and the combo always shows the look that matches the current
+        // settings exactly, or Custom. Two guards keep the two directions apart: _applyingPreset
+        // while a preset writes the controls (their handlers must not re-derive the preset), and
+        // _syncingPreset while the combo is set from the settings (its handler must not apply).
+        private readonly record struct PictureLook(
+            string Name, string Description,
+            Config.ConfigOptions.VideoSignals Signal, bool Colorize,
+            Config.ConfigOptions.EdgeSmoothings Smoothing, Config.ConfigOptions.AntiAliasingModes AntiAliasing,
+            Config.ConfigOptions.ScalingModes Scaling, int Persistence, bool EffectsOn);
+
+        static readonly PictureLook[] PictureLooks =
+        {
+            new("Atari monitor",
+                "The SC1224 on the desk: the picture as the ST drew it, on a colour CRT; scanlines, mask, a touch of curvature. RGB signal, effects on, nothing else.",
+                Config.ConfigOptions.VideoSignals.RGB, false, Config.ConfigOptions.EdgeSmoothings.None,
+                Config.ConfigOptions.AntiAliasingModes.None, Config.ConfigOptions.ScalingModes.Smooth, 0, true),
+            new("Home TV",
+                "The ST on the living-room television through a composite lead: colour bleeding, softer detail, the rainbow shimmer on dithered areas, a little phosphor persistence, and the CRT effects.",
+                Config.ConfigOptions.VideoSignals.Composite, false, Config.ConfigOptions.EdgeSmoothings.None,
+                Config.ConfigOptions.AntiAliasingModes.None, Config.ConfigOptions.ScalingModes.Smooth, 25, true),
+            new("Pixel perfect",
+                "Every pixel exactly as drawn, sharp, at a whole number of screen pixels per line, with no effect at all. The choice for pixel art or for a weak GPU.",
+                Config.ConfigOptions.VideoSignals.RGB, false, Config.ConfigOptions.EdgeSmoothings.None,
+                Config.ConfigOptions.AntiAliasingModes.None, Config.ConfigOptions.ScalingModes.Integer, 0, false),
+            new("Enhanced",
+                "The picture cleaned up beyond what the hardware could show: dithering blended into real colours and gradients, curves and diagonals redrawn with xBR, edges anti-aliased with SMAA, crisp scaling, no CRT effects. The heaviest on the GPU.",
+                Config.ConfigOptions.VideoSignals.RGB, true, Config.ConfigOptions.EdgeSmoothings.XBR,
+                Config.ConfigOptions.AntiAliasingModes.SMAA, Config.ConfigOptions.ScalingModes.Sharp, 0, false),
+        };
+
+        const string CustomLookDescription = "Your own combination of the options below.";
+
+        bool _applyingPreset;
+        bool _syncingPreset;
+
+        static bool Matches(in PictureLook look, Config.ConfigOptions cfg) =>
+            cfg.VideoSignal == look.Signal && cfg.ColorizeDithering == look.Colorize &&
+            cfg.EdgeSmoothing == look.Smoothing && cfg.AntiAliasing == look.AntiAliasing &&
+            cfg.Scaling == look.Scaling && cfg.Persistence == look.Persistence &&
+            cfg.DisableCrtEffects == !look.EffectsOn;
+
+        /// <summary>Points the preset combo at the look the current settings match, or Custom.</summary>
+        void RefreshPresetSelection()
+        {
+            var cfg = Config.ConfigOptions.RunninConfig;
+            int index = PictureLooks.Length;   // Custom
+            for (int i = 0; i < PictureLooks.Length; i++)
+                if (Matches(PictureLooks[i], cfg)) { index = i; break; }
+
+            _syncingPreset = true;
+            ComboPicturePreset.SelectedIndex = index;
+            _syncingPreset = false;
+
+            TextPresetDescription.Text = index < PictureLooks.Length ? PictureLooks[index].Description : CustomLookDescription;
+        }
+
+        /// <summary>Called by every control a preset sets: re-derives the preset shown.</summary>
+        void NotePictureChanged()
+        {
+            if (_uiReady && !_applyingPreset)
+                RefreshPresetSelection();
+        }
+
+        private void PicturePreset_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_syncingPreset || !_uiReady) return;
+
+            int index = ComboPicturePreset.SelectedIndex;
+            if (index < 0 || index >= PictureLooks.Length)
+            {
+                // Custom: nothing to apply, the settings are whatever they are.
+                TextPresetDescription.Text = CustomLookDescription;
+                return;
+            }
+
+            var look = PictureLooks[index];
+            _applyingPreset = true;
+
+            // Through the controls, so every handler runs and the config follows.
+            ComboVideoSignal.SelectedIndex = (int)look.Signal;
+            chkColorizeDithering.IsChecked = look.Colorize;
+            ComboEdgeSmoothing.SelectedIndex = (int)look.Smoothing;
+            ComboAntiAliasing.SelectedIndex = (int)look.AntiAliasing;
+            ComboScaling.SelectedIndex = (int)look.Scaling;
+            SliderPersistence.Value = look.Persistence;
+            ToggleEffects.IsChecked = look.EffectsOn;
+
+            _applyingPreset = false;
+            TextPresetDescription.Text = look.Description;
         }
 
         // Switching between a colour and a monochrome monitor changes the whole video geometry

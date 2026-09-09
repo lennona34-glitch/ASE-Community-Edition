@@ -1,3 +1,10 @@
+// The project compiles with <Nullable>disable</Nullable>, so the annotation context has to be
+// asked for here: these interop signatures are exactly the ones where "may be null" is the
+// point (PtrToStringAnsi answers null for a null pointer). Annotations only: the flow
+// analysis stays off, so the signatures document themselves without the rest of the file
+// having to be audited for it.
+#nullable enable annotations
+
 using System.Runtime.InteropServices;
 
 namespace Mt32;

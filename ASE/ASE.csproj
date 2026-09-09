@@ -4,7 +4,11 @@
 	<Import Project="Local.props" Condition="Exists('Local.props')" />
 
 	<PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <!-- WinExe, so Windows starts the emulator without opening a console window of its own.
+         Launched from a console it still logs there and still takes its arguments: ConsoleHost
+         attaches to the parent's console at the top of Main. Outside Windows the two values are
+         the same thing (only the PE header distinguishes the subsystems). -->
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -80,14 +84,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="12.1.1" />
-		<PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+		<PackageReference Include="Avalonia" Version="12.1.2" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
 		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.1" />
 		<PackageReference Include="LibVLCSharp" Version="3.10.1" />
 		<PackageReference Include="sdl2" Version="2.0.5" />
 		<PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
-		<PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.15" />
+		<PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.17" />
 		<PackageReference Include="TinyDialogsNet" Version="2.0.0" />
 		<!-- libvlc binaries for game video previews; on macOS/Linux VLC must be installed system-wide -->
 		<PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" Condition="'$(OS)' == 'Windows_NT'" />
@@ -121,6 +125,20 @@
 		<AseNativeRid>$(AseNativeOs)-$(AseNativeArch)</AseNativeRid>
 	</PropertyGroup>
 
+	<!--
+		libVLC (VideoLAN.LibVLC.Windows) copies ALL THREE Windows architectures to the output
+		as soon as Platform is AnyCPU: 102 MB of win-x64, 99 of win-x86 and 83 of win-arm64.
+		Only the one matching the published RID is of any use, and the other two are 182 MB
+		in the zip and in the installer. The package lets these properties override it (see
+		its .targets, which evaluates them with Condition="== ''"), so setting them here is
+		enough — they must come AFTER the block computing AseNativeArch, which they read.
+	-->
+	<PropertyGroup Condition="'$(AseNativeOs)' == 'win'">
+		<VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+		<VlcWindowsX64Enabled>$([System.String]::Copy('$(AseNativeArch)').Equals('x64'))</VlcWindowsX64Enabled>
+		<VlcWindowsArm64Enabled>$([System.String]::Copy('$(AseNativeArch)').Equals('arm64'))</VlcWindowsArm64Enabled>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<None Update="GameMenus.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -134,6 +152,18 @@
 		</EmbeddedResource>
 		<EmbeddedResource Include="Resources/ASEHD.SYS" Condition="Exists('Resources/ASEHD.SYS')">
 			<LogicalName>ASE.Resources.ASEHD.SYS</LogicalName>
+		</EmbeddedResource>
+
+		<!-- SMAA lookup tables (Jimenez et al., MIT licence): the precomputed area texture
+		     (160x560, two bytes per texel) and the search texture (64x16, one byte), taken as-is
+		     from the reference implementation. GLControl expands them to RGBA at init; without
+		     them the SMAA anti-aliasing mode is reported unavailable and the picture is drawn
+		     unfiltered. -->
+		<EmbeddedResource Include="Resources/SMAA_AreaTex.bin" Condition="Exists('Resources/SMAA_AreaTex.bin')">
+			<LogicalName>ASE.Resources.SMAA_AreaTex.bin</LogicalName>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Resources/SMAA_SearchTex.bin" Condition="Exists('Resources/SMAA_SearchTex.bin')">
+			<LogicalName>ASE.Resources.SMAA_SearchTex.bin</LogicalName>
 		</EmbeddedResource>
 
 		<!-- Moira -->

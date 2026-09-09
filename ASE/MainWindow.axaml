@@ -184,11 +184,6 @@
 						</LinearGradientBrush>
 					</Border.Background>
 					<StackPanel Orientation="Horizontal">
-						<!-- Drive A: light first, label to its right, like the HDD pair at the end
-						     of the strip. The label lives in a clipping canvas because a canvas
-						     measures its children unconstrained, so the text keeps its natural
-						     width and a name too long for the strip is scrolled by MainWindow's
-						     marquee timer (Canvas.Left) instead of being cut off. -->
 						<Image Name="DriveLedImage"
 						       Source="./Assets/drive_led_off.png"
 						       VerticalAlignment="Center"
@@ -205,12 +200,11 @@
 							           Text="A: Empty"
 							           Foreground="{DynamicResource AccentTextBrush}" />
 						</Canvas>
-						<!-- Drive B, the same pair; the 14 px opens the gap between both drives -->
 						<Image Name="DriveBLedImage"
 						       Source="./Assets/drive_led_off.png"
 						       VerticalAlignment="Center"
 						       Height="22"
-						       Margin="14,0,0,0"
+						       Margin="14,5,0,0"
 						       IsVisible="False" />
 						<Canvas Name="DriveBLabelClip"
 						        Width="130" Height="18"

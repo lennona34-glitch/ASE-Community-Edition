@@ -9,18 +9,13 @@
         CanResize="False"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
-        Width="760" Height="720">
+        Width="960" Height="740">
 
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Header -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="24,20,24,16" ColumnSpacing="14">
-            <Border Width="44" Height="44"
-                    CornerRadius="10"
-                    Background="{DynamicResource AccentSoftBrush}"
-                    BorderBrush="{DynamicResource CardBorderBrush}"
-                    BorderThickness="1"
-                    VerticalAlignment="Center">
+            <Border Classes="dialogHeaderIcon">
                 <Svg Path="avares://ASE/Assets/Icons/gear.svg"
                      Width="22" Height="22"
                      HorizontalAlignment="Center"
@@ -30,23 +25,26 @@
             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                 <TextBlock Classes="windowTitle" Text="Configuration" />
                 <TextBlock Classes="description"
-                           Text="Machine, display, input and storage settings" />
+                           Text="Configure the machine, display, input, storage and MIDI" />
             </StackPanel>
         </Grid>
 
         <!-- Main content -->
-        <TabControl Grid.Row="1" Margin="24,0,24,0">
+        <TabControl Grid.Row="1"
+                    Classes="settingsNavigation"
+                    TabStripPlacement="Left"
+                    Margin="24,0,24,0">
             
             <!-- SETUP -->
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Svg Path="avares://ASE/Assets/Icons/gear.svg" Width="18" Height="18" Margin="0,2,0,0" VerticalAlignment="Center" />
-                        <TextBlock Text="Setup" VerticalAlignment="Center" />
+                        <TextBlock Text="Machine" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
 
-                    <StackPanel Margin="0,16,0,8" Spacing="12">
+                    <StackPanel Classes="settingsContent" Spacing="12">
                         <Border Classes="card">
                             <StackPanel Spacing="16">
                                 <StackPanel Spacing="3">
@@ -113,16 +111,12 @@
                     </StackPanel>
                 </TabItem.Header>
 
-                <StackPanel Margin="0,16,0,8" Spacing="0">
+                <StackPanel Classes="settingsContent" Spacing="0">
 
                     <!-- Monitor mode is always visible. In monochrome high resolution the colour
                          CRT shader and border controls below are bypassed. -->
                     <Border Classes="card">
                         <StackPanel Spacing="11">
-                            <StackPanel Spacing="2">
-                                <TextBlock Classes="section" Text="Monitor" />
-
-                            </StackPanel>
 
                             <!-- Two selectable cards rather than a switch: both monitors are
                                  valid hardware, so neither may look like the "off" position. -->
@@ -159,6 +153,7 @@
                                     </StackPanel>
                                 </RadioButton>
                             </Grid>
+
                         </StackPanel>
                     </Border>
 
@@ -191,7 +186,7 @@
                                 <!-- Three compact columns keep every CRT control visible without scrolling. -->
                                 <Grid Name="GridEffectSliders"
                                       ColumnDefinitions="*,18,*,18,*"
-                                      RowDefinitions="Auto,Auto"
+                                      RowDefinitions="Auto,Auto,Auto"
                                       RowSpacing="7">
 
                                     <StackPanel Grid.Column="0" Grid.Row="0" Spacing="1">
@@ -259,6 +254,18 @@
                                                 Minimum="0.0" Maximum="2.0"
                                                 ValueChanged="SliderMask_OnValueChanged" />
                                     </StackPanel>
+
+                                    <!-- The mask's geometry, under its strength. -->
+                                    <StackPanel Grid.Column="4" Grid.Row="2" Spacing="1">
+                                        <TextBlock Classes="fieldLabel" Text="MASK TYPE" />
+                                        <ComboBox Name="ComboMaskType"
+                                                  HorizontalAlignment="Stretch"
+                                                  SelectionChanged="MaskType_SelectionChanged">
+                                            <ComboBoxItem>Aperture grille</ComboBoxItem>
+                                            <ComboBoxItem>Slot mask</ComboBoxItem>
+                                            <ComboBoxItem>Shadow mask</ComboBoxItem>
+                                        </ComboBox>
+                                    </StackPanel>
                                 </Grid>
 
                                 <!-- Match the same three-column geometry as the six sliders above.
@@ -297,6 +304,195 @@
                 </StackPanel>
             </TabItem>
 
+            <!-- PICTURE: the filters and corrections between the machine and the screen, and
+                 the ready-made looks that set them all at once. They left the Video tab so
+                 that tab keeps to the monitor and the CRT effects, and so that a newcomer
+                 finds one control — the preset — before six. -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Svg Path="avares://ASE/Assets/Icons/image.svg" Width="18" Height="18" Margin="0,2,0,0" VerticalAlignment="Center" />
+                        <TextBlock Text="Picture" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+
+                <StackPanel Classes="settingsContent" Spacing="12">
+
+                    <Border Classes="card">
+                        <StackPanel Spacing="10">
+                            <StackPanel Spacing="3">
+                                <TextBlock Classes="section" Text="Look" />
+                                <TextBlock Classes="description"
+                                           Text="Pick a ready-made look, or set the options below yourself. The moment you change one, the preset reads Custom." />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="160,*" ColumnSpacing="18">
+                                <TextBlock Grid.Column="0" Classes="fieldLabel" VerticalAlignment="Center" Text="PRESET" />
+                                <ComboBox Grid.Column="1"
+                                          Name="ComboPicturePreset"
+                                          HorizontalAlignment="Stretch"
+                                          SelectionChanged="PicturePreset_SelectionChanged">
+                                    <ComboBoxItem>Atari monitor</ComboBoxItem>
+                                    <ComboBoxItem>Home TV</ComboBoxItem>
+                                    <ComboBoxItem>Pixel perfect</ComboBoxItem>
+                                    <ComboBoxItem>Enhanced</ComboBoxItem>
+                                    <ComboBoxItem>Custom</ComboBoxItem>
+                                </ComboBox>
+                            </Grid>
+
+                            <TextBlock Name="TextPresetDescription" Classes="description" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- The options, in the order the picture goes through them. -->
+                    <Border Classes="card">
+                        <StackPanel Spacing="10">
+                            <StackPanel Spacing="3">
+                                <TextBlock Classes="section" Text="Picture options" />
+                                <TextBlock Classes="description"
+                                           Text="Applied in this order, each independent of the rest, and all off by default. The CRT effects themselves are on the Video tab." />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="160,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="12">
+
+                                <TextBlock Grid.Column="0" Grid.Row="0" Classes="fieldLabel" VerticalAlignment="Center" Text="VIDEO SIGNAL" />
+                                <ComboBox Grid.Column="1" Grid.Row="0" Name="ComboVideoSignal" HorizontalAlignment="Stretch"
+                                          SelectionChanged="VideoSignal_SelectionChanged">
+                                    <ComboBoxItem>RGB monitor</ComboBoxItem>
+                                    <ComboBoxItem>Composite television</ComboBoxItem>
+                                    <ComboBoxItem>RF (aerial television)</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="2" Grid.Row="0" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="What the ST is connected to. RGB shows the machine's signal almost directly. Composite combines luminance and colour into a single signal, which the television has to separate again; this softens fine detail, smears colour and can produce artefacts in dithered areas. RF sends that signal through a modulator and the television's tuner, so the picture is usually softer still and the artefacts more visible. Each signal type can be adjusted in the configuration file with three parameters: LumaSoftness, ChromaRadius and Artefacts. The manual includes examples." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="With a television signal the colour is already blended, so Colorize dithering and Edge smoothing have nothing left to work on and are bypassed. Anti-aliasing still applies." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="Cheap: one pass at the emulated resolution." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+
+                                <TextBlock Grid.Column="0" Grid.Row="1" Classes="fieldLabel" VerticalAlignment="Center" Text="COLORIZE DITHERING" />
+                                <CheckBox Grid.Column="1" Grid.Row="1" Name="chkColorizeDithering" VerticalAlignment="Center"
+                                          IsCheckedChanged="ChkColorizeDithering_OnIsCheckedChanged">
+                                    Blend dithering patterns into real colours and gradients
+                                </CheckBox>
+                                <Button Grid.Column="2" Grid.Row="1" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="The ST puts 16 colours on screen out of 512 or 4096, so gradients and polygon shading are drawn as two-colour patterns. This paints the tone each pattern stood for as a real RGB colour, outside the ST palette, the tone a CRT of the day merged it into." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="A second stage then merges the bands of a dithered gradient into a continuous ramp, so a sky drawn in two colours comes out with hundreds. Text, sprite outlines and edges are left as the ST drew them." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="By far the most demanding thing ASE draws: leave it off on a Raspberry Pi or a similar single-board computer." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+
+                                <TextBlock Grid.Column="0" Grid.Row="2" Classes="fieldLabel" VerticalAlignment="Center" Text="EDGE SMOOTHING" />
+                                <ComboBox Grid.Column="1" Grid.Row="2" Name="ComboEdgeSmoothing" HorizontalAlignment="Stretch"
+                                          SelectionChanged="EdgeSmoothing_SelectionChanged">
+                                    <ComboBoxItem>Off</ComboBoxItem>
+                                    <ComboBoxItem>SuperEagle</ComboBoxItem>
+                                    <ComboBoxItem>xBR</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="2" Grid.Row="2" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="Redraws the picture at twice the resolution with the shape of every edge read from its neighbourhood, so diagonals and curves stop being staircases. SuperEagle is the filter MAME and the libretro front-ends have shipped for years; xBR (Hyllian) measures the edge direction more carefully and handles curves better, usually the one to pick." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="Flat areas and straight edges are left exactly as the ST drew them. Applied after the dithering colorization, so the two can be used together." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="Demanding: the pass covers four times the pixels of the emulated screen." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+
+                                <TextBlock Grid.Column="0" Grid.Row="3" Classes="fieldLabel" VerticalAlignment="Center" Text="ANTI-ALIASING" />
+                                <ComboBox Grid.Column="1" Grid.Row="3" Name="ComboAntiAliasing" HorizontalAlignment="Stretch"
+                                          SelectionChanged="AntiAliasing_SelectionChanged">
+                                    <ComboBoxItem>Off</ComboBoxItem>
+                                    <ComboBoxItem>FXAA</ComboBoxItem>
+                                    <ComboBoxItem>SMAA</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="2" Grid.Row="3" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="Smooths the staircase edges of lines and polygons what 3D games draw, by blending along every edge it finds, the way a game's own anti-aliasing option does. FXAA (NVIDIA) is the quick one: soft, and it also softens text and dithering a little. SMAA (Jimenez et al.) reconstructs the shape of each edge before blending, so lines come out cleaner and flat detail stays closer to the original." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="Applied after the two options above, so all three can be combined freely. There is no geometry left for MSAA or SSAA to work on: the ST drew the pixels itself." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="Moderate cost: one pass for FXAA, three for SMAA." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+
+                                <TextBlock Grid.Column="0" Grid.Row="4" Classes="fieldLabel" VerticalAlignment="Center" Text="SCALING" />
+                                <ComboBox Grid.Column="1" Grid.Row="4" Name="ComboScaling" HorizontalAlignment="Stretch"
+                                          SelectionChanged="Scaling_SelectionChanged">
+                                    <ComboBoxItem>Smooth</ComboBoxItem>
+                                    <ComboBoxItem>Sharp</ComboBoxItem>
+                                    <ComboBoxItem>Integer (sharp, whole pixels per line)</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="2" Grid.Row="4" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="How the picture is stretched to the window. Smooth is the bilinear filter ASE always used: soft at any scale. Sharp keeps every pixel crisp whatever the window size, blending only the single screen pixel where two ST pixels meet, so there is no shimmer either. Integer goes one step further and letterboxes the picture so that each ST line is a whole number of screen pixels." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="Sharp only shows where the window gives the picture more than one screen pixel per ST pixel. Across, that takes full screen or a large window; down, most windows have the room, so look at the top and bottom edges of things first." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="Free: it only changes how the final pass samples." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+
+                                <TextBlock Grid.Column="0" Grid.Row="5" Classes="fieldLabel" VerticalAlignment="Center" Text="PERSISTENCE" />
+                                <Grid Grid.Column="1" Grid.Row="5" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <Slider Grid.Column="0" x:Name="SliderPersistence" VerticalAlignment="Center"
+                                            Minimum="0" Maximum="50" TickFrequency="5" IsSnapToTickEnabled="True"
+                                            ValueChanged="SliderPersistence_OnValueChanged" />
+                                    <TextBlock Grid.Column="1" Classes="valueBadge" VerticalAlignment="Center"
+                                               Text="{Binding #SliderPersistence.Value, StringFormat={}{0:0}%}" />
+                                </Grid>
+                                <Button Grid.Column="2" Grid.Row="5" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="Blends each frame with the previous one, as the glow of a CRT's phosphor did. Many ST pictures and demos alternate two frames at 50 Hz to show more colours than the palette allows, and some games draw a sprite every other frame to make it translucent: on a flat screen those flicker, with persistence they show as the steady mix they were designed as. 50% is a straight average of the two frames." />
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Opacity="0.75"
+                                                       Text="Anything above 0 leaves a short trail behind whatever moves; 20-30% is a good compromise for a general TV look, 50% for flicker pictures." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+                            </Grid>
+
+                            <TextBlock Name="TextSignalHint" Classes="description" TextWrapping="Wrap" IsVisible="False"
+                                       Text="With a television signal the colour is already blended by the set, so Colorize dithering and Edge smoothing have nothing to work on and are bypassed." />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
             <!-- INPUT -->
             <TabItem>
                 <TabItem.Header>
@@ -306,7 +502,7 @@
                     </StackPanel>
                 </TabItem.Header>
 
-                    <StackPanel Margin="0,16,0,8" Spacing="12">
+                    <StackPanel Classes="settingsContent" Spacing="12">
                         <Border Classes="card">
                             <StackPanel Spacing="12">
                                 <StackPanel Spacing="3">
@@ -452,11 +648,11 @@
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Svg Path="avares://ASE/Assets/Icons/hdd.svg" Width="18" Height="18" Margin="0,2,0,0" VerticalAlignment="Center" />
-                        <TextBlock Text="Hard disk" VerticalAlignment="Center" />
+                        <TextBlock Text="Storage" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
 
-                <StackPanel Margin="0,16,0,8" Spacing="12">
+                <StackPanel Classes="settingsContent" Spacing="12">
                     <Border Classes="card">
                         <StackPanel Spacing="16">
 
@@ -508,12 +704,12 @@
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Svg Path="avares://ASE/Assets/Icons/folder.svg" Width="18" Height="18" Margin="0,2,0,0" VerticalAlignment="Center" />
-                        <TextBlock Text="Directories" VerticalAlignment="Center" />
+                        <TextBlock Text="Folders" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
 
 
-                    <StackPanel Margin="0,16,0,8">
+                    <StackPanel Classes="settingsContent">
                         <Border Classes="card">
                             <StackPanel Spacing="15">
                                 <StackPanel Spacing="3">
@@ -566,7 +762,7 @@
                     </StackPanel>
                 </TabItem.Header>
 
-                <StackPanel Margin="0,16,0,8" Spacing="12">
+                <StackPanel Classes="settingsContent" Spacing="12">
                     <Border Classes="card">
                         <StackPanel Spacing="12">
                             <StackPanel Grid.Column="0" Spacing="3">
@@ -657,11 +853,9 @@
 
         <!-- Footer -->
         <Border Grid.Row="2"
+                Classes="dialogFooter"
                 Margin="0,12,0,0"
-                Padding="24,14"
-                Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="{DynamicResource CardBorderBrush}"
-                BorderThickness="0,1,0,0">
+                Padding="24,14">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
                 <Button Content="Cancel"
                         HorizontalContentAlignment="Center"

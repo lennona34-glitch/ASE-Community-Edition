@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -9,8 +9,9 @@ namespace ASE;
 
 /// <summary>
 /// Announces a newer GitHub release and lets the user go and get it or carry on with the
-/// version at hand. Shown once per launch from <see cref="MainWindow.OnOpened"/> — the check
-/// itself runs in Program.Main, where Avalonia is not up yet and only the console was available.
+/// version at hand. Shown once per launch from <see cref="MainWindow.OnOpened"/>, which waits
+/// for the check to answer — that runs in the background, started in Program.Main, so a slow
+/// GitHub delays this notice and nothing else.
 /// </summary>
 public partial class UpdateWindow : Window
 {

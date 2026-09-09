@@ -51,6 +51,56 @@ namespace ASE
             {
                 None, System, BuiltInMT32
             }
+
+            /// <summary>
+            /// Image-space anti-aliasing applied as the last pass of the video chain. Only the
+            /// post-process kinds make sense here: the ST draws its 3D games into the framebuffer
+            /// itself, so there is no geometry to multisample (MSAA), no sub-pixel jitter to
+            /// accumulate (TAA) and no higher-resolution scene to downsample (SSAA).
+            /// </summary>
+            public enum AntiAliasingModes
+            {
+                None = 0,   // off
+                FXAA = 1,   // NVIDIA FXAA 3.11: one pass, soft, cheapest
+                SMAA = 2    // SMAA 1x (Jimenez et al.): three passes, sharper edge reconstruction
+            }
+
+            /// <summary>What the machine's video output is plugged into: the RGB monitor (the
+            /// picture as the ST drew it), or a television through a composite lead or the
+            /// aerial socket, whose single-wire signal smears the colour and adds the artefacts
+            /// of the day. Emulated as the first pass of the video chain.</summary>
+            public enum VideoSignals
+            {
+                RGB = 0,
+                Composite = 1,
+                RF = 2
+            }
+
+            /// <summary>The 2x edge-smoothing filter (formerly the "smooth borders" switch):
+            /// SuperEagle (the 2xSaI family) or xBR (Hyllian's, better on curves).</summary>
+            public enum EdgeSmoothings
+            {
+                None = 0,
+                SuperEagle = 1,
+                XBR = 2
+            }
+
+            /// <summary>How the picture is scaled to the window: bilinear (soft), sharp-bilinear
+            /// (crisp pixels at any scale), or sharp at a whole number of pixels per ST line.</summary>
+            public enum ScalingModes
+            {
+                Smooth = 0,
+                Sharp = 1,
+                Integer = 2
+            }
+
+            /// <summary>Geometry of the CRT shader's phosphor mask.</summary>
+            public enum MaskTypes
+            {
+                Aperture = 0,
+                Slot = 1,
+                Shadow = 2
+            }
             
             /// <summary>
             /// Console debug verbosity. Each level is a superset of the previous one.
@@ -194,6 +244,94 @@ namespace ASE
             // so switching it back off restores the previous look.
             public bool DisableCrtEffects { get; set; } = false;
 
+            // Turns dithering patterns into the intermediate colour they stood for. The ST has
+            // 512 colours (4096 on an STE) and 16 on screen, so gradients and polygon shading are
+            // drawn as two-colour patterns that a CRT's limited bandwidth blurred into a single
+            // tone; on a sharp LCD they stay as visible chequerboards. Two post-render passes
+            // detect those patterns and replace them with a real RGB average, and then merge the
+            // bands of a dithered gradient into a continuous ramp — see the dithering and
+            // gradient shaders in GLControl. Independent of DisableCrtEffects: it is image
+            // correction, not a CRT effect, so it also applies to the plain blit and to high
+            // resolution. Off by default, and deliberately: it costs far more GPU than everything
+            // else the emulator draws, which is more than a Raspberry Pi or a similar
+            // single-board machine has to spare.
+            public bool ColorizeDithering { get; set; } = false;
+
+            // Edge smoothing: a 2x pass over the emulator's framebuffer that reads the shape of
+            // every edge from its neighbourhood and rebuilds it with intermediate tones, so a
+            // diagonal or a curve stops being a staircase — SuperEagle (Kreed's 2xSaI family, the
+            // filter MAME and the libretro front-ends ship) or xBR (Hyllian's, better on curves).
+            // Independent of DisableCrtEffects for the same reason as ColorizeDithering — it
+            // corrects the picture rather than dressing it up — and it runs *after* the
+            // colorization chain, which needs the raw pattern of texels to detect anything. Off
+            // by default: the pass renders four times as many texels as everything before it.
+            [JsonConverter(typeof(EnumNameJsonConverter<EdgeSmoothings>))]
+            public EdgeSmoothings EdgeSmoothing { get; set; } = EdgeSmoothings.None;
+
+            // The video signal (see VideoSignals): RGB by default, i.e. the picture as drawn.
+            // A composite or RF signal is emulated as the first pass of the chain and bypasses
+            // the two pattern-based corrections above, which it leaves nothing to detect.
+            [JsonConverter(typeof(EnumNameJsonConverter<VideoSignals>))]
+            public VideoSignals VideoSignal { get; set; } = VideoSignals.RGB;
+
+            // Scaling to the window (see ScalingModes). Smooth is the bilinear filter the
+            // picture always had; Sharp keeps every pixel crisp whatever the scale; Integer adds
+            // a letterbox so each ST line is a whole number of screen pixels.
+            [JsonConverter(typeof(EnumNameJsonConverter<ScalingModes>))]
+            public ScalingModes Scaling { get; set; } = ScalingModes.Smooth;
+
+            // Phosphor persistence, percent (0-50): how much of the previous frame is blended
+            // into each frame. 50 is a straight average of the two, which is what shows the
+            // ST's 50 Hz flicker tricks (two-palette pictures, alternate-frame sprites) as the
+            // steady mix a CRT made of them; anything above 0 leaves a trail behind motion.
+            public int Persistence { get; set; } = 0;
+
+            // Geometry of the CRT shader's phosphor mask (see MaskTypes). Shadow is the look the
+            // Mask slider always had.
+            [JsonConverter(typeof(EnumNameJsonConverter<MaskTypes>))]
+            public MaskTypes MaskType { get; set; } = MaskTypes.Shadow;
+
+            // Anti-aliasing for the staircase edges of lines and polygons — what the 3D games
+            // draw — as a post-process over the picture, FXAA or SMAA (see AntiAliasingModes).
+            // The third correction next to ColorizeDithering and EdgeSmoothing, independent of
+            // both and of DisableCrtEffects for the same reason, and applied after them: the two
+            // detect their patterns by comparing texels for equality, which a filter that blends
+            // colours along every edge would defeat. Off by default like its neighbours: it
+            // softens what it touches, and a pixel-art title may be better without it.
+            [JsonConverter(typeof(EnumNameJsonConverter<AntiAliasingModes>))]
+            public AntiAliasingModes AntiAliasing { get; set; } = AntiAliasingModes.None;
+
+            // The two knobs of those filters, for the config file only (no control in the
+            // window: they are for the experienced user, and the defaults suit the ST's
+            // pictures). FxaaSubpix is FXAA's sub-pixel low-pass, 0..1 — the term that also
+            // softens text and dithering, which is why the default sits under the 0.75 of the
+            // original; 0 leaves only the edge reconstruction. SmaaThreshold is the contrast
+            // an edge needs to be one, 0.01..0.5 — 0.1 is the reference's HIGH preset, lower
+            // catches the subtler edges colorize dithering produces, higher leaves more alone.
+            // Both are clamped on the way to the GPU (GLControl), so a typo cannot break the
+            // picture, and read per pass, so an edit to the running config applies at once.
+            public float FxaaSubpix { get; set; } = 0.5f;
+            public float SmaaThreshold { get; set; } = 0.1f;
+
+            // The video signal's knobs, config file only like the two above. Each signal has
+            // three, and they are the whole of what tells composite from RF — the two share the
+            // model and differ only in how far each is turned up. Chroma radius: the half-width,
+            // in texels, of the window the colour is decoded under, 2..8; wider smears the colour
+            // further sideways. Luma softness, 0..1: the width of the gaussian the brightness is
+            // filtered with, a quarter texel at 0 (as sharp as the wire carries: a low-res pixel
+            // comes through whole) to a texel and a half at 1 (the luma of a poor tuner).
+            // Artefacts, 0..1: how much of the crosstalk between the two the
+            // decoder lets through — the rainbow shimmer on dithering, the crawling dots, the
+            // coloured fringes on white text. At 0 the picture keeps a television's bandwidth and
+            // none of its mistakes; it is the dial to turn down when the effect is too much, and
+            // the only one that leaves the sharpness alone.
+            public float CompositeChromaRadius { get; set; } = 4f;
+            public float CompositeLumaSoftness { get; set; } = 0.15f;
+            public float CompositeArtefacts { get; set; } = 0.25f;
+            public float RfChromaRadius { get; set; } = 8f;
+            public float RfLumaSoftness { get; set; } = 0.5f;
+            public float RfArtefacts { get; set; } = 0.7f;
+
             public float Curvature { get; set; } = 0.01f;
             public float Vignette { get; set; } = 0.18f;
             public float Scanline { get; set; } = 1.0f;
@@ -314,6 +452,48 @@ namespace ASE
             }
         }
 
+        /// <summary>
+        /// Serializes an enum option as its name ("FXAA", "Composite"…), read back
+        /// case-insensitively, and also accepts the number for a config edited by hand. Anything
+        /// unrecognised reads as the enum's default (0) rather than failing the whole file.
+        /// </summary>
+        public class EnumNameJsonConverter<T> : JsonConverter<T> where T : struct, Enum
+        {
+            public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.Number:
+                        int n = reader.GetInt32();
+                        return Enum.IsDefined(typeof(T), n) ? (T)Enum.ToObject(typeof(T), n) : default;
+                    case JsonTokenType.String:
+                        return TryParseOption(reader.GetString(), out T v) ? v : default;
+                    default:
+                        return default;
+                }
+            }
+
+            public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+            {
+                writer.WriteStringValue(value.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Reads an enum option from the command line or the config file: the enum's names,
+        /// case-insensitively, plus the friendlier spellings in <paramref name="aliases"/>.
+        /// </summary>
+        public static bool TryParseOption<T>(string value, out T mode, params (string alias, T value)[] aliases) where T : struct, Enum
+        {
+            string v = (value ?? "").Trim();
+            foreach (var (alias, target) in aliases)
+                if (string.Equals(alias, v, StringComparison.OrdinalIgnoreCase)) { mode = target; return true; }
+            if (Enum.TryParse(v, true, out mode) && Enum.IsDefined(typeof(T), mode))
+                return true;
+            mode = default;
+            return false;
+        }
+
         public static string Version = "";
 
         // Snapshot to restore on the first power-on (--snapshot=<path>). Launch-only
@@ -335,7 +515,7 @@ namespace ASE
             Version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
             Version = Regex.Replace(Version, @"^(\d+\.\d+).*", "$1");
 
-            ColoredConsole.WriteLine($"[[white]]ATARI SYSTEM EMULATOR[[/white]] v{Version} - The Bit Culture {DateTime.Now.Year}");
+            ColoredConsole.WriteLine($"{Environment.NewLine}[[white]]ATARI SYSTEM EMULATOR[[/white]] v{Version} - The Bit Culture {DateTime.Now.Year}");
             ColoredConsole.WriteLine("👉 [[magenta]]https://github.com/thebitculture/ase[[/magenta]]");
             ColoredConsole.WriteLine("👉 [[magenta]]https://youtube.com/@thebitculture?si=2s4M5Iu4QbIdq_hn[[/magenta]]" + Environment.NewLine);
 
@@ -392,6 +572,12 @@ namespace ASE
 
                             FrameProfiler.Configure(every);
                         }
+                        break;
+                    case "--console":
+                        // Consumed by ConsoleHost before this parser exists (the emulator is a
+                        // windowed program on Windows and has to find somewhere to log *first*).
+                        // It is listed here so it does not read as an unknown option, and in the
+                        // help below so it can be found at all.
                         break;
                     case "--floppy":
                         if (parts.Length > 1)
@@ -478,6 +664,54 @@ namespace ASE
                         ConfigOptions.RunninConfig.DisableCrtEffects =
                             parts.Length < 2 || !bool.TryParse(parts[1], out bool _nfx) || _nfx;
                         break;
+                    case "--colorize-dither":
+                        ConfigOptions.RunninConfig.ColorizeDithering =
+                            parts.Length < 2 || !bool.TryParse(parts[1], out bool _cdt) || _cdt;
+                        break;
+                    case "--edge-smoothing":
+                        if (parts.Length > 1 && TryParseOption(parts[1], out ConfigOptions.EdgeSmoothings _es,
+                                ("none", ConfigOptions.EdgeSmoothings.None), ("off", ConfigOptions.EdgeSmoothings.None),
+                                ("eagle", ConfigOptions.EdgeSmoothings.SuperEagle), ("supereagle", ConfigOptions.EdgeSmoothings.SuperEagle),
+                                ("xbr", ConfigOptions.EdgeSmoothings.XBR)))
+                            ConfigOptions.RunninConfig.EdgeSmoothing = _es;
+                        else
+                            ColoredConsole.WriteLine($"Invalid edge smoothing [[red]]{(parts.Length > 1 ? parts[1] : "")}[[/red]]. Use none|eagle|xbr.");
+                        break;
+                    case "--video-signal":
+                        if (parts.Length > 1 && TryParseOption(parts[1], out ConfigOptions.VideoSignals _vs,
+                                ("rgb", ConfigOptions.VideoSignals.RGB), ("monitor", ConfigOptions.VideoSignals.RGB),
+                                ("composite", ConfigOptions.VideoSignals.Composite), ("composite", ConfigOptions.VideoSignals.Composite),
+                                ("rf", ConfigOptions.VideoSignals.RF), ("aerial", ConfigOptions.VideoSignals.RF), ("antenna", ConfigOptions.VideoSignals.RF)))
+                            ConfigOptions.RunninConfig.VideoSignal = _vs;
+                        else
+                            ColoredConsole.WriteLine($"Invalid video signal [[red]]{(parts.Length > 1 ? parts[1] : "")}[[/red]]. Use rgb|composite|rf.");
+                        break;
+                    case "--scaling":
+                        if (parts.Length > 1 && TryParseOption(parts[1], out ConfigOptions.ScalingModes _sc,
+                                ("smooth", ConfigOptions.ScalingModes.Smooth), ("bilinear", ConfigOptions.ScalingModes.Smooth),
+                                ("sharp", ConfigOptions.ScalingModes.Sharp), ("integer", ConfigOptions.ScalingModes.Integer), ("int", ConfigOptions.ScalingModes.Integer)))
+                            ConfigOptions.RunninConfig.Scaling = _sc;
+                        else
+                            ColoredConsole.WriteLine($"Invalid scaling [[red]]{(parts.Length > 1 ? parts[1] : "")}[[/red]]. Use smooth|sharp|integer.");
+                        break;
+                    case "--persistence":
+                        if (parts.Length > 1 && int.TryParse(parts[1], out int _pp))
+                            ConfigOptions.RunninConfig.Persistence = Math.Clamp(_pp, 0, 50);
+                        else
+                            ColoredConsole.WriteLine($"Invalid persistence [[red]]{(parts.Length > 1 ? parts[1] : "")}[[/red]]. Use a percentage, 0-50.");
+                        break;
+                    case "--aa":
+                    case "--anti-aliasing":
+                        if (parts.Length > 1 && TryParseAntiAliasing(parts[1], out ConfigOptions.AntiAliasingModes _aa))
+                        {
+                            ConfigOptions.RunninConfig.AntiAliasing = _aa;
+                        }
+                        else
+                        {
+                            ColoredConsole.WriteLine($"Invalid anti-aliasing mode [[red]]{(parts.Length > 1 ? parts[1] : "")}[[/red]]. Use none|fxaa|smaa.");
+                            ColoredConsole.WriteLine("Keeping the configured mode [[cyan]]" + ConfigOptions.RunninConfig.AntiAliasing + "[[/cyan]].");
+                        }
+                        break;
                     case "--fullscreen":
                         ConfigOptions.RunninConfig.FullScreen =
                             parts.Length < 2 || !bool.TryParse(parts[1], out bool _fs) || _fs;
@@ -525,6 +759,17 @@ namespace ASE
                         break;
 
                     default:
+                        // A bare path instead of an option: that is what the shell appends when a
+                        // file is opened with ASE (the installer registers the .st/.msa/.stx/.snap
+                        // associations) and what a file dropped on the executable arrives as. Note
+                        // it takes `arg`, not `parts[0]`: the split on '=' above would cut a path
+                        // that contains one.
+                        if (!parts[0].StartsWith("-"))
+                        {
+                            OpenPathArgument(arg);
+                            break;
+                        }
+
                         // Anything unrecognized lands here as well, so name it before the list —
                         // otherwise a typo just looks like the emulator refusing to start.
                         if (parts[0].ToLower() is not ("--help" or "-h"))
@@ -534,6 +779,61 @@ namespace ASE
                         Environment.Exit(0);
                         break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Takes an argument that is a plain file path — a file opened with ASE from Explorer, or
+        /// dropped on the executable — and puts it where its extension says: a disk image into
+        /// drive A, a snapshot into the machine. An extension we do not know is reported and
+        /// otherwise ignored, deliberately: unlike a mistyped option, this arrives from a double
+        /// click, and a windowed program that exits without a word (the usage text goes to a
+        /// console that is not there) would look like a crash. Starting with an empty drive is
+        /// something the user can see and act on.
+        /// </summary>
+        static void OpenPathArgument(string path)
+        {
+            switch (Path.GetExtension(path).ToLowerInvariant())
+            {
+                // Same set the File menu opens, .zip included (the image is inside it).
+                case ".st":
+                case ".msa":
+                case ".stx":
+                case ".zip":
+                    ConfigOptions.RunninConfig.FloppyImagePath = path;
+                    break;
+
+                case ".snap":
+                    StartupSnapshot = path;
+                    break;
+
+                default:
+                    ColoredConsole.WriteLine($"Don't know what to do with [[red]]{path}[[/red]]: expected a disk image (.st, .msa, .stx, .zip) or a snapshot (.snap).");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Reads the value of <c>--anti-aliasing</c> (and the config file's string form): the
+        /// mode names, case-insensitively, plus <c>off</c> for none.
+        /// </summary>
+        public static bool TryParseAntiAliasing(string value, out ConfigOptions.AntiAliasingModes mode)
+        {
+            switch ((value ?? "").Trim().ToLower())
+            {
+                case "none":
+                case "off":
+                    mode = ConfigOptions.AntiAliasingModes.None;
+                    return true;
+                case "fxaa":
+                    mode = ConfigOptions.AntiAliasingModes.FXAA;
+                    return true;
+                case "smaa":
+                    mode = ConfigOptions.AntiAliasingModes.SMAA;
+                    return true;
+                default:
+                    mode = ConfigOptions.AntiAliasingModes.None;
+                    return false;
             }
         }
 
@@ -574,7 +874,9 @@ namespace ASE
             // Defaults are read from a fresh ConfigOptions so the help cannot drift from the code.
             var def = new ConfigOptions();
 
-            ColoredConsole.WriteLine("Usage: [[white]]ASE[[/white]] [options]");
+            ColoredConsole.WriteLine("Usage: [[white]]ASE[[/white]] [options] [<file>]");
+            ColoredConsole.WriteLine("       A file given on its own is opened by its extension: a disk image");
+            ColoredConsole.WriteLine("       (.st/.msa/.stx/.zip) goes into drive A, a .snap is restored.");
 
             HelpSection("Machine");
             HelpOption("--tos", "=<path>", "TOS ROM image (192 KB for ST/Mega, 256 KB for STE)");
@@ -597,6 +899,12 @@ namespace ASE
             HelpOption("--fullscreen", "[=true|false]", "Start in full screen (Alt+Enter toggles it)");
             HelpOption("--monochrome", "[=true|false]", "Monochrome (SM124) monitor: 640x400 high resolution");
             HelpOption("--no-effects", "[=true|false]", "Bypass the CRT shader: faster on weak GPUs");
+            HelpOption("--colorize-dither", "[=true|false]", "Blend dithering patterns into real colours and rebuild gradients (heavy on the GPU)");
+            HelpOption("--video-signal", "=<signal>", "What the ST is plugged into: rgb (monitor), composite or rf (aerial TV)");
+            HelpOption("--edge-smoothing", "=<filter>", "2x edge smoothing of diagonals and curves: none, eagle or xbr (heavy on the GPU)");
+            HelpOption("--scaling", "=<mode>", "Scaling to the window: smooth, sharp or integer");
+            HelpOption("--persistence", "=N", "Phosphor persistence: share of the previous frame blended in, 0-50 percent");
+            HelpOption("--anti-aliasing", "=<mode>", "Anti-aliasing of lines and polygon edges: none, fxaa or smaa. Also --aa");
             HelpOption("--mouse-sensitivity", "=N", $"Mouse movement divisor: higher is slower (default: {def.MouseSensitivity})");
 
             HelpSection("MIDI");
@@ -614,6 +922,7 @@ namespace ASE
             HelpSection("Diagnostics");
             HelpOption("--debug", "[=level]", "Verbosity: none|quiet|information|full (bare = full)");
             HelpOption("--profile", "[=N]", "Timing breakdown every N frames (default: 50)");
+            HelpOption("--console", "[=true|false]", "Windows: open a console window for the log (not needed when ASE is launched from one)");
             HelpOption("--help, -h", "", "Show this help message");
         }
 

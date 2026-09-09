@@ -549,14 +549,19 @@ namespace ASE
         {
             bool saw60 = false, backTo50 = false;
             byte sync = _syncAtLineStart;
-            if ((sync & 0x02) == 0) saw60 = true;
+            // A 60 Hz state carried from the previous line is not a left-border pulse.
+            // Turrican opens the bottom border late on line 262 and returns to 50 Hz
+            // at cycle 32 of line 263, before either DE-start compare. That line must
+            // fetch the normal 160 bytes. Treating the inherited state as a pulse
+            // fetched 26 extra bytes and misaligned every bitplane in the reflection.
             for (int i = 0; i < _eventCount; i++)
             {
                 if (_events[i].IsRes) continue;
                 if (_events[i].Cycle >= DE_START_50) break;
-                sync = _events[i].Val;
-                if ((sync & 0x02) == 0) saw60 = true;
-                else if (saw60) backTo50 = true;
+                byte nextSync = _events[i].Val;
+                if ((sync & 0x02) != 0 && (nextSync & 0x02) == 0) saw60 = true;
+                else if ((nextSync & 0x02) != 0 && saw60) backTo50 = true;
+                sync = nextSync;
             }
             return saw60 && backTo50;
         }

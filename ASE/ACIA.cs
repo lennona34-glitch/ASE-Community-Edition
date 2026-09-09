@@ -71,6 +71,11 @@ namespace ASE
 
         // for the mouse -> bit 0 = No button, 1 = right, 2 = left
         public static int _mouseButtons = 0;
+        // Physical host buttons, before ORing in the joystick-1 trigger. Keeping the
+        // sources apart prevents releasing one from releasing the other held source.
+        private static int _hostMouseButtons;
+        private static byte Joystick0Report => !MouseEnabled && (_hostMouseButtons & 2) != 0 ? JOY_FIRE : (byte)0;
+        private static byte Joystick1Report => (byte)(JoystickState | ((_hostMouseButtons & 1) != 0 ? JOY_FIRE : 0));
 
         // *** Mouse reporting mode ***
         // The IKBD reports the mouse in one of three ways, and a program picks with $08/$09/$0A.
@@ -232,6 +237,7 @@ namespace ASE
                 IkbdRxCont.Clear();
                 _commandBuffer.Clear();
                 _mouseButtons = 0;
+                _hostMouseButtons = 0;
                 MouseMode = MouseReportModes.Relative;
                 _absX = _absY = 0;
                 _absMaxX = 640; _absMaxY = 400;
@@ -296,6 +302,7 @@ namespace ASE
                 w.I32(_absYAxis);
                 w.U8(_prevAbsButtons);
                 w.U8(_mouseAction);
+                w.U8((byte)_hostMouseButtons);
             }
         }
 
@@ -361,7 +368,22 @@ namespace ASE
                     if (_absMaxY < 1) _absMaxY = 1;
                     ClampAbsPosition();
                 }
+                // Older snapshots only stored the merged buttons. Preserve the left
+                // button and attribute a shared right press to the saved joystick first.
+                _hostMouseButtons = r.Remaining > 0 ? r.U8() & 3
+                    : _mouseButtons & ((JoystickState & JOY_FIRE) != 0 ? 2 : 3);
+                UpdateKeyboardIrq();
             }
+        }
+
+        private static bool RxIrqEnabled => (AciaKbdControl & 0x80) != 0 && (AciaKbdControl & 3) != 3;
+
+        private static void UpdateKeyboardIrq()
+        {
+            bool irq = _hasLatchedData && RxIrqEnabled;
+            if (irq) AciaKbdStatus |= ACIA_IRQ;
+            else AciaKbdStatus &= unchecked((byte)~ACIA_IRQ);
+            AciaIrqLine.SetKeyboard(irq);
         }
 
         public static void Sync(int cycles)
@@ -387,10 +409,8 @@ namespace ASE
                     {
                         _monitoringCountdown += _monitoringPeriodCycles;
 
-                        // Joy 0 mirrors the emulated stick, same as the $16 interrogation
-                        // reply, so port-0 and port-1 readers both work with a single stick.
-                        byte fires = (byte)(((JoystickState & JOY_FIRE) >> 6) | ((JoystickState & JOY_FIRE) >> 7));
-                        byte dirs = (byte)(((JoystickState & 0x0F) << 4) | (JoystickState & 0x0F));
+                        byte fires = (byte)(((Joystick0Report & JOY_FIRE) >> 6) | ((Joystick1Report & JOY_FIRE) >> 7));
+                        byte dirs = (byte)(((Joystick0Report & 0x0F) << 4) | (Joystick1Report & 0x0F));
                         PushIkbdPacket(fires, dirs);
                     }
                 }
@@ -431,7 +451,7 @@ namespace ASE
                     // The bug showed up on a monochrome monitor because Sync() runs once per
                     // scanline -- every 224 cycles instead of the 512 of a colour line -- which
                     // made landing inside that window the common case rather than a rare one.
-                    if (_cyclesSinceLatch >= CYCLES_PER_BYTE
+                    if (RxIrqEnabled && _cyclesSinceLatch >= CYCLES_PER_BYTE
                         && (ASEMain._mfp.IPRB & MFP68901.RegB.ACIA) == 0
                         && (ASEMain._mfp.ISRB & MFP68901.RegB.ACIA) == 0)
                     {
@@ -439,9 +459,12 @@ namespace ASE
                         _irqReasserted = true;
                     }
 
+                    // Same whole-byte arming as the delivery path below: the byte that will be
+                    // lost to the overrun still has to be clocked down the line first, so the
+                    // program keeps the full byte time to read the one it is holding.
                     if (IkbdRx.Count == 0)
                     {
-                        _cyclesUntilNextByte = 0;
+                        _cyclesUntilNextByte = CYCLES_PER_BYTE;
                         return;
                     }
 
@@ -466,11 +489,32 @@ namespace ASE
                     return;
                 }
 
-                // If there's nothing in the queue, reset the counter so that the
-                // next incoming byte is instantaneous (start bit).
+                // Nothing queued: arm the counter with a WHOLE byte time, so the next byte the
+                // IKBD produces still has to be clocked down the serial line before the CPU can
+                // see it. It must NOT be delivered instantly (which is what a 0 here did): the
+                // link runs at 7812.5 baud and ten bits take 1.28 ms — 10240 cycles, about 20
+                // scanlines — so on real hardware a key or joystick change can never reach
+                // $FFFC02 in the same instruction the IKBD noticed it.
+                //
+                // That delay is not cosmetic, it is what keeps the keyboard interrupt from
+                // landing in lockstep with the VBL. The emulation thread sleeps at the end of
+                // each frame to pace it, every host event the UI thread pumped during that sleep
+                // is drained by the FIRST DrainSdlEvents of the next frame, and ASEMain raises
+                // the VBL just before that — so with instant delivery the byte was latched at
+                // the end of scanline 0, microseconds after the CPU had entered the VBL handler,
+                // every single time. A real IKBD has its own crystal and no such phase.
+                //
+                // What that phase does to software: a keyboard ISR runs at IPL 6 whatever it
+                // interrupted, but its RTE restores the SR of the interrupted context. Code
+                // reached from such an ISR — directly, or because the ISR rewrote the return PC
+                // in its own frame, a common way to abort a title sequence — therefore inherits
+                // the IPL of whatever was running. Landing inside the VBL handler leaves it at
+                // IPL 4, where the VBL is masked by its own level, so any wait on a VBL-driven
+                // counter from there never ends. On hardware that is a race the software wins
+                // almost always; locked to the frame it became a certainty.
                 if (IkbdRx.Count == 0)
                 {
-                    _cyclesUntilNextByte = 0;
+                    _cyclesUntilNextByte = CYCLES_PER_BYTE;
                     return;
                 }
 
@@ -485,10 +529,10 @@ namespace ASE
                     _irqReasserted = false;
 
                     // activate flags
-                    AciaKbdStatus |= (ACIA_RDRF | ACIA_IRQ);
+                    AciaKbdStatus |= ACIA_RDRF;
 
                     // and assert the shared ACIA /IRQ line (GPIP4)
-                    AciaIrqLine.SetKeyboard(true);
+                    UpdateKeyboardIrq();
 
                     if (ConfigOptions.RunninConfig.DebugMode >= ConfigOptions.DebugModes.Full)
                         ColoredConsole.WriteLine(
@@ -535,6 +579,7 @@ namespace ASE
                 {
                     ColoredConsole.WriteLine($"[[cyan]]ACIA[[/cyan]] control = [[yellow]]${v:X2}[[/yellow]] (RX irq {((v & 0x80) != 0 ? "on" : "off")})");
                 }
+                UpdateKeyboardIrq();
             }
         }
 
@@ -647,13 +692,21 @@ namespace ASE
                     {
                         IkbdRx.Clear();
                         IkbdRxCont.Clear();
-                        JoystickState = 0;
+                        MouseMode = MouseReportModes.Relative;
+                        _absX = _absY = 0;
+                        _absMaxX = 640; _absMaxY = 400;
+                        _absYAxis = 1;
+                        _prevAbsButtons = ABS_PREV_BUTTONS_RESET;
+                        _mouseAction = 0;
+                        _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
                         _mouseAccumX = _mouseAccumY = 0;
 
                         _hasLatchedData = false;
                         _cyclesUntilNextByte = 0;
 
                         AciaKbdStatus &= unchecked((byte)~(ACIA_RDRF | ACIA_IRQ));
+                        _cyclesSinceLatch = 0;
+                        _irqReasserted = false;
                         AciaIrqLine.SetKeyboard(false);
 
                         // After reset, both mouse and joystick are active
@@ -762,14 +815,9 @@ namespace ASE
                     break;
 
                 case 0x16: // JOYSTICK INTERROGATE
-                    // Joy 0 shares the mouse port: when a mouse is plugged in
-                    // its directions read as 0. If the game disabled the mouse,
-                    // it's likely using port 0 as a joystick, so we mirror the
-                    // emulated stick to Joy 0 too. This makes both port-0 and
-                    // port-1 readers work with a single host joystick.
-                    PushIkbdPacket(0xFD,
-                                   MouseEnabled ? (byte)0x00 : JoystickState,  // Joy 0
-                                   JoystickState);                             // Joy 1
+                    // Independent ports: copying joystick 1 into joystick 0 presses
+                    // BOTH triggers. Turrican uses the second trigger for its powerup.
+                    PushIkbdPacket(0xFD, Joystick0Report, Joystick1Report);
                     break;
 
                 case 0x17: // SET JOYSTICK MONITORING
@@ -953,7 +1001,7 @@ namespace ASE
             if (MouseMode == MouseReportModes.Absolute)
                 return;
 
-            PushIkbdPacket((byte)(0xF8 | _mouseButtons), (byte)dx, (byte)dy);
+            PushIkbdPacket((byte)(0xF8 | _mouseButtons), (byte)dx, (byte)(dy * _absYAxis));
         }
 
         static void ClampAbsPosition()
@@ -994,12 +1042,23 @@ namespace ASE
             lock (_syncLock)
             {
                 int mask = left ? 0x02 : 0x01;
-                bool wasPressed = (_mouseButtons & mask) != 0;
+                bool wasPressed = (_hostMouseButtons & mask) != 0;
                 if (wasPressed == pressed) return;      // same edge through the other path
 
-                if (pressed) _mouseButtons |= mask; else _mouseButtons &= ~mask;
-
-                ReportButtonEdge(left, pressed);
+                byte oldJoy = left ? Joystick0Report : Joystick1Report;
+                int oldButtons = _mouseButtons;
+                if (pressed) _hostMouseButtons |= mask; else _hostMouseButtons &= ~mask;
+                _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
+                if (MouseEnabled)
+                {
+                    if (((oldButtons ^ _mouseButtons) & mask) != 0)
+                        ReportButtonEdge(left, (_mouseButtons & mask) != 0);
+                }
+                else if (JoystickEnabled)
+                {
+                    byte report = left ? Joystick0Report : Joystick1Report;
+                    if (report != oldJoy) PushIkbdPacket(left ? (byte)0xFE : (byte)0xFF, report);
+                }
             }
         }
 
@@ -1035,13 +1094,13 @@ namespace ASE
                 // by the previous packet.
                 if (left)
                 {
-                    if (pressed) { _prevAbsButtons &= 0xFB; _prevAbsButtons |= 0x02; }
-                    else         { _prevAbsButtons &= 0xF7; _prevAbsButtons |= 0x01; }
+                    if (pressed) { _prevAbsButtons &= 0xFB; _prevAbsButtons |= 0x08; }
+                    else         { _prevAbsButtons &= 0xF7; _prevAbsButtons |= 0x04; }
                 }
                 else
                 {
-                    if (pressed) { _prevAbsButtons &= 0xFE; _prevAbsButtons |= 0x08; }
-                    else         { _prevAbsButtons &= 0xFD; _prevAbsButtons |= 0x04; }
+                    if (pressed) { _prevAbsButtons &= 0xFE; _prevAbsButtons |= 0x02; }
+                    else         { _prevAbsButtons &= 0xFD; _prevAbsButtons |= 0x01; }
                 }
 
                 SendAbsMousePacket();
@@ -1060,8 +1119,11 @@ namespace ASE
                 // always reports this real state; the auto event packet may strip
                 // the trigger depending on the port-0 mode (see below).
                 byte oldState = JoystickState;
+                byte oldReport = Joystick1Report;
+                int oldButtons = _mouseButtons;
                 if (pressed) JoystickState |= mask; else JoystickState &= (byte)~mask;
                 if (JoystickState == oldState) return;
+                _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
 
                 // *** Fire button routing ***
                 // On real ST hardware the joystick-1 fire line (port 1, pin 6) is the
@@ -1076,17 +1138,11 @@ namespace ASE
                 //     included in the joystick event packet.
                 //   - Joystick mode (mouse off, after a joystick command): fire is
                 //     sent as bit 7 of the 0xFF joystick event packet.
-                if (mask == JOY_FIRE && MouseEnabled)
+                if (((oldButtons ^ _mouseButtons) & 1) != 0 && MouseEnabled)
                 {
-                    if (pressed)
-                        _mouseButtons |= 0x01;   // bit 0 = right mouse button
-                    else
-                        _mouseButtons &= ~0x01;
-
                     // Same line, same rules: honoured as an absolute report or a $75
                     // scancode when $07 asked for those, not just as a relative packet.
-                    ReportButtonEdge(left: false, pressed: pressed);
-                    return;
+                    ReportButtonEdge(left: false, pressed: (_mouseButtons & 1) != 0);
                 }
 
                 // Auto joystick event packet: directions always, plus the trigger
@@ -1094,7 +1150,9 @@ namespace ASE
                 // out because the trigger is being reported through the mouse button.
                 if (JoystickEnabled)
                 {
-                    byte report = MouseEnabled ? (byte)(JoystickState & ~JOY_FIRE) : JoystickState;
+                    byte report = MouseEnabled ? (byte)(Joystick1Report & ~JOY_FIRE) : Joystick1Report;
+                    byte previous = MouseEnabled ? (byte)(oldReport & ~JOY_FIRE) : oldReport;
+                    if (report == previous) return;
                     if (ConfigOptions.RunninConfig.DebugMode >= ConfigOptions.DebugModes.Full)
                         ColoredConsole.WriteLine($"[[magenta]]HOST[[/magenta]] joy event -> packet [[yellow]]FF ${report:X2}[[/yellow]] (fireBit={((report & JOY_FIRE) != 0)})");
                     PushIkbdPacket(0xFF, report);

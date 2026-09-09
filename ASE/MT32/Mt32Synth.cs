@@ -1,3 +1,8 @@
+// Annotation context only (the project compiles with <Nullable>disable</Nullable>): the
+// wrapper hands back what libmt32emu gives it, and a patch name really is absent for a part
+// with nothing loaded. See the same header in Mt32EmuNative.cs.
+#nullable enable annotations
+
 using System.Runtime.InteropServices;
 using System.Text;
 

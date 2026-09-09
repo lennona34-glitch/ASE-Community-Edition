@@ -123,6 +123,7 @@ namespace ASE
 
             ASEMain._mfp = new MFP68901();
 
+            HostInput.Reset();
             ACIA.Reset();
             MidiAcia.Reset();
             WD1772.Reset();

@@ -60,6 +60,15 @@ namespace ASE
         // Oversampling / Downsampling variables
         private uint _resamplePos;
         private uint _resampleStep;
+        private double _resampleSumL, _resampleSumR;
+
+        // Filter at the INTERNAL rate, before decimation. Period 0/1 tones toggle at
+        // 125 kHz: sampling those directly at 44.1 kHz aliases them to an audible
+        // 7.3 kHz whistle (Turrican uses them as carriers for volume-register PCM).
+        // A two-pole Butterworth low-pass has a zero at internal Nyquist, rejecting
+        // that carrier while retaining the tone flip-flops and their real phase.
+        private readonly double _filterB0, _filterB1, _filterB2, _filterA1, _filterA2;
+        private double _filterL1, _filterL2, _filterR1, _filterR2;
 
         // Nominal resample step, and the audio flow control that trims it (see
         // UpdateAudioFlowControl). _queueDepth mirrors AudioQueue's length as an O(1) counter:
@@ -161,6 +170,16 @@ namespace ASE
             _resampleStep = (uint)ratio;
             _resampleStepBase = (uint)ratio;
 
+            double cutoff = Math.Min(20000.0, sampleRate * 0.45);
+            double omega = 2.0 * Math.PI * cutoff / YM_FREQ_INTERNAL;
+            double cosine = Math.Cos(omega);
+            double alpha = Math.Sin(omega) / Math.Sqrt(2.0);
+            double a0 = 1.0 + alpha;
+            _filterB0 = _filterB2 = (1.0 - cosine) / (2.0 * a0);
+            _filterB1 = (1.0 - cosine) / a0;
+            _filterA1 = -2.0 * cosine / a0;
+            _filterA2 = (1.0 - alpha) / a0;
+
             // How much audio to keep queued ahead of the device: ~67 ms, three SDL buffers.
             // Deep enough that a frame the host makes us miss does not starve the callback,
             // shallow enough that the sound stays in step with the picture — and a long way
@@ -209,7 +228,7 @@ namespace ASE
             _envPos = 0;
             _envShape = 0;
 
-            _resamplePos = 0;
+            ResetResampler();
             _cycleRemainder = 0;
             _resampleStep = _resampleStepBase;
 
@@ -264,9 +283,18 @@ namespace ASE
             // The periods derive from the registers; the resampler and DC filter are
             // host state and start clean (along with the audio queue)
             UpdatePeriods();
+            ResetResampler();
             while (AudioQueue.TryDequeue(out _)) { }
             Volatile.Write(ref _queueDepth, 0);
             _resampleStep = _resampleStepBase;
+        }
+
+        private void ResetResampler()
+        {
+            _resamplePos = 0;
+            _resampleSumL = _resampleSumR = 0;
+            _filterL1 = _filterL2 = _filterR1 = _filterR2 = 0;
+            _lastSampleL = _lastOutL = _lastSampleR = _lastOutR = 0;
         }
 
         /// <summary>Registers the YM2149 actually implements; the address latch is wider.</summary>
@@ -399,23 +427,31 @@ namespace ASE
             for (int i = 0; i < ymUpdates; i++)
             {
                 StepInternal250k();
+                Mix(out float inputL, out float inputR);
+                double filteredL = _filterB0 * inputL + _filterL1;
+                _filterL1 = _filterB1 * inputL - _filterA1 * filteredL + _filterL2;
+                _filterL2 = _filterB2 * inputL - _filterA2 * filteredL;
+                double filteredR = _filterB0 * inputR + _filterR1;
+                _filterR1 = _filterB1 * inputR - _filterA1 * filteredR + _filterR2;
+                _filterR2 = _filterB2 * inputR - _filterA2 * filteredR;
 
-                // _resamplePos is a 16.16 counter
-                // Advance by the ratio (approx 5.66 250k ticks for every 44.1k tick)
-                _resamplePos += 0x10000;
-
-                // If we have accumulated enough 250k ticks to output a sample
-                while (_resamplePos >= _resampleStep)
+                // Integrate EVERY internal sample over the output interval, splitting
+                // the tick at fractional boundaries (16.16 units). Nearest-sample
+                // decimation discards the intervening waveform and creates aliasing.
+                uint remaining = 0x10000;
+                while (remaining > 0)
                 {
-                    _resamplePos -= _resampleStep;
+                    uint portion = Math.Min(remaining, _resampleStep - _resamplePos);
+                    _resampleSumL += filteredL * portion;
+                    _resampleSumR += filteredR * portion;
+                    _resamplePos += portion;
+                    remaining -= portion;
+                    if (_resamplePos < _resampleStep) continue;
 
-                    // In perfect resampling (weighted average N), we should average 
-                    // all intermediate samples. For performance and simplicity in C#,
-                    // we take the current sample (Nearest/Last). Since we are downsampling 
-                    // from 250k to 44k, aliasing is low. To improve, a 'totalSample' 
-                    // accumulator can be implemented and divided at the end.
-
-                    Mix(out float sampleL, out float sampleR);
+                    float sampleL = (float)(_resampleSumL / _resamplePos);
+                    float sampleR = (float)(_resampleSumR / _resamplePos);
+                    _resampleSumL = _resampleSumR = 0;
+                    _resamplePos = 0;
 
                     // DC Filter (High Pass) to center the wave at 0
                     // alpha = approx 0.995 for 44kHz
@@ -551,7 +587,9 @@ namespace ASE
             double error = (depth - _queueTarget) / (double)_queueTarget;
             double adjust = 1.0 + Math.Clamp(error * 0.02, -0.005, 0.005);
 
-            _resampleStep = (uint)(_resampleStepBase * adjust);
+            // A partially integrated interval must still end AFTER the portion already
+            // accumulated, even if the flow controller shortens the next sample period.
+            _resampleStep = Math.Max(_resamplePos + 1, (uint)(_resampleStepBase * adjust));
         }
 
         /// <summary>

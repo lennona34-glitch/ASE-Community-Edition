@@ -700,6 +700,18 @@ public partial class DebugWindow : Window
     int _bmpRows, _bmpCols, _bmpColWidth, _bmpLineBytes, _bmpPlanes, _bmpZoom;
     uint _bmpStart;
 
+    /// <summary>
+    /// Shift/Ctrl as the window's key events and the pointer events over the picture last
+    /// reported them. The wheel handler ORs both into the modifiers the wheel event itself
+    /// carries, because macOS does not reliably deliver them with a scroll: see OnBitmapWheel.
+    /// They are kept apart so that a source which reports nothing on a given backend cannot
+    /// wipe out the one that does; each refreshes or clears only its own half.
+    /// </summary>
+    KeyModifiers _wheelKeyMods, _wheelPointerMods;
+
+    /// <summary>The two modifiers the wheel gestures use; everything else is ignored.</summary>
+    const KeyModifiers WheelMods = KeyModifiers.Shift | KeyModifiers.Control;
+
     void InitBitmapExplorer()
     {
         // Past the configured RAM the bus reads back zeros, so there is nothing to look at:
@@ -726,6 +738,14 @@ public partial class DebugWindow : Window
         // OnPointerWheelChanged, so a bubbling handler would never see it.
         bmpScroll.AddHandler(InputElement.PointerWheelChangedEvent, OnBitmapWheel, RoutingStrategies.Tunnel);
         bmpScroll.PointerMoved += OnBitmapPointerMoved;
+
+        // Modifier state is tracked from the window's keys as well (see OnBitmapWheel for why).
+        // Tunnelling with handledEventsToo: a text box that swallows the key must not blind us,
+        // and the state has to be dropped when the window loses focus or a modifier released
+        // over another application stays latched here.
+        AddHandler(KeyDownEvent, OnBitmapModifierKey, RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(KeyUpEvent, OnBitmapModifierKey, RoutingStrategies.Tunnel, handledEventsToo: true);
+        Deactivated += (_, _) => _wheelKeyMods = _wheelPointerMods = KeyModifiers.None;
 
         _bitmapReady = true;
 
@@ -969,16 +989,51 @@ public partial class DebugWindow : Window
         if (!_bitmapReady)
             return;
 
-        int dir = Math.Sign(e.Delta.Y);
+        // macOS turns Shift+wheel into a HORIZONTAL scroll before the application ever sees it:
+        // AppKit swaps the axes while the modifier is held, and the modifier itself does not
+        // reliably reach the scroll event. Both halves have to be recovered or the gesture ends
+        // up indistinguishable from a plain wheel and scrolls one line, which is exactly how it
+        // behaved there. The delta is therefore read off whichever axis moved, and a delta that
+        // arrived on X *is* the Shift gesture whether or not the flag survived the trip — the
+        // cost being that a trackpad's horizontal swipe no longer scrolls the strip sideways
+        // (the scrollbar still does). The tracked key and pointer state is the second source
+        // for the modifiers, and the only one Ctrl has — no axis swap stands in for it.
+        double delta = e.Delta.Y != 0 ? e.Delta.Y : e.Delta.X;
+
+        // Positive is "towards the start of the document" on both axes, which is what walking
+        // backwards through memory means here.
+        int dir = Math.Sign(delta);
         if (dir == 0)
             return;
 
-        int step = e.KeyModifiers.HasFlag(KeyModifiers.Control) ? 1
-                 : e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? BitmapLineBytes() * 8
+        var mods = e.KeyModifiers | _wheelKeyMods | _wheelPointerMods;
+        bool coarse = mods.HasFlag(KeyModifiers.Shift) || (e.Delta.Y == 0 && e.Delta.X != 0);
+
+        int step = mods.HasFlag(KeyModifiers.Control) ? 1
+                 : coarse ? BitmapLineBytes() * 8
                  : BitmapLineBytes();
 
         ScrollBitmapAddress(-dir * step);
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// Keeps Shift/Ctrl for the wheel handler. Taken from the event's own modifiers, with the
+    /// key being pressed or released applied on top: a KeyUp reports the state *after* the
+    /// release on some backends and before it on others, and the key that raised the event is
+    /// the one thing that is never ambiguous.
+    /// </summary>
+    void OnBitmapModifierKey(object sender, KeyEventArgs e)
+    {
+        var mods = e.KeyModifiers;
+        bool down = e.RoutedEvent == KeyDownEvent;
+
+        if (e.Key is Key.LeftShift or Key.RightShift)
+            mods = down ? mods | KeyModifiers.Shift : mods & ~KeyModifiers.Shift;
+        else if (e.Key is Key.LeftCtrl or Key.RightCtrl)
+            mods = down ? mods | KeyModifiers.Control : mods & ~KeyModifiers.Control;
+
+        _wheelKeyMods = mods & WheelMods;
     }
 
     /// <summary>
@@ -988,6 +1043,11 @@ public partial class DebugWindow : Window
     /// </summary>
     void OnBitmapPointerMoved(object sender, PointerEventArgs e)
     {
+        // The other source for the wheel's modifiers (see OnBitmapWheel): the mouse is always
+        // moved onto the picture before the wheel is turned, and a pointer event carries the
+        // modifiers on backends where a scroll event does not.
+        _wheelPointerMods = e.KeyModifiers & WheelMods;
+
         if (!_bitmapReady || _bitmapSurface == null)
             return;
 
