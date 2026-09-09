@@ -204,7 +204,6 @@
 						       Source="./Assets/drive_led_off.png"
 						       VerticalAlignment="Center"
 						       Height="22"
-						       Margin="14,5,0,0"
 						       IsVisible="False" />
 						<Canvas Name="DriveBLabelClip"
 						        Width="130" Height="18"
