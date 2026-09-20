@@ -150,8 +150,27 @@ namespace ASE
             // Shifter: video base and counter, sync mode
             if (addr >= 0xFF8200 && addr <= 0xFF820B) return true;
 
-            // STE only: video base low byte ($FF820D) and line width ($FF820F). A plain ST has
-            // neither, and EmuTOS reads $FF820D to decide whether this is an STE at all.
+            // Video base low byte ($FF820D). The register itself is an STE addition, but the
+            // address is decoded on a plain ST too -- with nothing behind it (see IsVoidIo).
+            // Hatari's ST table says exactly that: $FF820B and $FF820D are IoMem_VoidRead /
+            // IoMem_VoidWrite ("no bus error here") while $FF820C, $FF820E and $FF820F are
+            // absent and fault, which is the GLUE decoding its odd bytes and nothing else.
+            // Faulting it broke KAOS TOS 1.4.2: it clears the register unconditionally in the
+            // reset path ($FC00E6 `clr.b $FF820D.w`, a read-modify-write on a 68000) and
+            // reloads all three base bytes from $44F/$450/$451 on every VBL, with no bus-error
+            // handler installed anywhere -- the fault landed in a vector table TOS had not yet
+            // filled and the machine ran off into cleared RAM, ending on the bus error at
+            // $400000 that the runaway PC reaches. TOS 1.04 boots either way because it only
+            // ever writes the ST pair.
+            // This does NOT make an ST look like an STE. EmuTOS detects the STE shifter by
+            // *read-back*, not by the fault: it writes a value to $FF820D, reads another
+            // register, reads $FF820D again and compares. A void block answers $FF and drops
+            // the write, so the comparison fails and the machine is correctly taken for an ST
+            // -- which is why $FF820D must not be served out of the Ports latch either.
+            if (addr == STPortAdress.ST_SCRLOWADDR) return true;
+
+            // STE only: line width ($FF820F) and the even bytes either side of the base low
+            // byte, which the ST's GLUE does not decode at all.
             if (addr >= 0xFF820C && addr <= 0xFF820F) return IsSTE;
 
             if (addr >= 0xFF8240 && addr <= 0xFF825F) return true;   // palette
@@ -255,6 +274,11 @@ namespace ASE
         /// </summary>
         static bool IsVoidIo(uint addr)
         {
+            // Video base low byte: a register on the STE, decoded but undriven on an ST (see
+            // IsDecodedIo). It has to float rather than latch, or EmuTOS' write-read-compare
+            // probe finds its own value again and takes a plain ST for an STE.
+            if (!IsSTE && addr == STPortAdress.ST_SCRLOWADDR) return true;
+
             // Shifter block past the resolution register. On an STE $FF8264/65 IS a register (the
             // horizontal fine scroll) and is served by its own handler before this is consulted;
             // on an ST nothing is there and it reads back like the rest of the block.
@@ -544,10 +568,14 @@ namespace ASE
         // exactly one CPU bus cycle, so the ST wait states are applied here — once per access —
         // before the real transfer. The raw Read8/Read16/... below are reused internally (e.g. by
         // BigEndian) without re-applying the wait, so word accesses are not double-counted.
-        public byte   CpuRead8 (uint addr)            { ApplyBusWait(addr); return Read8(addr); }
-        public ushort CpuRead16(uint addr)            { ApplyBusWait(addr); return Read16(addr); }
-        public void   CpuWrite8 (uint addr, byte v)   { ApplyBusWait(addr); Write8(addr, v); }
-        public void   CpuWrite16(uint addr, ushort v) { ApplyBusWait(addr); Write16(addr, v); }
+        // They are also where the CPU's bus accesses are counted for the blitter: in shared mode
+        // the blitter hands the CPU a quota of *accesses*, not of cycles, and this is the only
+        // place that sees them (see Blitter.NoteCpuBusAccess). Counting before the access, not
+        // after, is what keeps the write that starts a blit from being charged to the blitter.
+        public byte   CpuRead8 (uint addr)            { Blitter.NoteCpuBusAccess(); ApplyBusWait(addr); return Read8(addr); }
+        public ushort CpuRead16(uint addr)            { Blitter.NoteCpuBusAccess(); ApplyBusWait(addr); return Read16(addr); }
+        public void   CpuWrite8 (uint addr, byte v)   { Blitter.NoteCpuBusAccess(); ApplyBusWait(addr); Write8(addr, v); }
+        public void   CpuWrite16(uint addr, ushort v) { Blitter.NoteCpuBusAccess(); ApplyBusWait(addr); Write16(addr, v); }
 
         /// <summary>
         /// Reproduces the Atari ST memory-bus wait states for a single CPU bus access, by advancing

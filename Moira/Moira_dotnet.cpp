@@ -91,6 +91,24 @@ public:
         throwPendingBusErrorIfNeeded();
     }
 
+    // 32-bit port accesses. Moira only takes this path when dsack() reports a 32-bit
+    // port, and ASE leaves dsack() at its DSACK_16 default because the ST's bus is 16
+    // bits wide -- every longword is split into two word accesses instead, which is
+    // also what keeps the blitter's bus-access count right. So these are never called
+    // here; the base class declares them pure virtual, so they still have to exist.
+    // Composed from the two halves, big-endian like the 68000, so they are correct if
+    // a future machine ever does reach them.
+    uint32_t read32(uint32_t addr) const override {
+        uint32_t hi = read16(addr);
+        uint32_t lo = read16(addr + 2);
+        return (hi << 16) | lo;
+    }
+
+    void write32(uint32_t addr, uint32_t v) const override {
+        write16(addr, (uint16_t)(v >> 16));
+        write16(addr + 2, (uint16_t)(v & 0xFFFF));
+    }
+
     uint16_t readIrqUserVector(uint8_t level) const override {
         return cb.readIrqUserVector ? cb.readIrqUserVector(cb.user, level) : 0;
     }

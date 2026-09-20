@@ -13,6 +13,32 @@ set -e
 # La carpeta de destino la resuelve CMakeLists.txt (native/<rid>/), acorde
 # al layout por RID de ASE.csproj.
 
+# El nucleo de Moira no vive en este repositorio: se descarga de
+# https://github.com/dirkwhoffmann/Moira (ver native/README.md). Sin el, cmake
+# fallaria con un error sobre ficheros que faltan, que no dice que hay que hacer.
+if [ ! -f Moira.cpp ]; then
+    echo "build.sh: falta el nucleo de Moira en esta carpeta."
+    echo "          Clona https://github.com/dirkwhoffmann/Moira y copia aqui el"
+    echo "          contenido de su carpeta Moira/, SIN sobrescribir MoiraConfig.h."
+    exit 1
+fi
+
+# Y con el nucleo presente, lo peligroso es MoiraConfig.h: el de upstream compila
+# igual y arranca igual, pero deja PRECISE_TIMING en false, con lo que 'sync' pasa a
+# llamarse al final de cada instruccion en vez de antes de cada acceso -- y con eso se
+# cae todo lo calibrado sobre la posicion del acceso (el adelanto de paleta de
+# Spectrum 512, ApplyBusWait y el blitter entero). No da ningun error: solo emula mal.
+check_flag() {
+    if ! grep -Eq "^#define[[:space:]]+$1[[:space:]]+$2([[:space:]]|\$)" MoiraConfig.h; then
+        echo "build.sh: MoiraConfig.h no es el de ASE ($1 deberia ser $2)."
+        echo "          Parece el de upstream. Recuperalo con:  git checkout Moira/MoiraConfig.h"
+        exit 1
+    fi
+}
+check_flag MOIRA_PRECISE_TIMING       true
+check_flag MOIRA_MIMIC_MUSASHI        false
+check_flag MOIRA_EMULATE_ADDRESS_ERROR true
+
 target="${1:-}"
 [ $# -gt 0 ] && shift
 extra_args=("$@")

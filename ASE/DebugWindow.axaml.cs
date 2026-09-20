@@ -145,7 +145,7 @@ public partial class DebugWindow : Window
 
     public void OnClearBreakpointClick(object sender, RoutedEventArgs e)
     {
-        CPU._moira.RemoveAllBreakpoints();
+        CPU.ClearUserBreakpoints();
 
         // The GEMDOS hard drive rides on breakpoints of its own inside its cartridge code:
         // they are wiring, not the user's, so they go straight back (see GemdosHD).
@@ -229,10 +229,11 @@ public partial class DebugWindow : Window
 
         bool wasSet = CPU._moira.IsBreakpoint(line.Address);
 
+        // Through CPU, not Moira: the list there is what carries them over a reset.
         if (wasSet)
-            CPU._moira.RemoveBreakpoint(line.Address);
+            CPU.RemoveUserBreakpoint(line.Address);
         else
-            CPU._moira.SetBreakpoint(line.Address);
+            CPU.SetUserBreakpoint(line.Address);
 
         line.IsBreakpoint = !wasSet;
     }

@@ -563,10 +563,49 @@ namespace ASE
             while (CPU._moira.Clock < targetClock)
             {
                 long before = CPU._moira.Clock;
+
+                // The blitter is the machine's other bus master: while it holds the bus the 68000
+                // cannot reach memory, so the CPU slice is skipped and the blitter runs instead.
+                // Run() never goes past targetClock, so a blit longer than a scanline is spread
+                // over the lines it really covers and the video model keeps resolving them one
+                // by one.
+                //
+                // It can come back having moved data without moving the machine's clock at all:
+                // Moira only stops between instructions, so the CPU has often already run past
+                // the point where it lost the bus, and the blitter is catching up on time that
+                // was charged to the CPU. That is why the guard is "did the blitter do anything",
+                // not "did the clock advance" -- the latter cut the burst short, one access in,
+                // every time the quota ran out inside a long instruction.
+                if (Blitter.HoldsBus)
+                {
+                    bool blitterRan = Blitter.Run(targetClock);
+
+                    int blitted = (int)(CPU._moira.Clock - before);
+                    if (!blitterRan && blitted <= 0) break;   // nothing left to give: never spin
+
+                    if (blitted > 0)
+                    {
+                        _mfp.UpdateTimers(blitted);
+                        _ym.Sync(blitted);
+                        if (isSTE) STEDmaSound.Tick(blitted);
+                        WD1772.Tick();
+                    }
+                    continue;
+                }
+
                 long want = targetClock - before;
                 if (want > CpuSliceCycles) want = CpuSliceCycles;
 
+                int blitterCpuCredit = Blitter.CpuBusCredit;
+
                 CPU._moira.RunForCycles(want);
+
+                // Every instruction does at least one bus cycle (its own prefetch), so a slice
+                // that used none means the 68000 is not fetching at all — STOP, or halted. The
+                // blitter's share of the bus is counted in CPU accesses, so it would wait for a
+                // quota that is never going to be spent and the blit would never end.
+                if (Blitter.Busy && Blitter.CpuBusCredit == blitterCpuCredit)
+                    Blitter.GrantBusToIdleCpu();
 
                 // A double fault leaves the 68000 halted, and there is nothing left to run: the
                 // next slice would fault on the same instruction, and the one after that, for as

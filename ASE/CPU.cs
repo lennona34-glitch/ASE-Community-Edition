@@ -25,6 +25,45 @@ namespace ASE
         public static Moira _moira;
 
         /// <summary>
+        /// The addresses the user has guarded, kept on this side of the P/Invoke boundary.
+        /// Breakpoints themselves live in Moira's own debugger, and <see cref="InitCpu"/> builds
+        /// a <b>fresh</b> Moira on every power-on — so without this list a reset silently threw
+        /// them all away, and the boot path, the one stretch of code that can only be reached
+        /// <i>by</i> resetting, could not be breakpointed at all.
+        /// <para>
+        /// The GEMDOS hard drive's cartridge hooks are deliberately not in here: they are wiring
+        /// rather than the user's breakpoints, and <c>GemdosHD</c> re-arms them itself when it
+        /// attaches. The "Run to this line" one-shot is not in here either — it is meant to last
+        /// exactly until the machine stops again.
+        /// </para>
+        /// </summary>
+        static readonly HashSet<uint> _userBreakpoints = new();
+
+        /// <summary>Guards an address and remembers it across resets.</summary>
+        public static void SetUserBreakpoint(uint addr)
+        {
+            _userBreakpoints.Add(addr);
+            _moira?.SetBreakpoint(addr);
+        }
+
+        /// <summary>Removes a user breakpoint, here and in Moira.</summary>
+        public static void RemoveUserBreakpoint(uint addr)
+        {
+            _userBreakpoints.Remove(addr);
+            _moira?.RemoveBreakpoint(addr);
+        }
+
+        /// <summary>
+        /// Drops every breakpoint. Moira's list is emptied wholesale, hooks included, so the
+        /// caller re-arms those (as the Debug window's <i>Clear breakpoints</i> does).
+        /// </summary>
+        public static void ClearUserBreakpoints()
+        {
+            _userBreakpoints.Clear();
+            _moira?.RemoveAllBreakpoints();
+        }
+
+        /// <summary>
         /// Get interrupt vector based on level
         /// </summary>
         /// <param name="level">Interrupt level</param>
@@ -137,6 +176,13 @@ namespace ASE
             ASEMain._mfp.SetMonochromeDetect(VideoTiming.Mono);
 
             _moira.Reset();
+
+            // Re-arm the user's breakpoints on the new instance (see _userBreakpoints): a reset
+            // is how the boot path is reached, so losing them here is losing them exactly when
+            // they are needed.
+            foreach (uint bp in _userBreakpoints)
+                _moira.SetBreakpoint(bp);
+
             return true;
         }
     }

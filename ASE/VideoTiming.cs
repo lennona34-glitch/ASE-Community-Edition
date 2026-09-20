@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  * VideoTiming.cs
  *
@@ -513,18 +513,44 @@ namespace ASE
         public static void OnPaletteWrite(int byteOffset, byte val, int cycleInLine)
         {
             if (_palEventCount >= _palEvents.Length) return;   // pathological line, ignore extras
-            _palEvents[_palEventCount].Cycle = cycleInLine;
-            _palEvents[_palEventCount].ByteOffset = byteOffset;
-            _palEvents[_palEventCount].Val = val;
+
+            // Insert in cycle order. The renderer replays these with a cursor that only moves
+            // forward (Video.ApplyPaletteUpTo), so one event out of order is applied late — and
+            // the machine has two bus masters that do not take turns in clock order: the blitter
+            // starts its burst where the arbitration ended, which can be *before* the write the
+            // CPU made with the rest of the instruction it was in (see Blitter.blitClock). The
+            // scan is backwards from the end and normally stops on its first comparison, because
+            // writes do arrive in order almost all of the time.
+            int at = _palEventCount;
+            while (at > 0 && _palEvents[at - 1].Cycle > cycleInLine)
+            {
+                _palEvents[at] = _palEvents[at - 1];
+                at--;
+            }
+
+            _palEvents[at].Cycle = cycleInLine;
+            _palEvents[at].ByteOffset = byteOffset;
+            _palEvents[at].Val = val;
             _palEventCount++;
         }
 
+        // Sync/resolution events, kept in cycle order for the same reason as the palette ones
+        // above: every reader below walks them forward and stops at the first cycle past the one
+        // it is asking about.
         static void AddEvent(int cycle, bool isRes, byte val)
         {
             if (_eventCount >= _events.Length) return;   // pathological line, ignore extra events
-            _events[_eventCount].Cycle = cycle;
-            _events[_eventCount].IsRes = isRes;
-            _events[_eventCount].Val = val;
+
+            int at = _eventCount;
+            while (at > 0 && _events[at - 1].Cycle > cycle)
+            {
+                _events[at] = _events[at - 1];
+                at--;
+            }
+
+            _events[at].Cycle = cycle;
+            _events[at].IsRes = isRes;
+            _events[at].Val = val;
             _eventCount++;
         }
 

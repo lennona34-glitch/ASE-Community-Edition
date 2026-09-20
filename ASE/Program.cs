@@ -200,6 +200,53 @@ namespace ASE
             return false;
         }
 
+        // The X session-management libraries Avalonia's X11 backend connects to before it shows
+        // anything, and the packages that carry them on the usual distributions. libSM depends on
+        // libICE everywhere, so installing the pair is a single command.
+        static readonly string[] X11SessionLibraries = ["libICE.so.6", "libSM.so.6"];
+
+        /// <summary>
+        /// Reports a Linux machine without the X session-management libraries instead of letting
+        /// Avalonia die on them. <c>X11PlatformLifetimeEvents</c>' constructor calls
+        /// <c>IceAddConnectionWatch</c> unconditionally, and
+        /// <c>X11PlatformOptions.EnableSessionManagement</c> only decides whether the shutdown
+        /// event is later *raised* — so no option keeps those libraries out of the process (read in
+        /// Avalonia 12.1.2, and still true on master). Without them the emulator dies with an
+        /// unhandled DllNotFoundException from inside <c>AppBuilder.Setup()</c>: a stack trace that
+        /// names libICE.so.6 and gives the user nothing to act on.
+        ///
+        /// <para>ASE subscribes to no lifetime event at all, so the pair is pure Avalonia start-up
+        /// cost — which is why the answer is a package to install and not a feature to switch
+        /// off.</para>
+        /// </summary>
+        /// <returns>true when the interface can start; false after reporting what to install.</returns>
+        static bool CheckX11SessionLibraries()
+        {
+            if (!OperatingSystem.IsLinux())
+                return true;
+
+            string[] missing = X11SessionLibraries.Where(library => !NativeLibrary.TryLoad(library, out _)).ToArray();
+
+            if (missing.Length == 0)
+                return true;
+
+            string reason =
+                $"{string.Join(" and ", missing)} could not be loaded, and the user interface cannot " +
+                "start without them. Install the X11 session libraries from your distribution:\n\n" +
+                "  Debian, Ubuntu, Mint, Raspberry Pi OS:  sudo apt install libice6 libsm6\n" +
+                "  Fedora, RHEL:                           sudo dnf install libICE libSM\n" +
+                "  Arch, Manjaro:                          sudo pacman -S libice libsm\n" +
+                "  openSUSE:                               sudo zypper install libICE6 libSM6";
+
+            ColoredConsole.WriteLine($"[[red]]{reason}[[/red]]");
+
+            Dialogs.MessageBox("ASE cannot start", ColoredConsole.Strip(reason),
+                MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok)
+                .GetAwaiter().GetResult();
+
+            return false;
+        }
+
         /// <summary>
         /// Pins SDL's video driver to X11 on Linux, where that is not a preference but a
         /// requirement: Avalonia has no Wayland backend, so the window later handed to
@@ -264,6 +311,13 @@ namespace ASE
             // Before anything else touches the CPU core: a machine without the native library (or
             // without what it depends on) must be told what to install, not handed a stack trace.
             if (!CheckNativeCpuCore())
+                return;
+
+            // And the same for the window: Avalonia's X11 backend opens a session-management
+            // connection at start-up, so a Linux machine missing those libraries has to be told
+            // which package carries them instead of being handed the exception AppBuilder.Setup()
+            // would throw a few lines further down.
+            if (!CheckX11SessionLibraries())
                 return;
 
             // Fire and forget: GitHub can take seconds to answer — or, on a captive network, until
