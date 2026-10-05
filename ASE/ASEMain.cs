@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 
  * ASE Main loop
  *
@@ -25,6 +25,7 @@ using Avalonia.Threading;
 using static ASE.Config;
 using static ASE.Video;
 using static SDL2.SDL;
+using SkiaSharp;
 
 namespace ASE
 {
@@ -563,49 +564,10 @@ namespace ASE
             while (CPU._moira.Clock < targetClock)
             {
                 long before = CPU._moira.Clock;
-
-                // The blitter is the machine's other bus master: while it holds the bus the 68000
-                // cannot reach memory, so the CPU slice is skipped and the blitter runs instead.
-                // Run() never goes past targetClock, so a blit longer than a scanline is spread
-                // over the lines it really covers and the video model keeps resolving them one
-                // by one.
-                //
-                // It can come back having moved data without moving the machine's clock at all:
-                // Moira only stops between instructions, so the CPU has often already run past
-                // the point where it lost the bus, and the blitter is catching up on time that
-                // was charged to the CPU. That is why the guard is "did the blitter do anything",
-                // not "did the clock advance" -- the latter cut the burst short, one access in,
-                // every time the quota ran out inside a long instruction.
-                if (Blitter.HoldsBus)
-                {
-                    bool blitterRan = Blitter.Run(targetClock);
-
-                    int blitted = (int)(CPU._moira.Clock - before);
-                    if (!blitterRan && blitted <= 0) break;   // nothing left to give: never spin
-
-                    if (blitted > 0)
-                    {
-                        _mfp.UpdateTimers(blitted);
-                        _ym.Sync(blitted);
-                        if (isSTE) STEDmaSound.Tick(blitted);
-                        WD1772.Tick();
-                    }
-                    continue;
-                }
-
                 long want = targetClock - before;
                 if (want > CpuSliceCycles) want = CpuSliceCycles;
 
-                int blitterCpuCredit = Blitter.CpuBusCredit;
-
                 CPU._moira.RunForCycles(want);
-
-                // Every instruction does at least one bus cycle (its own prefetch), so a slice
-                // that used none means the 68000 is not fetching at all — STOP, or halted. The
-                // blitter's share of the bus is counted in CPU accesses, so it would wait for a
-                // quota that is never going to be spent and the blit would never end.
-                if (Blitter.Busy && Blitter.CpuBusCredit == blitterCpuCredit)
-                    Blitter.GrantBusToIdleCpu();
 
                 // A double fault leaves the 68000 halted, and there is nothing left to run: the
                 // next slice would fault on the same instruction, and the one after that, for as
@@ -860,6 +822,59 @@ namespace ASE
             // The encoder is picked by the options type (the old quality-based overload is
             // obsolete since Avalonia 12); the file is always a .png, see NewTimestampedPath above.
             bmp.Save(path, PngBitmapEncoderOptions.Default);
+        }
+
+        /// <summary>
+        /// Captures the most recently published frame and encodes it as JPEG bytes using SkiaSharp.
+        /// Used for Meta Quest 3 streaming and web preview.
+        /// </summary>
+        public static byte[] CaptureFrameJpeg(int quality = 80)
+        {
+            if (_lastPublished == null)
+                return null;
+
+            bool mono = VideoTiming.Mono;
+            bool borders = mono || ConfigOptions.RunninConfig.ShowBorders;
+            int srcX = borders ? 0 : VideoTiming.DISPLAY_ORIGIN_X;
+            int srcY = borders ? 0 : VideoTiming.DISPLAY_ORIGIN_Y;
+            int width = borders ? VideoTiming.BUFFER_WIDTH : VideoTiming.DISPLAY_TEX_WIDTH;
+            int height = borders ? VideoTiming.BUFFER_HEIGHT : VideoTiming.DISPLAY_TEX_HEIGHT;
+            int vScale = mono ? 1 : 2;
+            int outHeight = height * vScale;
+
+            var info = new SKImageInfo(width, outHeight, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            using var bitmap = new SKBitmap(info);
+            IntPtr dstPtr = bitmap.GetPixels();
+            int dstRowBytes = bitmap.RowBytes;
+
+            lock (_syncLock)
+            {
+                if (_lastPublished == null)
+                    return null;
+
+                unsafe
+                {
+                    fixed (uint* srcBase = _lastPublished)
+                    {
+                        byte* pDst = (byte*)dstPtr.ToPointer();
+                        int srcStride = VideoTiming.BUFFER_WIDTH;
+                        int rowBytes = width * 4;
+
+                        for (int y = 0; y < height; y++)
+                        {
+                            byte* pSrcRow = (byte*)(srcBase + (srcY + y) * srcStride + srcX);
+                            for (int s = 0; s < vScale; s++)
+                            {
+                                System.Buffer.MemoryCopy(pSrcRow, pDst + (vScale * y + s) * dstRowBytes, rowBytes, rowBytes);
+                            }
+                        }
+                    }
+                }
+            }
+
+            using var image = SKImage.FromBitmap(bitmap);
+            using var data = image?.Encode(SKEncodedImageFormat.Jpeg, quality);
+            return data?.ToArray();
         }
 
         /// <summary>
@@ -1138,6 +1153,8 @@ namespace ASE
                 HostInput.ReleaseAll();
                 ACIA.MouseButtonChanged(left: true, pressed: false);
                 ACIA.MouseButtonChanged(left: false, pressed: false);
+                if (IsMouseCaptured)
+                    CaptureMouse(false);
                 return;
             }
 
@@ -1326,6 +1343,14 @@ namespace ASE
                     (key.mod & SDL.SDL_Keymod.KMOD_ALT) != 0)
                 {
                     Dispatcher.UIThread.Post(() => MainWindow.ToggleFullScreen(), DispatcherPriority.Input);
+                    return;
+                }
+
+                // Alt+B toggles screen borders (overscan crop vs full tube)
+                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_B &&
+                    (key.mod & SDL.SDL_Keymod.KMOD_ALT) != 0)
+                {
+                    Dispatcher.UIThread.Post(() => MainWindow.ToggleShowBorders(), DispatcherPriority.Input);
                     return;
                 }
 

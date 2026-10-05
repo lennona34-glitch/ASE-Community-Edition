@@ -61,14 +61,14 @@
         avares://ASE/Assets/Fonts#Modern DOS 8x14
       </FontFamily>
       
-      <!-- Atari Fuji orange accent. -->
-      <Color x:Key="SystemAccentColor">#EE7326</Color>
-      <Color x:Key="SystemAccentColorDark1">#D5641F</Color>
-      <Color x:Key="SystemAccentColorDark2">#B95518</Color>
-      <Color x:Key="SystemAccentColorDark3">#9C4712</Color>
-      <Color x:Key="SystemAccentColorLight1">#F28A4B</Color>
-      <Color x:Key="SystemAccentColorLight2">#F5A16F</Color>
-      <Color x:Key="SystemAccentColorLight3">#F9B893</Color>
+      <!-- Neon Blue accent palette. -->
+      <Color x:Key="SystemAccentColor">#00D2FF</Color>
+      <Color x:Key="SystemAccentColorDark1">#00B4DB</Color>
+      <Color x:Key="SystemAccentColorDark2">#0090B0</Color>
+      <Color x:Key="SystemAccentColorDark3">#00708C</Color>
+      <Color x:Key="SystemAccentColorLight1">#33DCFF</Color>
+      <Color x:Key="SystemAccentColorLight2">#66E5FF</Color>
+      <Color x:Key="SystemAccentColorLight3">#99EFFF</Color>
 
       <!-- Shared dialog brushes. These derive from the accent so the whole
            secondary-window family changes consistently if the ASE accent changes. -->
@@ -89,12 +89,12 @@
         <ResourceDictionary x:Key="Light">
           <x:String x:Key="IconCssNormal">* { fill: #111; }</x:String>
           <x:String x:Key="IconCssDisabled">* { fill: #888; }</x:String>
-          <x:String x:Key="IconCssSelected">* { fill: #D5641F; }</x:String>
+          <x:String x:Key="IconCssSelected">* { fill: #0088A8; }</x:String>
 
           <SolidColorBrush x:Key="DialogBackgroundBrush">#FAFAFA</SolidColorBrush>
           <SolidColorBrush x:Key="CardBackgroundBrush">#F7F7F7</SolidColorBrush>
           <SolidColorBrush x:Key="CardBorderBrush">#E0E0E0</SolidColorBrush>
-          <SolidColorBrush x:Key="AccentTextBrush">#C55A17</SolidColorBrush>
+          <SolidColorBrush x:Key="AccentTextBrush">#0088A8</SolidColorBrush>
           <SolidColorBrush x:Key="LibraryBarBrush">#C8C8C8</SolidColorBrush>
 
           <!-- Game detail card: fades the title-screen backdrop into the card colour. -->
@@ -118,13 +118,13 @@
         <ResourceDictionary x:Key="Dark">
           <x:String x:Key="IconCssNormal">* { fill: #f2f2f2; }</x:String>
           <x:String x:Key="IconCssDisabled">* { fill: #777; }</x:String>
-          <x:String x:Key="IconCssSelected">* { fill: #F28A4B; }</x:String>
+          <x:String x:Key="IconCssSelected">* { fill: #00D2FF; }</x:String>
 
           <!-- The new dialogs deliberately use a black canvas around the cards. -->
           <SolidColorBrush x:Key="DialogBackgroundBrush">#000000</SolidColorBrush>
           <SolidColorBrush x:Key="CardBackgroundBrush">#232323</SolidColorBrush>
           <SolidColorBrush x:Key="CardBorderBrush">#373737</SolidColorBrush>
-          <SolidColorBrush x:Key="AccentTextBrush">#F5A16F</SolidColorBrush>
+          <SolidColorBrush x:Key="AccentTextBrush">#00D2FF</SolidColorBrush>
           <SolidColorBrush x:Key="LibraryBarBrush">#101010</SolidColorBrush>
 
           <!-- Game detail card: fades the title-screen backdrop into the card colour. -->

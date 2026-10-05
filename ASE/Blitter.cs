@@ -19,8 +19,6 @@
  * 
  */
 
-using System.Runtime.CompilerServices;
-
 using static ASE.Config;
 
 namespace ASE
@@ -75,178 +73,6 @@ namespace ASE
         static uint srcBuffer;     // 32-bit barrel-shifter buffer
         static uint xCountReset;   // saved x_count value (set when xCount register is written)
 
-        // --- Bus timing and arbitration ------------------------------------------------------
-        //
-        // The blitter is a second bus master, not a function call: it takes the bus away from the
-        // 68000, moves a word every 4 cycles and — unless it is in HOG mode — hands the bus back
-        // every so often so the CPU can run. Running a whole blit inside the register write that
-        // starts it (which is what this did) gets the *result* right and the *timing* completely
-        // wrong, and there is a whole class of code that only cares about the timing: raster
-        // effects that blit into the palette or the video registers, loaders that overlap a blit
-        // with CPU work, and anything that measures the chip. The symptom is not a wrong picture
-        // but a picture with no blitter in it at all — every write the blit makes lands on one
-        // single CPU cycle, so the mid-line palette replay collapses them into one position.
-        // Numbers from Hatari's blitter.c, measured on real hardware.
-
-        /// <summary>Cycles one blitter bus access costs (a word read or a word write).</summary>
-        const int BusAccessCycles = 4;
-
-        /// <summary>
-        /// Cycles the bus arbitration takes, in either direction — the blitter waits this long
-        /// after asking for the bus, and again when it gives it back.
-        /// </summary>
-        const int BusArbitrationCycles = 4;
-
-        /// <summary>Bus accesses the blitter makes before yielding, in shared (non-HOG) mode.</summary>
-        const int SharedBusBlitterAccesses = 64;
-
-        /// <summary>Bus accesses the CPU gets before the blitter takes the bus back.</summary>
-        const int SharedBusCpuAccesses = 64;
-
-        static int blitterBusCredit;   // accesses left in the current blitter burst
-        static int cpuBusCredit;       // CPU accesses still owed before the blitter resumes
-        static bool busGranted;        // the arbitration cost of this burst has been paid
-        static bool busRequestPending; // the blitter has asked for the bus, latency not yet over
-        static long busRequestClock;   // when it asked
-
-        /// <summary>
-        /// The blitter's own clock. It is a second bus master with a clock of its own, and the
-        /// two run <b>in parallel</b>: the blitter takes the bus as soon as the arbitration is
-        /// over, while the 68000 goes on with whatever internal cycles its current instruction
-        /// still has to do and only stalls at its next bus access.
-        /// <para>
-        /// This has to be tracked separately because Moira can only be stopped between
-        /// instructions. When the CPU's quota runs out in the middle of a <c>divs</c> (142
-        /// cycles, one single bus access at the front of it), ASE has already run the whole
-        /// instruction by the time it looks at the blitter again — and taking the Moira clock as
-        /// the start of the burst charges those cycles to the blitter, which on real hardware
-        /// they never were. The burst then lands up to an instruction late, every time.
-        /// </para>
-        /// </summary>
-        static long blitClock;
-
-        /// <summary>
-        /// The cycle the bus comes back to the 68000, or 0 while the CPU has it. The blitter does
-        /// not stop the CPU, it stops its <b>memory</b>: a 68000 that loses the bus goes on with
-        /// the internal cycles of the instruction it is in and only stalls at its next access.
-        /// That is what this models -- <see cref="Run"/> leaves the CPU's clock exactly where it
-        /// was and the next CPU bus access waits here instead.
-        /// <para>
-        /// Charging the CPU the whole burst (which is what moving its clock to the end of the
-        /// burst did) costs it the internal cycles it should have overlapped -- 138 of the 142 of
-        /// a <c>divs</c> -- so every burst whose quota ran out inside a long instruction lands
-        /// that much late.
-        /// </para>
-        /// </summary>
-        static long busFreeAt;
-
-        /// <summary>
-        /// CPU bus accesses made after the blitter already had the bus but before the emulation
-        /// loop got round to running the burst. Moira can only be stopped between instructions,
-        /// so an access that on the machine would have been held off until the burst ended has
-        /// often already happened by then; <see cref="ReleaseBus"/> charges the CPU the wait it
-        /// should have taken and counts them against the new quota, which is where they belong.
-        /// </summary>
-        static int earlyCpuAccesses;
-        static long earlyAccessClock;
-
-        /// <summary>
-        /// A CPU access slipped into the arbitration window, so the blitter lost one access of
-        /// this burst -- but <b>not</b> the time. MiSTer's RTL (stBlitter.sv) has a single
-        /// counter that counts every bus cycle from the moment busy is set, so a slot the CPU
-        /// took is a slot gone: the blitter still holds the bus for its 64 of them and simply
-        /// makes 63 accesses in that time. Shortening the burst by the missing access instead
-        /// leaves every burst period 4 cycles short -- which no access count shows, and which
-        /// walks the whole pattern down the screen at the wrong angle.
-        /// </summary>
-        static bool slotStolen;
-
-        // Per-line state of the blit in progress. It used to live in Execute()'s locals, which
-        // was fine while a blit ran to completion in one call and is exactly what has to survive
-        // now that it is stepped.
-        static bool nfsrState;
-        static bool haveFxsr;
-        static ushort lastBusWord;
-
-        /// <summary>
-        /// True while the blitter owns the bus, which is when the 68000 cannot reach memory: the
-        /// emulation loop runs the blitter instead of the CPU (see ASEMain.RunCpuUntil). Asking
-        /// for the bus does not take it — the 68000 keeps it for the arbitration latency first,
-        /// which is what lets the access below slip through.
-        /// <para>
-        /// "Cannot reach memory" is not "is stopped": a 68000 goes on with the internal cycles of
-        /// the instruction it is in and only stalls at its next bus access. That is what
-        /// <see cref="blitClock"/> is for — the emulation loop cannot interrupt Moira mid
-        /// instruction, so the parallelism is recovered by running the blitter on a clock of its
-        /// own and taking the later of the two at the end.
-        /// </para>
-        /// </summary>
-        public static bool HoldsBus =>
-            busy && cpuBusCredit == 0 && CPU._moira.Clock >= busRequestClock + 2 * BusArbitrationCycles;
-
-        /// <summary>
-        /// Counts one CPU bus access, from the CPU-facing accessors in <see cref="Memory"/>.
-        /// In shared mode the blitter gives the CPU a fixed number of <b>accesses</b>, not a fixed
-        /// number of cycles, so this is what times the hand-back — and it is what makes a CPU
-        /// busy with long non-memory instructions (a string of <c>divs</c>, say) hand the bus
-        /// back far less often than one running a stream of <c>move.w</c>.
-        /// <para>
-        /// The second half is Hatari's <c>Blitter_HOG_CPU_BusCountError</c>, and it is not a
-        /// rounding detail — it is measurable. Asking for the bus does
-        /// not take it: the 68000 keeps it for the 4-cycle arbitration latency, and an access it
-        /// slips into that window is counted by the blitter as one of <i>its</i> own, so the burst
-        /// comes out at <b>63</b> instead of 64. MiSTer's RTL (stBlitter.sv, Jorge Cwik) shows
-        /// where that comes from: there is a single 7-bit counter that counts <i>every</i> bus
-        /// cycle while busy is set — "BLITTER Buglet: Starts counting as soon as BUSY is set" —
-        /// with bit 6 deciding who owns the bus, so a CPU access made before the blitter has
-        /// taken it simply eats one of the blitter's 64 slots.
-        /// </para>
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void NoteCpuBusAccess()
-        {
-            // The blitter held the bus until busFreeAt: an access before that waits for it, like
-            // any other wait state. This is the only thing a burst costs the 68000 -- the cycles
-            // it spends inside an instruction it keeps.
-            if (busFreeAt != 0)
-            {
-                if (CPU._moira.Clock < busFreeAt) CPU._moira.Clock = busFreeAt;
-                else busFreeAt = 0;
-            }
-
-            if (cpuBusCredit > 0)
-            {
-                if (--cpuBusCredit == 0)
-                {
-                    busRequestClock = CPU._moira.Clock;
-                    busRequestPending = true;
-                }
-                return;
-            }
-
-            if (!busy)
-                return;
-
-            if (busRequestPending)
-            {
-                busRequestPending = false;
-
-                // Slipped into the arbitration window: the blitter counts it as one of its own
-                // (Hatari's Blitter_HOG_CPU_BusCountError, and see the summary above).
-                if (CPU._moira.Clock - busRequestClock <= 2 * BusArbitrationCycles)
-                {
-                    blitterBusCredit--;
-                    slotStolen = true;
-                    return;
-                }
-            }
-
-            // The window has closed and the bus is the blitter's. On the machine this access
-            // simply would not happen yet; here it already has, so it is booked and paid for
-            // when the burst ends (see ReleaseBus).
-            if (earlyCpuAccesses++ == 0) earlyAccessClock = CPU._moira.Clock;
-        }
-
         public static void Reset()
         {
             Array.Clear(halftone);
@@ -272,20 +98,6 @@ namespace ASE
             fxsr = false;
             srcBuffer = 0;
             xCountReset = 0;
-
-            blitterBusCredit = 0;
-            cpuBusCredit = 0;
-            busGranted = false;
-            busRequestPending = false;
-            busRequestClock = 0;
-            blitClock = 0;
-            busFreeAt = 0;
-            earlyCpuAccesses = 0;
-            earlyAccessClock = 0;
-            slotStolen = false;
-            nfsrState = false;
-            haveFxsr = false;
-            lastBusWord = 0;
         }
 
         // Snapshot
@@ -317,30 +129,6 @@ namespace ASE
             w.Bool(fxsr);
             w.U32(srcBuffer);
             w.U32(xCountReset);
-
-            // Appended: the state of a blit caught in flight. A blit is no longer instantaneous,
-            // so a snapshot can land in the middle of one and has to be able to carry it on.
-            // Older snapshots stop above and restore with an idle blitter.
-            w.I32(blitterBusCredit);
-            w.I32(cpuBusCredit);
-            w.Bool(busGranted);
-            w.Bool(busRequestPending);
-            w.I64(busRequestClock);
-            w.Bool(nfsrState);
-            w.Bool(haveFxsr);
-            w.U16(lastBusWord);
-
-            // Appended again: the blitter's own clock (see the field). A snapshot taken mid-blit
-            // without it would resume the burst from the CPU's clock, which is the very thing
-            // this separates.
-            w.I64(blitClock);
-
-            // Appended again: the bus hand-back (see busFreeAt). A snapshot without it restores a
-            // machine whose next CPU access does not wait for a burst that was in flight.
-            w.I64(busFreeAt);
-            w.I32(earlyCpuAccesses);
-            w.I64(earlyAccessClock);
-            w.Bool(slotStolen);
         }
 
         public static void LoadState(Snapshot.Reader r)
@@ -370,57 +158,6 @@ namespace ASE
             fxsr = r.Bool();
             srcBuffer = r.U32();
             xCountReset = r.U32();
-
-            // In-flight blit state (see SaveState). Absent from older snapshots, which restore
-            // with the blitter idle -- and if one of those was taken mid-blit, busy would be set
-            // with no bus credit behind it, so the blit is dropped rather than resumed wrong.
-            if (r.Remaining >= 21)
-            {
-                blitterBusCredit = r.I32();
-                cpuBusCredit = r.I32();
-                busGranted = r.Bool();
-                busRequestPending = r.Bool();
-                busRequestClock = r.I64();
-                nfsrState = r.Bool();
-                haveFxsr = r.Bool();
-                lastBusWord = r.U16();
-
-                // The blitter clock was appended later still; a snapshot without it restarts the
-                // burst from the CPU clock, which is only ever a few cycles off.
-                blitClock = r.Remaining >= 8 ? r.I64() : CPU._moira.Clock;
-
-                if (r.Remaining >= 21)
-                {
-                    busFreeAt = r.I64();
-                    earlyCpuAccesses = r.I32();
-                    earlyAccessClock = r.I64();
-                    slotStolen = r.Bool();
-                }
-                else
-                {
-                    busFreeAt = 0;
-                    earlyCpuAccesses = 0;
-                    earlyAccessClock = 0;
-                    slotStolen = false;
-                }
-            }
-            else
-            {
-                busy = false;
-                blitterBusCredit = 0;
-                cpuBusCredit = 0;
-                busGranted = false;
-                busRequestPending = false;
-                busRequestClock = 0;
-                blitClock = 0;
-                busFreeAt = 0;
-                earlyCpuAccesses = 0;
-                earlyAccessClock = 0;
-                slotStolen = false;
-                nfsrState = false;
-                haveFxsr = false;
-                lastBusWord = 0;
-            }
         }
 
         /// <summary>
@@ -524,12 +261,9 @@ namespace ASE
                 case 0x3A: hop = (byte)(v & 0x03); break;
                 case 0x3B: op = (byte)(v & 0x0F); break;
                 case 0x3C:
-                {
-                    bool wasBusy = busy;
                     UnpackControl(v);
-                    ControlWritten(wasBusy);
+                    if (busy) Execute();
                     break;
-                }
                 case 0x3D:
                     UnpackSkew(v);
                     break;
@@ -555,10 +289,9 @@ namespace ASE
             // Control + Skew word at $FF8A3C: set both bytes before starting
             if (offset == 0x3C)
             {
-                bool wasBusy = busy;
                 UnpackSkew((byte)(v & 0xFF));
                 UnpackControl((byte)(v >> 8));
-                ControlWritten(wasBusy);
+                if (busy) Execute();
                 return;
             }
 
@@ -612,284 +345,7 @@ namespace ASE
         ];
 
         /// <summary>
-        /// Acts on a write to the control register ($FF8A3C), given the busy bit as it stood
-        /// <b>before</b> the write. Busy is a flip-flop: writing a 1 into one that is already set
-        /// changes nothing, so only the 0-&gt;1 edge arms a blit and only the 1-&gt;0 edge aborts
-        /// one. Re-arming on every write is not a corner case, it is the normal path — the
-        /// standard way to wait for a blit is to keep writing the bit back, and TOS' own VDI does
-        /// exactly that:
-        /// <code>tas.b (a5) / nop / bmi.b *-4</code>
-        /// with a5 = $FF8A3C (ten copies of that loop in TOS 1.62, at $E0B4A2, $E0AB64, $E104C8
-        /// and seven more), where TAS is a read-modify-write that puts bit 7 back on <i>every
-        /// turn</i> of the loop.
-        /// <para>
-        /// While the whole blit ran inside the register write this was invisible: busy was
-        /// already clear by the time the loop first looked. Now that the blit is stepped,
-        /// calling <see cref="StartBlit"/> there reset <see cref="nfsrState"/>,
-        /// <see cref="haveFxsr"/> and <see cref="lastBusWord"/> in the middle of a line — and an
-        /// NFSR blit whose state was cleared between xCount 2 and 1 then made the source read it
-        /// was meant to skip, so srcAddr advanced one word too far and every line after it was
-        /// fetched from the wrong place. That is what shredded the GEM menus and the Atari logo.
-        /// It also reset the arbitration (credit, request clock, <see cref="busGranted"/>) on
-        /// every turn, which is the other half of the same bug.
-        /// </para>
-        /// </summary>
-        static void ControlWritten(bool wasBusy)
-        {
-            if (busy)
-            {
-                if (!wasBusy) StartBlit();
-            }
-            else if (wasBusy)
-            {
-                FinishBlit();
-            }
-        }
-
-        /// <summary>
-        /// Arms a blit: the write to $FF8A3C that sets the busy bit does not do the work, it asks
-        /// for the bus. The blit itself is carried out by <see cref="Run"/>, a word at a time.
-        /// </summary>
-        static void StartBlit()
-        {
-            blitterBusCredit = hog ? int.MaxValue : SharedBusBlitterAccesses;
-            cpuBusCredit = 0;
-            busGranted = false;
-
-            // Starting a blit is a bus *request* like any other: the write to $FF8A3C completes,
-            // the CPU keeps the bus for the arbitration latency, and what it does in that window
-            // decides whether this burst gets 64 accesses or 63 (see NoteCpuBusAccess).
-            busRequestClock = CPU._moira.Clock;
-            busRequestPending = true;
-            earlyCpuAccesses = 0;
-            slotStolen = false;
-
-            nfsrState = false;
-            haveFxsr = false;
-            lastBusWord = 0;
-        }
-
-        /// <summary>A blit is in progress (the busy bit of $FF8A3C is set).</summary>
-        public static bool Busy => busy;
-
-        /// <summary>How many bus accesses the CPU still owes before the blitter takes over.</summary>
-        public static int CpuBusCredit => cpuBusCredit;
-
-        /// <summary>
-        /// Hands the bus over although the CPU has not used its quota. A 68000 sitting in
-        /// <c>STOP</c> — or halted by a double fault — makes no bus accesses at all, so the quota
-        /// would never run out and a blit started before it would never finish, hanging whatever
-        /// waits on the busy bit. On real hardware an idle CPU simply releases the bus and the
-        /// blitter carries on, which is what the emulation loop asks for here when a CPU slice
-        /// goes by without a single bus cycle.
-        /// </summary>
-        public static void GrantBusToIdleCpu()
-        {
-            if (!busy || cpuBusCredit == 0)
-                return;
-
-            cpuBusCredit = 0;
-            busRequestClock = CPU._moira.Clock;
-            busRequestPending = false;
-            earlyCpuAccesses = 0;
-        }
-
-        /// <summary>
-        /// Ends the blit and gives the bus back to the CPU.
-        /// </summary>
-        /// <returns>The cycles the CPU has to be pushed back by (see <see cref="ReleaseBus"/>).</returns>
-        static long FinishBlit()
-        {
-            busy = false;
-            long stall = 0;
-
-            if (busGranted)
-            {
-                blitClock += BusArbitrationCycles;
-                stall = ReleaseBus();
-                busGranted = false;
-            }
-
-            cpuBusCredit = 0;
-            busRequestPending = false;
-            earlyCpuAccesses = 0;
-            return stall;
-        }
-
-        /// <summary>
-        /// Hands the bus back at <see cref="blitClock"/>. From here the 68000's next access waits
-        /// for it (<see cref="busFreeAt"/>) -- and an access it has <i>already</i> made while the
-        /// blitter had the bus (see <see cref="earlyCpuAccesses"/>) is charged the wait the
-        /// machine would have made it take, which is the whole of what a burst costs the CPU.
-        /// Everything it did between that access and here, it keeps: those are internal cycles,
-        /// and on real hardware they run alongside the blit.
-        /// </summary>
-        /// <returns>The cycles the CPU has to be pushed back by.</returns>
-        static long ReleaseBus()
-        {
-            busFreeAt = blitClock;
-
-            if (earlyCpuAccesses == 0)
-                return 0;
-
-            long stall = blitClock - earlyAccessClock;
-            return stall > 0 ? stall : 0;
-        }
-
-        /// <summary>
-        /// Carries the blit forward while the blitter holds the bus, stopping at
-        /// <paramref name="targetClock"/>. The emulation loop calls this instead of running the
-        /// CPU (see ASEMain.RunCpuUntil), which is what makes the blitter a bus master rather
-        /// than a subroutine: every access advances <see cref="blitClock"/>, so each write lands
-        /// on the cycle it really lands on and the rest of the machine -- the video's per-line
-        /// model above all -- sees the time the blit takes.
-        /// <para>
-        /// The clock limit is not a detail: a long blit can run for hundreds of scanlines, and
-        /// stopping at the caller's target is what spreads it over the lines it really covers
-        /// instead of charging the whole of it to the line that started it.
-        /// </para>
-        /// <para>
-        /// The two masters run <b>in parallel</b>, and that is what the blitter's own clock is
-        /// for. The burst starts where the arbitration ends, whatever the 68000 was in the middle
-        /// of, and the machine's clock at the end is the later of the two -- the CPU's internal
-        /// cycles cost the blitter nothing, which is the same thing Hatari gets by ignoring the
-        /// CPU cycles that already ran alongside a blit.
-        /// </para>
-        /// </summary>
-        /// <returns>true when the blitter made at least one bus access.</returns>
-        public static bool Run(long targetClock)
-        {
-            if (!busy || cpuBusCredit > 0)
-                return false;
-
-            // Where the CPU has got to. It keeps this: the blitter is about to run over the same
-            // stretch of time, not after it.
-            long cpuClock = CPU._moira.Clock;
-
-            // Armed with nothing to do: the busy bit still has to drop.
-            if (yCount == 0 || xCountReset == 0)
-            {
-                CPU._moira.Clock = cpuClock + FinishBlit();
-                return false;
-            }
-
-            if (!busGranted)
-            {
-                // The blitter has the bus at request + latency + arbitration, and it takes it
-                // there even if the 68000 is halfway through a long instruction -- that is what a
-                // second bus master is. Do NOT start from the Moira clock: Moira stops only
-                // between instructions, so by the time the emulation loop looks at the blitter
-                // the CPU has already run the rest of the instruction, and starting the burst
-                // there charges the blitter for cycles the CPU spent on its own.
-                //
-                blitClock = busRequestClock + 2 * BusArbitrationCycles;
-
-                // The slot the CPU took is the blitter's first one: it holds the bus for the same
-                // 64 slots either way and just starts one access later (see slotStolen).
-                if (slotStolen) { blitClock += BusAccessCycles; slotStolen = false; }
-
-                busGranted = true;
-                busRequestPending = false;   // the window has closed
-            }
-
-            // Never behind the start of the scanline being rendered. The palette and video writes
-            // below are stamped with their cycle inside the line, and a write stamped before the
-            // line began would get a negative one, which the renderer's forward-only replay cannot
-            // place. It takes the blitter running a whole instruction behind a CPU that has just
-            // crossed the line boundary, so the few cycles this skips are an exceptional case.
-            if (blitClock < VideoTiming.LineStartClock) blitClock = VideoTiming.LineStartClock;
-
-            Memory mem = ASEMain._mem;
-            bool accessed = false;
-
-            while (busy && blitterBusCredit > 0 && blitClock < targetClock)
-            {
-                StepWord(mem);
-                accessed = true;
-            }
-
-            if (!busy)
-            {
-                CPU._moira.Clock = cpuClock + FinishBlit();
-                return accessed;
-            }
-
-            long stall = 0;
-
-            // Shared mode: the burst is spent, so the bus goes back to the CPU for its own quota
-            // of accesses. In HOG mode the credit never runs out and the CPU does not get a look
-            // in until the blit is over.
-            if (blitterBusCredit <= 0)
-            {
-                blitClock += BusArbitrationCycles;
-                busGranted = false;
-                blitterBusCredit = hog ? int.MaxValue : SharedBusBlitterAccesses;
-                cpuBusCredit = hog ? 0 : SharedBusCpuAccesses;
-
-                stall = ReleaseBus();
-
-                // Accesses the CPU has already made against this new quota (see
-                // earlyCpuAccesses): on the machine they happen here, as its first ones.
-                if (earlyCpuAccesses > 0)
-                {
-                    cpuBusCredit -= earlyCpuAccesses;
-                    earlyCpuAccesses = 0;
-
-                    if (cpuBusCredit <= 0)
-                    {
-                        cpuBusCredit = 0;
-                        busRequestClock = cpuClock + stall;
-                        busRequestPending = true;
-                    }
-                }
-            }
-
-            // HOG mode is the exception: the blitter keeps the bus until the blit ends, so there
-            // is nothing for the 68000 to overlap beyond the instruction it is in -- and a HOG
-            // blit can run for thousands of cycles, which the timers driven off this clock have
-            // to see go by. Its clock follows the blitter's there, as it always did.
-            if (hog && busGranted && blitClock > cpuClock)
-            {
-                CPU._moira.Clock = blitClock;
-
-                // Paid, and paid once. The CPU has just been put ON the blitter's clock, so the
-                // accesses it made before the burst started are long behind it and there is
-                // nothing left to charge. Leaving them booked charged the blit a SECOND time
-                // when it ended: nothing releases the bus during a HOG blit, so ReleaseBus'
-                // stall (blitClock - earlyAccessClock) spans the *whole* blit, and the CPU was
-                // pushed that far past a clock that had already followed the blitter to the end.
-                // Every HOG blit came out exactly twice as long as it is -- which is what a test
-                // measuring the blitter against a move.l/dbra copy loop reported as "the same
-                // speed as the CPU" where the machine gives about twice it.
-                earlyCpuAccesses = 0;
-                return accessed;
-            }
-
-            // The CPU goes back exactly where it was: BusAccess moved the machine's clock onto
-            // the blitter's to stamp each write, and the 68000 neither lost nor gained those
-            // cycles -- it only waits at its next bus access (busFreeAt), plus whatever the
-            // accesses it had already made owe (stall).
-            CPU._moira.Clock = cpuClock + stall;
-            return accessed;
-        }
-
-        /// <summary>
-        /// One blitter bus access: 4 cycles of bus, and one off the burst's quota. The Moira clock
-        /// is moved onto the blitter's for the duration of the access -- it can go <i>backwards</i>
-        /// while the CPU is ahead -- because the memory write that follows is stamped with it, and
-        /// that stamp is what puts a palette write at its horizontal position on the line.
-        /// <see cref="Run"/> puts the machine's clock back at the end.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void BusAccess()
-        {
-            blitClock += BusAccessCycles;
-            CPU._moira.Clock = blitClock;
-            blitterBusCredit--;
-        }
-
-        /// <summary>
-        /// Processes one word of the blit.
+        /// Executes the blit operation. Runs synchronously.
         /// Faithfully follows Hatari's Blitter_Step + Blitter_ProcessWord model:
         ///  - need_src gates ALL source reads (FXSR + normal) AND source address updates
         ///  - need_dst determines whether destination is read (forced true when mask != 0xFFFF)
@@ -899,11 +355,30 @@ namespace ASE
         ///  - Barrel shifter direction depends on sign of srcXInc
         ///  - For single-word lines, only endmask1 is used
         /// </summary>
-        static void StepWord(Memory mem)
+        static void Execute()
         {
+            if (yCount == 0)
+            {
+                busy = false;
+                return;
+            }
+
+            Memory mem = ASEMain._mem;
+
+            // Use the static xCountReset field. If it's somehow 0, treat as no-op.
+            if (xCountReset == 0)
+            {
+                busy = false;
+                return;
+            }
+
+            bool nfsrState = false;
+            bool haveFxsr = false;
             bool haveSrc = false;
             bool fetchSrc = false;
+            ushort lastBusWord = 0; // last word read from bus (for NFSR special case)
 
+            while (yCount > 0)
             {
                 // --- Blitter_Step: per-word processing ---
                 bool isFirst = (xCount == xCountReset);
@@ -939,7 +414,6 @@ namespace ASE
                 if (lineFxsr && !haveFxsr && needSrc)
                 {
                     SourceShift();
-                    BusAccess();
                     lastBusWord = mem.Read16(srcAddr);
                     SourceFetch(lastBusWord);
                     srcAddr = AdvanceAddr(srcAddr, srcXInc);
@@ -953,7 +427,6 @@ namespace ASE
                     if (!nfsrState)
                     {
                         SourceShift();
-                        BusAccess();
                         lastBusWord = mem.Read16(srcAddr);
                         SourceFetch(lastBusWord);
                         haveSrc = true;
@@ -962,12 +435,7 @@ namespace ASE
                 }
 
                 // Read destination if needed
-                ushort dstWord = 0;
-                if (needDst)
-                {
-                    BusAccess();
-                    dstWord = mem.Read16(dstAddr);
-                }
+                ushort dstWord = needDst ? mem.Read16(dstAddr) : (ushort)0;
 
                 // Special 'weird' case for xCount=1 and NFSR=1 (per Hatari)
                 if (nfsr && xCount == 1)
@@ -1004,7 +472,6 @@ namespace ASE
                 else
                     finalResult = lopResult;
 
-                BusAccess();
                 mem.Write16(dstAddr, finalResult);
 
                 // Special 'weird' case for xCount=1 and NFSR=1 — after write
@@ -1054,8 +521,7 @@ namespace ASE
                 fetchSrc = false;
             }
 
-            if (yCount == 0)
-                busy = false;
+            busy = false;
         }
 
         /// <summary>

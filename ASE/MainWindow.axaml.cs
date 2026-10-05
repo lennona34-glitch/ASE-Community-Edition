@@ -1,7 +1,8 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
@@ -11,6 +12,7 @@ using SDL2;
 using System;
 using TinyDialogsNet;
 using Tmds.DBus.Protocol;
+using ASE.Services;
 using static ASE.Config;
 
 namespace ASE
@@ -119,6 +121,9 @@ namespace ASE
             if (!Design.IsDesignMode)
             {
                 ApplyDriveBConnection(Config.ConfigOptions.RunninConfig.DriveBEnabled);
+                ItemMenuAutoReboot.Header = Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad
+                    ? "Auto-reboot on game load: On"
+                    : "Auto-reboot on game load: Off";
                 AddHandler(DragDrop.DropEvent, OnDrop);
             }
         }
@@ -307,6 +312,16 @@ namespace ASE
                 return;
             }
 
+            // If mouse is not yet captured, clicking anywhere on the emulation canvas captures it!
+            if (!ASEMain.IsMouseCaptured &&
+                (p.Properties.IsLeftButtonPressed || p.Properties.IsRightButtonPressed))
+            {
+                ASEMain.CaptureMouse(true);
+                ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true);
+                e.Handled = true;
+                return;
+            }
+
             // Transmit the button press to the ACIA mouse handling. The same click usually
             // arrives through the SDL queue as well; ACIA.MouseButtonChanged edge-guards it.
             if (ASEMain.IsMouseCaptured &&
@@ -348,16 +363,16 @@ namespace ASE
         }
 
         /// <summary>
-        /// Applies the menu-bar policy: it is disabled while the input is captured (so its
-        /// accelerators don't eat keystrokes meant for the ST) and, in full screen, it also folds
-        /// away — the picture then owns the whole screen and the bar comes back the moment the
-        /// mouse is released with F12 or the middle button. In a normal window it always stays
-        /// visible, only greyed out, which is what it has always done.
+        /// Applies the menu-bar and status-bar policy: disabled while input is captured (so accelerators
+        /// don't eat keystrokes meant for the ST) and, in full screen Zen Mode, folds away completely —
+        /// the picture owns the whole screen with no bars or host mouse cursor. The bars return the moment
+        /// input is released with F12 or middle-click. In normal windowed mode they stay visible.
         /// </summary>
         private void ApplyMenuVisibility()
         {
             MainMenu.IsEnabled = _menuEnabled;
-            MainMenu.IsVisible = _menuEnabled || !IsFullScreen;
+            MainMenu.IsVisible = !IsFullScreen || _menuEnabled;
+            BottomStatusBar.IsVisible = !IsFullScreen || _menuEnabled;
         }
 
         /// <summary>Whether the window is currently in full screen.</summary>
@@ -407,6 +422,11 @@ namespace ASE
                 return;
 
             _fullScreenApplied = fullScreen;
+
+            if (fullScreen)
+            {
+                ASEMain.CaptureMouse(true);
+            }
 
             ApplyMenuVisibility();
             ApplyFullScreenSystemState(fullScreen);
@@ -513,6 +533,12 @@ namespace ASE
 
         private void EnforceAspectRatio()
         {
+            if (Config.ConfigOptions.RunninConfig.StretchToFill)
+            {
+                _lastStableClientSize = ClientSize;
+                return;
+            }
+
             // Never fight a maximized/minimized window
             if (WindowState != WindowState.Normal)
             {
@@ -790,10 +816,10 @@ namespace ASE
         {
             // Another disk of the same zip is still the same game, so it keeps whatever
             // library entry (and MT-32 profile) is already loaded.
-            InsertDisk(0, ZipFile[0], MT32.Mt32Profiles.CurrentGame);
+            InsertDisk(0, ZipFile[0], MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
         }
 
-        public void OnChangeDiskBClick(object sender, RoutedEventArgs e) => InsertDisk(1, ZipFile[1], null);
+        public void OnChangeDiskBClick(object sender, RoutedEventArgs e) => InsertDisk(1, ZipFile[1], null, isDiskSwap: true);
 
         /// <summary>The two floppy drives, by index: 0 = A, 1 = B.</summary>
         static FloppyImage Drive(int drive) => drive == 1 ? ASEMain.driveB : ASEMain.driveA;
@@ -820,12 +846,12 @@ namespace ASE
         }
 
         /// <summary>
-        /// Loads a disk image into a drive and, for drive A, offers the reboot.
+        /// Loads a disk image into a drive and, for drive A, boots or offers the reboot.
         /// <paramref name="libraryGame"/> is the catalogue entry the image came from, or null for
         /// anything opened by hand: it is what decides the game's MT-32 instrument mapping
         /// (see <see cref="MT32.Mt32Profiles"/>).
         /// </summary>
-        async void InsertDisk(int drive, string ImageFile, Models.LibraryItem libraryGame)
+        async void InsertDisk(int drive, string ImageFile, Models.LibraryItem libraryGame, bool isDiskSwap = false)
         {
             DisableEjectMenu(drive);
 
@@ -878,18 +904,307 @@ namespace ASE
                 // its instruments already in place.
                 MT32.Mt32Profiles.SetCurrentGame(libraryGame);
 
-                // Answering No is a real option now: the FDC reports the disk change to the running
-                // program (see FloppyImage.SignalDiskTransition), which is what multi-disk games and
-                // GEMDOS need to pick up the new disk without rebooting.
-                var response = await Dialogs.MessageBox("Disk inserted", "Reboot?", MessageBoxDialogType.YesNo, MessageBoxIconType.Question, MessageBoxButton.Yes);
+                // Check for multi-disc companion (Disk 2 / Side B)
+                bool multiDiscFound = false;
+                string effectivePath = !string.IsNullOrEmpty(Drive(0).ImagePath) ? Drive(0).ImagePath : ImageFile;
+                string companionDisk = !isDiskSwap ? DiskSetManager.FindCompanionDisk(effectivePath, 2) : null;
+                if (!string.IsNullOrEmpty(companionDisk) &&
+                    !string.Equals(companionDisk, effectivePath, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(companionDisk, ImageFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!Config.ConfigOptions.RunninConfig.DriveBEnabled)
+                        ApplyDriveBConnection(true);
 
-                if (response == MessageBoxButton.Yes)
+                    if (InsertIntoDrive(1, companionDisk, out _))
+                    {
+                        multiDiscFound = true;
+                        EjectDiskItem(1).IsEnabled = true;
+                        if (companionDisk.Contains(".zip|", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ZipFile[1] = companionDisk.Split('|')[0];
+                            ChangeDiskItem(1).IsEnabled = true;
+                        }
+                    }
+                }
+                else if (!isDiskSwap && Drive(1).HasDisk)
+                {
+                    // Cleanly eject Drive B on new game load if no companion exists,
+                    // so stale disks or duplicate Disk 1s never linger in Drive B.
+                    EjectFrom(1);
+                }
+
+                if (isDiskSwap)
+                {
+                    // Multi-disk swap during gameplay: do not reboot
+                }
+                else if (Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad)
+                {
                     ASEMain.HardReset();
+                }
+                else
+                {
+                    // Answering No is a real option now: the FDC reports the disk change to the running
+                    // program (see FloppyImage.SignalDiskTransition), which is what multi-disk games and
+                    // GEMDOS need to pick up the new disk without rebooting.
+                    var response = await Dialogs.MessageBox("Disk inserted", "Reboot?", MessageBoxDialogType.YesNo, MessageBoxIconType.Question, MessageBoxButton.Yes);
+
+                    if (response == MessageBoxButton.Yes)
+                        ASEMain.HardReset();
+                }
+
+                EjectDiskItem(drive).IsEnabled = true;
+
+                if (multiDiscFound)
+                {
+                    var allDisks = DiskSetManager.GetAllDisksInSet(effectivePath);
+                    string countInfo = allDisks.Count > 2 ? $" ({allDisks.Count} disks)" : "";
+                    SetStatusBarText($"Multi-disc game{countInfo}: Disk 1 in A: ({Drive(0).DisplayName}), Disk 2 in B: ({Drive(1).DisplayName})");
+                }
+                else
+                    SetStatusBarText($"Disk {Path.GetFileName(ImageFile)} inserted in drive {DriveLetter(drive)}");
+
+                RefreshDiskMenus(drive);
+                return;
             }
 
             EjectDiskItem(drive).IsEnabled = true;
 
             SetStatusBarText($"Disk {Path.GetFileName(ImageFile)} inserted in drive {DriveLetter(drive)}");
+            RefreshDiskMenus(drive);
+        }
+
+        public void OnSwapDisksClick(object sender, RoutedEventArgs e) => SwapOrCycleDisks(reverse: false);
+
+        public void OnPrevDiskClick(object sender, RoutedEventArgs e) => SwapOrCycleDisks(reverse: true);
+
+        void SwapOrCycleDisks(bool reverse = false)
+        {
+            string pathA = ASEMain.driveA.ImagePath;
+            string pathB = ASEMain.driveB.ImagePath;
+
+            string activePath = !string.IsNullOrEmpty(pathA) ? pathA : pathB;
+            var allDisks = !string.IsNullOrEmpty(activePath) ? DiskSetManager.GetAllDisksInSet(activePath) : new List<string>();
+
+            // Case 1: Exactly 2 disks in set, both drives have disks loaded -> standard in-memory swap
+            if (allDisks.Count == 2 && ASEMain.driveA.HasDisk && ASEMain.driveB.HasDisk)
+            {
+                SwapDrivesAB();
+                return;
+            }
+
+            // Case 2: 3+ disks in set
+            if (allDisks.Count > 2)
+            {
+                // If Drive B has a disk, cycle Drive B through the sequence
+                if (ASEMain.driveB.HasDisk)
+                {
+                    int currentIndex = allDisks.FindIndex(d => string.Equals(d, pathB, StringComparison.OrdinalIgnoreCase));
+                    int nextIndex;
+                    if (currentIndex >= 0)
+                    {
+                        nextIndex = reverse
+                            ? (currentIndex - 1 + allDisks.Count) % allDisks.Count
+                            : (currentIndex + 1) % allDisks.Count;
+
+                        // Skip disk that is currently loaded in Drive A
+                        if (string.Equals(allDisks[nextIndex], pathA, StringComparison.OrdinalIgnoreCase))
+                        {
+                            nextIndex = reverse
+                                ? (nextIndex - 1 + allDisks.Count) % allDisks.Count
+                                : (nextIndex + 1) % allDisks.Count;
+                        }
+                    }
+                    else
+                    {
+                        // Current disk in B not in set list, advance to Disk 2 (index 1)
+                        nextIndex = allDisks.Count > 1 ? 1 : 0;
+                    }
+
+                    string nextDisk = allDisks[nextIndex];
+                    InsertDisk(1, nextDisk, null, isDiskSwap: true);
+                    string cleanName = Path.GetFileName(nextDisk.Split('|').Last());
+                    SetStatusBarText($"Drive B: swapped to {cleanName} (Disk {nextIndex + 1} of {allDisks.Count})");
+                    UpdateMultiDiskMenu();
+                    return;
+                }
+
+                // Drive B is not active, but Drive A has a disk -> cycle Drive A through the full set
+                if (ASEMain.driveA.HasDisk)
+                {
+                    int currentIndex = allDisks.FindIndex(d => string.Equals(d, pathA, StringComparison.OrdinalIgnoreCase));
+                    int nextIndex = currentIndex >= 0
+                        ? (reverse ? (currentIndex - 1 + allDisks.Count) % allDisks.Count : (currentIndex + 1) % allDisks.Count)
+                        : 0;
+
+                    string nextDisk = allDisks[nextIndex];
+                    InsertDisk(0, nextDisk, MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+                    string cleanName = Path.GetFileName(nextDisk.Split('|').Last());
+                    SetStatusBarText($"Drive A: swapped to {cleanName} (Disk {nextIndex + 1} of {allDisks.Count})");
+                    UpdateMultiDiskMenu();
+                    return;
+                }
+            }
+
+            // Case 3: 2-disk set or general set with only Drive A loaded
+            if (ASEMain.driveA.HasDisk && allDisks.Count > 1)
+            {
+                int currentIndex = allDisks.FindIndex(d => string.Equals(d, pathA, StringComparison.OrdinalIgnoreCase));
+                int nextIndex = currentIndex >= 0
+                    ? (reverse ? (currentIndex - 1 + allDisks.Count) % allDisks.Count : (currentIndex + 1) % allDisks.Count)
+                    : 1;
+
+                string nextDisk = allDisks[nextIndex];
+                InsertDisk(0, nextDisk, MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+                string cleanName = Path.GetFileName(nextDisk.Split('|').Last());
+                SetStatusBarText($"Drive A: swapped to {cleanName} (Disk {nextIndex + 1} of {allDisks.Count})");
+                UpdateMultiDiskMenu();
+                return;
+            }
+
+            // Case 4: Both drives have arbitrary disks (not detected in set) -> standard in-memory swap
+            if (ASEMain.driveA.HasDisk && ASEMain.driveB.HasDisk)
+            {
+                SwapDrivesAB();
+                return;
+            }
+
+            // Case 5: Drive B has disk but Drive A is empty -> move Drive B disk to Drive A
+            if (!ASEMain.driveA.HasDisk && ASEMain.driveB.HasDisk)
+            {
+                string diskB = ASEMain.driveB.ImagePath;
+                EjectFrom(1);
+                InsertDisk(0, diskB, null, isDiskSwap: true);
+                SetStatusBarText($"Moved disk from Drive B: to Drive A: ({ASEMain.driveA.DisplayName})");
+                UpdateMultiDiskMenu();
+                return;
+            }
+
+            SetStatusBarText("No multi-disc game or companion disk detected to swap.");
+        }
+
+        void SwapDrivesAB()
+        {
+            if (!ASEMain.driveA.HasDisk || !ASEMain.driveB.HasDisk)
+            {
+                SetStatusBarText("Both drives must contain a disk to swap.");
+                return;
+            }
+
+            ASEMain.RunWhilePaused(() =>
+            {
+                var tempConfig = ASEMain.driveA.DiskConfig;
+                var tempData = ASEMain.driveA.Data;
+                var tempStx = ASEMain.driveA.Stx;
+                var tempWp = ASEMain.driveA.WriteProtected;
+                var tempPath = ASEMain.driveA.ImagePath;
+
+                ASEMain.driveA.DiskConfig = ASEMain.driveB.DiskConfig;
+                ASEMain.driveA.Data = ASEMain.driveB.Data;
+                ASEMain.driveA.Stx = ASEMain.driveB.Stx;
+                ASEMain.driveA.WriteProtected = ASEMain.driveB.WriteProtected;
+                ASEMain.driveA.ImagePath = ASEMain.driveB.ImagePath;
+
+                ASEMain.driveB.DiskConfig = tempConfig;
+                ASEMain.driveB.Data = tempData;
+                ASEMain.driveB.Stx = tempStx;
+                ASEMain.driveB.WriteProtected = tempWp;
+                ASEMain.driveB.ImagePath = tempPath;
+
+                string tempZip = ZipFile[0];
+                ZipFile[0] = ZipFile[1];
+                ZipFile[1] = tempZip;
+
+                ASEMain.driveA.SignalDiskTransition();
+                ASEMain.driveB.SignalDiskTransition();
+            }, out _);
+
+            RefreshDiskMenus(0);
+            RefreshDiskMenus(1);
+            DriveLed(0, false);
+            DriveLed(1, false);
+
+            SetStatusBarText($"Swapped disks: A: is now {ASEMain.driveA.DisplayName}, B: is now {ASEMain.driveB.DisplayName}");
+            UpdateMultiDiskMenu();
+        }
+
+        void UpdateMultiDiskMenu()
+        {
+            if (ItemMenuMultiDiskSet == null)
+                return;
+
+            string pathA = ASEMain.driveA.ImagePath;
+            string pathB = ASEMain.driveB.ImagePath;
+            string activePath = !string.IsNullOrEmpty(pathA) ? pathA : pathB;
+
+            if (string.IsNullOrEmpty(activePath))
+            {
+                ItemMenuMultiDiskSet.IsVisible = false;
+                return;
+            }
+
+            var allDisks = DiskSetManager.GetAllDisksInSet(activePath);
+            if (allDisks.Count <= 1)
+            {
+                ItemMenuMultiDiskSet.IsVisible = false;
+                return;
+            }
+
+            ItemMenuMultiDiskSet.IsVisible = true;
+            ItemMenuMultiDiskSet.Header = $"Multi-disk set ({allDisks.Count} disks)…";
+
+            var menuA = new MenuItem { Header = "Insert into Drive A:" };
+            var menuB = new MenuItem { Header = "Insert into Drive B:" };
+
+            for (int i = 0; i < allDisks.Count; i++)
+            {
+                string diskPath = allDisks[i];
+                int diskNum = i + 1;
+                string entryName = Path.GetFileName(diskPath.Split('|').Last());
+
+                bool isCurrentA = string.Equals(pathA, diskPath, StringComparison.OrdinalIgnoreCase);
+                bool isCurrentB = string.Equals(pathB, diskPath, StringComparison.OrdinalIgnoreCase);
+
+                var itemA = new MenuItem
+                {
+                    Header = $"Disk {diskNum}: {entryName}" + (isCurrentA ? " (Current in A:)" : ""),
+                    FontWeight = isCurrentA ? FontWeight.Bold : FontWeight.Normal
+                };
+                itemA.Click += (s, e) =>
+                {
+                    InsertDisk(0, diskPath, MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+                };
+                menuA.Items.Add(itemA);
+
+                var itemB = new MenuItem
+                {
+                    Header = $"Disk {diskNum}: {entryName}" + (isCurrentB ? " (Current in B:)" : ""),
+                    FontWeight = isCurrentB ? FontWeight.Bold : FontWeight.Normal
+                };
+                itemB.Click += (s, e) =>
+                {
+                    if (!Config.ConfigOptions.RunninConfig.DriveBEnabled)
+                        ApplyDriveBConnection(true);
+
+                    InsertDisk(1, diskPath, null, isDiskSwap: true);
+                };
+                menuB.Items.Add(itemB);
+            }
+
+            ItemMenuMultiDiskSet.Items.Clear();
+            ItemMenuMultiDiskSet.Items.Add(menuA);
+            ItemMenuMultiDiskSet.Items.Add(menuB);
+
+            var itemNextB = new MenuItem { Header = "Next disk in Drive B (Ctrl+D)", InputGesture = new KeyGesture(Key.D, KeyModifiers.Control) };
+            itemNextB.Click += (s, e) => SwapOrCycleDisks(reverse: false);
+            ItemMenuMultiDiskSet.Items.Add(itemNextB);
+
+            var itemPrevB = new MenuItem { Header = "Previous disk in Drive B (Ctrl+Shift+D)", InputGesture = new KeyGesture(Key.D, KeyModifiers.Control | KeyModifiers.Shift) };
+            itemPrevB.Click += (s, e) => SwapOrCycleDisks(reverse: true);
+            ItemMenuMultiDiskSet.Items.Add(itemPrevB);
+
+            var itemSwap = new MenuItem { Header = "Swap Drive A ↔ Drive B" };
+            itemSwap.Click += (s, e) => SwapDrivesAB();
+            ItemMenuMultiDiskSet.Items.Add(itemSwap);
         }
 
         public void OnEjecImageClick(object sender, RoutedEventArgs e) => EjectFrom(0);
@@ -919,6 +1234,7 @@ namespace ASE
         {
             ChangeDiskItem(drive).IsEnabled = false;
             EjectDiskItem(drive).IsEnabled = false;
+            UpdateMultiDiskMenu();
         }
 
         /// <summary>Puts a drive's disk menu entries back in sync with what is actually in it.</summary>
@@ -929,6 +1245,7 @@ namespace ASE
 
             EjectDiskItem(drive).IsEnabled = present && Drive(drive).HasDisk;
             ChangeDiskItem(drive).IsEnabled = present && !string.IsNullOrEmpty(ZipFile[drive]);
+            UpdateMultiDiskMenu();
         }
 
         /// <summary>
@@ -983,6 +1300,29 @@ namespace ASE
             // any other MIDI mode there is no front panel to open, however many library
             // games carry a YM->MT-32 mapping.
             ItemMenuMt32Toolbox.IsEnabled = _mt32Toolbox == null && Mt32ModuleWiredUp;
+            ItemMenuAutoReboot.Header = Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad
+                ? "Auto-reboot on game load: On"
+                : "Auto-reboot on game load: Off";
+            ItemMenuShowBorders.Header = Config.ConfigOptions.RunninConfig.ShowBorders
+                ? "Show screen borders: On"
+                : "Show screen borders: Off";
+        }
+
+        public void OnToggleAutoRebootClick(object sender, RoutedEventArgs e)
+        {
+            Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad = !Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad;
+            Program.Config.DumpJsonConfig();
+            SetStatusBarText($"Auto-reboot on game load: {(Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad ? "Enabled" : "Disabled")}");
+        }
+
+        public void OnToggleShowBordersClick(object sender, RoutedEventArgs e) => ToggleShowBorders();
+
+        public void ToggleShowBorders()
+        {
+            Config.ConfigOptions.RunninConfig.ShowBorders = !Config.ConfigOptions.RunninConfig.ShowBorders;
+            Program.Config.DumpJsonConfig();
+            RefreshAspectRatio();
+            SetStatusBarText($"Screen borders: {(Config.ConfigOptions.RunninConfig.ShowBorders ? "Enabled" : "Disabled (Cropped)")}");
         }
 
         /// <summary>Whether the machine was last powered on wired to the built-in MT-32 —
@@ -1094,6 +1434,17 @@ namespace ASE
             if (!string.IsNullOrEmpty(gameFile))
                 InsertDisk(0, gameFile, library.SelectedGame);
         }
+
+        private async void OnDownloadGamesClick(object sender, RoutedEventArgs e)
+        {
+            ASEMain.CaptureMouse(false);
+
+            var downloadWindow = new DownloadGamesWindow();
+            string gameFile = await downloadWindow.ShowDialog<string>(this);
+
+            if (!string.IsNullOrEmpty(gameFile))
+                InsertDisk(0, gameFile, null);
+        }
         
         private void OnConfigureLibraryClick(object sender, RoutedEventArgs e)
         {
@@ -1101,6 +1452,108 @@ namespace ASE
             configureLibrary.ShowDialog(this);
         }
         
+        private async void OnTosecCollectionClick(object sender, RoutedEventArgs e)
+        {
+            ASEMain.CaptureMouse(false);
+
+            string tosecDefault = Config.GetDefaultTosecPath();
+            var library = new LibraryWindow(!string.IsNullOrEmpty(tosecDefault) && Directory.Exists(tosecDefault) ? tosecDefault : null);
+            string gameFile = await library.ShowDialog<string>(this);
+
+            if (!string.IsNullOrEmpty(gameFile))
+                InsertDisk(0, gameFile, library.SelectedGame);
+        }
+
+        private async void OnRandomGameClick(object sender, RoutedEventArgs e)
+        {
+            ASEMain.CaptureMouse(false);
+
+            string libPath = Config.ConfigOptions.RunninConfig.LibraryPath;
+            if (string.IsNullOrEmpty(libPath) || !Directory.Exists(libPath))
+                libPath = Config.GetDefaultTosecPath();
+
+            if (string.IsNullOrEmpty(libPath) || !Directory.Exists(libPath))
+            {
+                await Dialogs.MessageBox("No Library Configured", "Please configure your library path in File -> Configure Library.", MessageBoxDialogType.Ok, MessageBoxIconType.Warning, MessageBoxButton.Ok);
+                return;
+            }
+
+            string chosenFile = null;
+            Models.LibraryItem chosenItem = null;
+
+            // 1. Check for library cache file in libPath or Games subfolder
+            string cachePath = Path.Combine(libPath, ".ase_library_cache.json");
+            if (!File.Exists(cachePath))
+            {
+                string gamesSub = Path.Combine(libPath, "Games", ".ase_library_cache.json");
+                if (File.Exists(gamesSub))
+                    cachePath = gamesSub;
+            }
+
+            if (File.Exists(cachePath))
+            {
+                try
+                {
+                    string json = await File.ReadAllTextAsync(cachePath);
+                    var cache = System.Text.Json.JsonSerializer.Deserialize<LibraryWindow.LibraryCacheData>(json);
+                    if (cache?.Items != null && cache.Items.Count > 0)
+                    {
+                        var rng = new Random();
+                        int idx = rng.Next(cache.Items.Count);
+                        chosenItem = cache.Items[idx];
+                        string fullPath = Path.IsPathRooted(chosenItem.Filename)
+                            ? chosenItem.Filename
+                            : Path.Combine(Path.GetDirectoryName(cachePath), chosenItem.Filename);
+                        if (File.Exists(fullPath))
+                            chosenFile = fullPath;
+                    }
+                }
+                catch { }
+            }
+
+            // 2. Fallback: scan disk images directly
+            if (string.IsNullOrEmpty(chosenFile))
+            {
+                var validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".stx", ".msa", ".zip" };
+                try
+                {
+                    var files = Directory.EnumerateFiles(libPath, "*.*", new EnumerationOptions
+                    {
+                        RecurseSubdirectories = true,
+                        MaxRecursionDepth = 4,
+                        IgnoreInaccessible = true
+                    })
+                    .Where(f => validExtensions.Contains(Path.GetExtension(f)))
+                    .Take(1000)
+                    .ToList();
+
+                    if (files.Count > 0)
+                    {
+                        var rng = new Random();
+                        chosenFile = files[rng.Next(files.Count)];
+                    }
+                }
+                catch { }
+            }
+
+            if (!string.IsNullOrEmpty(chosenFile) && File.Exists(chosenFile))
+            {
+                InsertDisk(0, chosenFile, chosenItem);
+                SetStatusBarText($"🎲 Playing random game: {Path.GetFileNameWithoutExtension(chosenFile)}");
+            }
+            else
+            {
+                await Dialogs.MessageBox("Random Game", "Could not find any playable games in your library folder.", MessageBoxDialogType.Ok, MessageBoxIconType.Information, MessageBoxButton.Ok);
+            }
+        }
+
+        public void OnQuest3ShareClick(object sender, RoutedEventArgs e)
+        {
+            ASEMain.CaptureMouse(false);
+            var shareWindow = new Quest3ShareWindow();
+            shareWindow.ShowDialog(this);
+        }
+
         public void OnConfigurationClick(object sender, RoutedEventArgs e)
         {
             var configWindow = new ConfigurationWindow();

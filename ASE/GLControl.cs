@@ -1,4 +1,4 @@
-﻿using Avalonia.OpenGL;
+using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using Silk.NET.OpenGL;
 using System;
@@ -2835,25 +2835,28 @@ namespace ASE
             double ratio = DisplayAspectRatio;
             uint outW = surfaceW, outH = surfaceH;
 
-            if (surfaceW > surfaceH * ratio)
-                outW = (uint)Math.Max(1, Math.Round(surfaceH * ratio));   // too wide -> pillarbox
-            else
-                outH = (uint)Math.Max(1, Math.Round(surfaceW / ratio));   // too tall -> letterbox
-
-            // Integer scaling: the fit shrinks to a whole number of pixels per ST line. The
-            // width follows the aspect ratio and so stays fractional — the sharp sampling of
-            // the final pass keeps it crisp — and when not even one pixel per line fits, the
-            // plain fit stands.
-            if (Config.ConfigOptions.RunninConfig.Scaling == Config.ConfigOptions.ScalingModes.Integer)
+            if (!Config.ConfigOptions.RunninConfig.StretchToFill)
             {
-                double lines = VideoTiming.Mono || Config.ConfigOptions.RunninConfig.ShowBorders
-                    ? VideoTiming.BUFFER_HEIGHT
-                    : VideoTiming.DISPLAY_TEX_HEIGHT;
-                int perLine = (int)Math.Floor(outH / lines);
-                if (perLine >= 1)
+                if (surfaceW > surfaceH * ratio)
+                    outW = (uint)Math.Max(1, Math.Round(surfaceH * ratio));   // too wide -> pillarbox
+                else
+                    outH = (uint)Math.Max(1, Math.Round(surfaceW / ratio));   // too tall -> letterbox
+
+                // Integer scaling: the fit shrinks to a whole number of pixels per ST line. The
+                // width follows the aspect ratio and so stays fractional — the sharp sampling of
+                // the final pass keeps it crisp — and when not even one pixel per line fits, the
+                // plain fit stands.
+                if (Config.ConfigOptions.RunninConfig.Scaling == Config.ConfigOptions.ScalingModes.Integer)
                 {
-                    outH = (uint)(perLine * lines);
-                    outW = (uint)Math.Max(1, Math.Round(outH * ratio));
+                    double lines = VideoTiming.Mono || Config.ConfigOptions.RunninConfig.ShowBorders
+                        ? VideoTiming.BUFFER_HEIGHT
+                        : VideoTiming.DISPLAY_TEX_HEIGHT;
+                    int perLine = (int)Math.Floor(outH / lines);
+                    if (perLine >= 1)
+                    {
+                        outH = (uint)(perLine * lines);
+                        outW = (uint)Math.Max(1, Math.Round(outH * ratio));
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Svg.Controls.Avalonia"
         xmlns:local="clr-namespace:ASE"
@@ -154,6 +154,17 @@
                                 </RadioButton>
                             </Grid>
 
+                            <Separator Margin="0,4,0,4" />
+
+                            <Grid ColumnDefinitions="*,Auto">
+                                <CheckBox Grid.Column="0"
+                                          Name="chkShowBorders"
+                                          VerticalAlignment="Center"
+                                          IsCheckedChanged="ChkShowBorders_OnIsCheckedChanged">
+                                    Show screen borders (overscan)
+                                </CheckBox>
+                            </Grid>
+
                         </StackPanel>
                     </Border>
 
@@ -289,14 +300,6 @@
                                             VerticalAlignment="Center"
                                             Click="ButtonDefaultGLValues_OnClick"
                                             Content="Set default values" />
-                                    
-                                    <CheckBox Grid.Column="4"
-                                              Name="chkShowBorders"
-                                              HorizontalAlignment="Right"
-                                              VerticalAlignment="Center"
-                                              IsCheckedChanged="ChkShowBorders_OnIsCheckedChanged">
-                                        Show borders
-                                    </CheckBox>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -353,7 +356,7 @@
                                            Text="Applied in this order, each independent of the rest, and all off by default. The CRT effects themselves are on the Video tab." />
                             </StackPanel>
 
-                            <Grid ColumnDefinitions="160,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="12">
+                            <Grid ColumnDefinitions="160,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="12">
 
                                 <TextBlock Grid.Column="0" Grid.Row="0" Classes="fieldLabel" VerticalAlignment="Center" Text="VIDEO SIGNAL" />
                                 <ComboBox Grid.Column="1" Grid.Row="0" Name="ComboVideoSignal" HorizontalAlignment="Stretch"
@@ -481,6 +484,21 @@
                                             <TextBlock TextWrapping="Wrap"
                                                        Opacity="0.75"
                                                        Text="Anything above 0 leaves a short trail behind whatever moves; 20-30% is a good compromise for a general TV look, 50% for flicker pictures." />
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </Button>
+
+                                <TextBlock Grid.Column="0" Grid.Row="6" Classes="fieldLabel" VerticalAlignment="Center" Text="WIDESCREEN" />
+                                <CheckBox Grid.Column="1" Grid.Row="6" Name="chkStretchToFill" VerticalAlignment="Center"
+                                          IsCheckedChanged="ChkStretchToFill_OnIsCheckedChanged">
+                                    Stretch picture to fill screen (16:9 widescreen)
+                                </CheckBox>
+                                <Button Grid.Column="2" Grid.Row="6" Classes="infoHint" VerticalAlignment="Center">
+                                    <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" Width="15" Height="15" />
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="400" Spacing="7">
+                                            <TextBlock TextWrapping="Wrap"
+                                                       Text="Stretches the display horizontally to fill modern 16:9 widescreen displays without side black bars. Leave unchecked (default) to preserve the authentic 4:3 Atari ST monitor aspect ratio." />
                                         </StackPanel>
                                     </ToolTip.Tip>
                                 </Button>

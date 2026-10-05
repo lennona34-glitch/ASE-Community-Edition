@@ -95,15 +95,15 @@
 
         <Style Selector="Border.updateCard">
             <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="BorderBrush" Value="#99F5A16F"/>
+            <Setter Property="BorderBrush" Value="#9900D2FF"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="#F2C95E19"/>
+            <Setter Property="Background" Value="#CC006888"/>
             <Setter Property="BoxShadow" Value="0 10 28 0 #55000000"/>
         </Style>
 
         <Style Selector="Border.updateCard:pointerover">
-            <Setter Property="Background" Value="#FFF07422"/>
-            <Setter Property="BorderBrush" Value="#FFF5A16F"/>
+            <Setter Property="Background" Value="#FF0088B0"/>
+            <Setter Property="BorderBrush" Value="#FF00D2FF"/>
         </Style>
 
         <Style Selector="Button.aboutAction">
@@ -123,7 +123,7 @@
                                  EndPoint="100%,100%">
                 <GradientStop Color="#04050A" Offset="0"/>
                 <GradientStop Color="#070910" Offset="0.5"/>
-                <GradientStop Color="#100A06" Offset="1"/>
+                <GradientStop Color="#001824" Offset="1"/>
             </LinearGradientBrush>
         </Grid.Background>
 
@@ -173,11 +173,11 @@
                                      Opacity="0.55">
                                 <Ellipse.Fill>
                                     <RadialGradientBrush>
-                                        <GradientStop Color="#59EE7326" Offset="0"/>
-                                        <GradientStop Color="#1EEE7326" Offset="0.55"/>
-                                        <GradientStop Color="#00EE7326" Offset="1"/>
-                                    </RadialGradientBrush>
-                                </Ellipse.Fill>
+                                         <GradientStop Color="#5900D2FF" Offset="0"/>
+                                         <GradientStop Color="#1E00D2FF" Offset="0.55"/>
+                                         <GradientStop Color="#0000D2FF" Offset="1"/>
+                                     </RadialGradientBrush>
+                                 </Ellipse.Fill>
                             </Ellipse>
 
                             <Image x:Name="RetroDude"

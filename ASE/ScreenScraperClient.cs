@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using ASE.Models;
 using System;
@@ -73,11 +73,23 @@ namespace ASE
 
         private Dictionary<string, string> BaseParams(bool DebugMode = false)
         {
+            string devId = !string.IsNullOrWhiteSpace(Config.ConfigOptions.RunninConfig.ScreenScraperDevId)
+                ? Config.ConfigOptions.RunninConfig.ScreenScraperDevId
+                : BuildCredentials.DevId;
+
+            string devPassword = !string.IsNullOrWhiteSpace(Config.ConfigOptions.RunninConfig.ScreenScraperDevPassword)
+                ? Config.ConfigOptions.RunninConfig.ScreenScraperDevPassword
+                : (DebugMode ? BuildCredentials.SsDevDebugPassword : BuildCredentials.DevPassword);
+
+            string softName = !string.IsNullOrWhiteSpace(Config.ConfigOptions.RunninConfig.ScreenScraperSoftName)
+                ? Config.ConfigOptions.RunninConfig.ScreenScraperSoftName
+                : (string.IsNullOrEmpty(BuildCredentials.SsDevApp) ? "ASE" : BuildCredentials.SsDevApp);
+
             var p = new Dictionary<string, string>
             {
-                ["devid"] = BuildCredentials.DevId,
-                ["devpassword"] = DebugMode ? BuildCredentials.SsDevDebugPassword : BuildCredentials.DevPassword,
-                ["softname"] = BuildCredentials.SsDevApp,
+                ["devid"] = devId ?? string.Empty,
+                ["devpassword"] = devPassword ?? string.Empty,
+                ["softname"] = softName ?? "ASE",
                 ["output"] = "json"
             };
 

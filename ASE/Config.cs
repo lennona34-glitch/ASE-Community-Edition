@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -194,6 +194,7 @@ namespace ASE
             // Screen flags
 
             public bool ShowBorders { get; set; } = true;   // show the screen borders (overscan) around the 320x200 display
+            public bool StretchToFill { get; set; } = false; // stretch picture to fill window/screen (16:9 widescreen)
 
             // Monochrome (SM124) monitor instead of a colour one. Detected by TOS through MFP
             // GPIP bit 7 at boot, which then selects high resolution (640x400, 1 plane, ~71 Hz).
@@ -206,6 +207,9 @@ namespace ASE
             public bool FullScreen { get; set; } = false;
 
             public bool CheckForUpdates { get; set; } = true;   // query GitHub for a newer release at startup
+            public bool AutoRebootOnGameLoad { get; set; } = true; // automatically reset/boot into game when a disk image is inserted
+            public string LastLibrarySearch { get; set; } = "";
+            public string LastDownloaderSearch { get; set; } = "";
 
             // Default directories. Screenshots (Shift+F11) and snapshots (F11) default to
             // subfolders next to config.json; an empty value falls back to that default.
@@ -214,6 +218,7 @@ namespace ASE
             public string SnapshotsPath { get; set; } = Path.Combine(GetAppDefaultConfigsFilePath(), "Snapshots");
             public string DiskImagesPath { get; set; } = "";
             public string LibraryPath { get; set; } = "";
+            public string TosecPath { get; set; } = @"C:\Users\adria\Desktop\Atari Emulator\Atari ST [TOSEC]\Games";
             public string TOSRomsPath { get; set; } = "";
 
             // The ST MMU shares RAM between the CPU and the video shifter in a 2-cycle round-robin,
@@ -407,6 +412,9 @@ namespace ASE
                 get => StringOfuscator.Unprotect(ScreenScraperPassword) ?? string.Empty;
                 set => ScreenScraperPassword = StringOfuscator.Protect(value);
             }
+            public string ScreenScraperDevId { get; set; } = "";
+            public string ScreenScraperDevPassword { get; set; } = "";
+            public string ScreenScraperSoftName { get; set; } = "ASE";
             public bool ScrapeMedia { get; set; } = true;
 
             /// <summary>Windows only: custom VLC installation directory (containing libvlc.dll)
@@ -716,6 +724,14 @@ namespace ASE
                         ConfigOptions.RunninConfig.FullScreen =
                             parts.Length < 2 || !bool.TryParse(parts[1], out bool _fs) || _fs;
                         break;
+                    case "--borders":
+                        ConfigOptions.RunninConfig.ShowBorders =
+                            parts.Length < 2 || !bool.TryParse(parts[1], out bool _sb) || _sb;
+                        break;
+                    case "--stretch":
+                        ConfigOptions.RunninConfig.StretchToFill =
+                            parts.Length < 2 || !bool.TryParse(parts[1], out bool _stf) || _stf;
+                        break;
                     case "--mono":
                     case "--monochrome":
                         ConfigOptions.RunninConfig.MonochromeMonitor =
@@ -968,6 +984,42 @@ namespace ASE
             => string.IsNullOrWhiteSpace(configured)
                 ? Path.Combine(GetAppDefaultConfigsFilePath(), defaultSubfolder)
                 : configured;
+
+        /// <summary>
+        /// Resolves the root or preferred path for the user's TOSEC games collection.
+        /// Prioritizes the user's configured TosecPath and local Desktop collection before fallbacks.
+        /// </summary>
+        public static string GetDefaultTosecPath()
+        {
+            if (!string.IsNullOrWhiteSpace(ConfigOptions.RunninConfig.TosecPath) && Directory.Exists(ConfigOptions.RunninConfig.TosecPath))
+                return ConfigOptions.RunninConfig.TosecPath;
+
+            string cTosecGames = @"C:\Users\adria\Desktop\Atari Emulator\Atari ST [TOSEC]\Games";
+            if (Directory.Exists(cTosecGames))
+                return cTosecGames;
+
+            string cTosecStx = @"C:\Users\adria\Desktop\Atari Emulator\Atari ST [TOSEC]\Games\Atari ST - Games - [STX] (TOSEC-v2011-03-20_CM)";
+            if (Directory.Exists(cTosecStx))
+                return cTosecStx;
+
+            string cTosecRoot = @"C:\Users\adria\Desktop\Atari Emulator\Atari ST [TOSEC]";
+            if (Directory.Exists(cTosecRoot))
+                return cTosecRoot;
+
+            string eTosecStx = @"E:\Atari ST [TOSEC]\Games\Atari ST - Games - [STX] (TOSEC-v2011-03-20_CM)";
+            if (Directory.Exists(eTosecStx))
+                return eTosecStx;
+
+            string eTosecGames = @"E:\Atari ST [TOSEC]\Games";
+            if (Directory.Exists(eTosecGames))
+                return eTosecGames;
+
+            string eTosecRoot = @"E:\Atari ST [TOSEC]";
+            if (Directory.Exists(eTosecRoot))
+                return eTosecRoot;
+
+            return "";
+        }
 
         /// <summary>Initial location for a tinyfiledialogs dialog: the given directory with a
         /// trailing separator (which is how tinyfd tells folders from files), or "" when the

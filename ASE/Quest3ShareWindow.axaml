@@ -1,0 +1,174 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Svg.Controls.Avalonia"
+        mc:Ignorable="d"
+        x:Class="ASE.Quest3ShareWindow"
+        Title="Meta Quest 3 Share"
+        Classes="aseDialog"
+        Width="680"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True">
+
+    <Grid RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,16">
+
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*"
+              Margin="24,20,24,16"
+              ColumnSpacing="14">
+
+            <Border Classes="dialogHeaderIcon" Width="44" Height="44" CornerRadius="10" Background="#1A00D2FF" BorderBrush="#4000D2FF" BorderThickness="1">
+                <Svg Path="avares://ASE/Assets/Icons/tv.svg"
+                     Width="24"
+                     Height="24"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Grid.Column="1"
+                        Spacing="2"
+                        VerticalAlignment="Center">
+                <TextBlock Classes="windowTitle"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Text="Meta Quest 3 Share &amp; VR Cinema"/>
+                <TextBlock Classes="description"
+                           Opacity="0.75"
+                           Text="Stream live Atari ST video and game controls to your Meta Quest 3 headset over local Wi-Fi."/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Body Content -->
+        <StackPanel Grid.Row="1"
+                    Margin="24,0,24,0"
+                    Spacing="12">
+
+            <!-- Server Status & URL Card -->
+            <Border Classes="card" Padding="16" CornerRadius="12" Background="#121620" BorderBrush="#252F42" BorderThickness="1">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+
+                    <!-- Status Bar inside Card -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Ellipse x:Name="StatusLed" Width="10" Height="10" Fill="#00FF66"/>
+                            <TextBlock x:Name="TextStatus" Text="Server Running (Broadcasting)" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Column="2" x:Name="TextClients" Text="0 connected clients" Opacity="0.6" FontSize="12" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Stream URL box & Action buttons -->
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                        <TextBox x:Name="TextStreamUrl"
+                                 IsReadOnly="True"
+                                 FontSize="14"
+                                 FontWeight="Medium"
+                                 VerticalAlignment="Center"
+                                 Background="#0A0D14"
+                                 BorderBrush="#00D2FF"
+                                 Text="http://192.168.1.100:8088"/>
+
+                        <Button Grid.Column="1"
+                                x:Name="BtnCopyUrl"
+                                Classes="compact"
+                                Click="OnCopyUrlClick"
+                                ToolTip.Tip="Copy stream URL to clipboard">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Svg Path="avares://ASE/Assets/Icons/card-text.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TextCopyLabel" VerticalAlignment="Center">Copy URL</TextBlock>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="2"
+                                Classes="compact"
+                                Click="OnOpenInBrowserClick"
+                                ToolTip.Tip="Open stream player in your default desktop browser to test">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Svg Path="avares://ASE/Assets/Icons/play-fill.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                <TextBlock VerticalAlignment="Center">Open in Browser</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Start / Stop Toggle -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Local Wi-Fi Web Server" FontSize="11" Opacity="0.5" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1"
+                                x:Name="BtnToggleServer"
+                                Classes="compact accent"
+                                Click="OnToggleServerClick"
+                                Content="Stop Server"
+                                Width="110"
+                                HorizontalContentAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Stream Performance Settings -->
+            <Border Classes="card" Padding="16" CornerRadius="12" Background="#121620" BorderBrush="#252F42" BorderThickness="1">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
+
+                    <!-- Target FPS -->
+                    <StackPanel Grid.Column="0" Spacing="6">
+                        <TextBlock Text="Frame Rate (FPS)" FontSize="12" Opacity="0.75"/>
+                        <ComboBox x:Name="ComboFps" HorizontalAlignment="Stretch" SelectionChanged="OnFpsChanged">
+                            <ComboBoxItem Content="25 FPS (Smooth)"/>
+                            <ComboBoxItem Content="30 FPS"/>
+                            <ComboBoxItem Content="50 FPS (PAL ST Native)"/>
+                            <ComboBoxItem Content="60 FPS (NTSC ST Native)"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- JPEG Quality -->
+                    <StackPanel Grid.Column="1" Spacing="6">
+                        <TextBlock Text="Streaming Quality" FontSize="12" Opacity="0.75"/>
+                        <ComboBox x:Name="ComboQuality" HorizontalAlignment="Stretch" SelectionChanged="OnQualityChanged">
+                            <ComboBoxItem Content="Standard (65%)"/>
+                            <ComboBoxItem Content="High (80%)"/>
+                            <ComboBoxItem Content="Very High (90%)"/>
+                            <ComboBoxItem Content="Ultra (95%)"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Port -->
+                    <StackPanel Grid.Column="2" Spacing="6">
+                        <TextBlock Text="Server Port" FontSize="12" Opacity="0.75"/>
+                        <TextBox x:Name="TextPort" Text="8088" LostFocus="OnPortChanged"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Quest 3 Instructions -->
+            <Border Classes="card" Padding="16" CornerRadius="12" Background="#0C101A" BorderBrush="#1C2433" BorderThickness="1">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="HOW TO CONNECT ON META QUEST 3" FontSize="11" FontWeight="Bold" Foreground="#00D2FF"/>
+                    <TextBlock FontSize="12" LineHeight="18" Opacity="0.85" TextWrapping="Wrap">
+                        1. Put on your Meta Quest 3 and launch the built-in <Bold>Meta Quest Browser</Bold>.
+                    </TextBlock>
+                    <TextBlock FontSize="12" LineHeight="18" Opacity="0.85" TextWrapping="Wrap">
+                        2. Type the URL displayed above into the address bar and press Enter.
+                    </TextBlock>
+                    <TextBlock FontSize="12" LineHeight="18" Opacity="0.85" TextWrapping="Wrap">
+                        3. Use the floating toolbar in the browser to switch into <Bold>Fullscreen VR</Bold> or <Bold>Mixed Reality Passthrough</Bold> to float your Atari ST in your room!
+                    </TextBlock>
+                    <TextBlock FontSize="12" LineHeight="18" Opacity="0.85" TextWrapping="Wrap">
+                        4. Quest Touch Plus controllers or any paired Bluetooth gamepad automatically control Atari Joystick 1.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Bottom Footer -->
+        <Border Grid.Row="2" Margin="24,14,24,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock VerticalAlignment="Center" FontSize="11" Opacity="0.4" Text="Low-latency MJPEG Stream • Pure C# / SkiaSharp"/>
+                <Button Grid.Column="1" Classes="compact" Content="Close" Click="OnCloseClick" Width="80" HorizontalContentAlignment="Center"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

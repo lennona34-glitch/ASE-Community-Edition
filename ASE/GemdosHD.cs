@@ -115,7 +115,7 @@ namespace ASE
             public bool Used;
             public uint Addr;              // guest DTA address, to detect reuse
             public string HostDir;         // host directory being enumerated
-            public List<DirEntry> Entries; // entries matching the mask, host name + the 8.3 one shown
+            public List<string> Entries;   // host names matching the mask
             public int Current;
             public int Attrib;
         }
@@ -661,167 +661,42 @@ namespace ASE
         }
 
         /// <summary>The real host name for one TOS path component (clipped to 8.3 like TOS
-        /// clips it), or the component itself when nothing matches. A component that is not
-        /// a host name is looked up again as the *guest-visible* 8.3 name, which is what
-        /// makes a host file or folder whose name does not fit 8.3 openable at all.</summary>
+        /// clips it), or the component itself when nothing matches.</summary>
         static string MatchHostEntry(string dir, string component, bool isDir)
         {
             string name = ClipTo83(component);
 
-            List<string> hosts;
-            try
-            {
-                hosts = ReadHostNames(dir);
-            }
-            catch
-            {
-                return name;    // unreadable directory: treated as no match
-            }
-
-            // A host name that already fits 8.3 answers without the mangling map being built
-            // at all, which is the common case and the one that used to be the whole method
-            foreach (string host in hosts)
-                if (string.Equals(host, name, StringComparison.OrdinalIgnoreCase))
-                    return host;
+            string found = FindEntryIgnoreCase(dir, name);
+            if (found != null)
+                return found;
 
             // TOS 1.02's file selector appends a '.' to 8-character folder names
-            string bare = isDir && name.Length == 9 && name.EndsWith(".") ? name.Substring(0, 8) : null;
-            if (bare != null)
-                foreach (string host in hosts)
-                    if (string.Equals(host, bare, StringComparison.OrdinalIgnoreCase))
-                        return host;
-
-            // Nothing is spelled that way on the host, so the component is the 8.3 name we
-            // showed for something longer
-            foreach (DirEntry e in BuildAtariNames(hosts))
-                if (string.Equals(e.Atari, name, StringComparison.OrdinalIgnoreCase) ||
-                    (bare != null && string.Equals(e.Atari, bare, StringComparison.OrdinalIgnoreCase)))
-                    return e.Host;
+            if (isDir && name.Length == 9 && name.EndsWith("."))
+            {
+                found = FindEntryIgnoreCase(dir, name.Substring(0, 8));
+                if (found != null)
+                    return found;
+            }
 
             return name;
         }
 
-        /// <summary>One host directory entry with the single 8.3 name the guest sees it under.</summary>
-        readonly struct DirEntry
+        static string FindEntryIgnoreCase(string dir, string name)
         {
-            public readonly string Host;
-            public readonly string Atari;
-            public DirEntry(string host, string atari) { Host = host; Atari = atari; }
-        }
-
-        /// <summary>
-        /// Every entry of a host directory paired with the 8.3 name the guest sees. A name that
-        /// does not fit 8.3 is mangled by <see cref="HostNameToAtari"/>, and because that mangling
-        /// is lossy the result can collide with another entry's — so a colliding name gets a "~N"
-        /// ordinal, the way VFAT does it, and every host entry is reachable under exactly one TOS
-        /// name. Assignment walks the entries in a fixed order (case-insensitive by host name),
-        /// so a file keeps the same short name from the listing that showed it to the call that
-        /// opens it.
-        /// </summary>
-        static List<DirEntry> BuildAtariNames(List<string> rawHosts)
-        {
-            var hosts = new List<string>(rawHosts);
-
-            // Ordinal as the tie-break: a case-sensitive host filesystem can hold two names
-            // that differ only in case, and the order still has to be total
-            hosts.Sort((a, b) =>
+            try
             {
-                int c = string.Compare(a, b, StringComparison.OrdinalIgnoreCase);
-                return c != 0 ? c : string.CompareOrdinal(a, b);
-            });
-
-            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var nextOrdinal = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var result = new List<DirEntry>(hosts.Count);
-
-            foreach (string host in hosts)
-            {
-                string baseName = HostNameToAtari(host);
-                string atari = baseName;
-
-                if (used.Contains(atari))
+                foreach (string entry in Directory.EnumerateFileSystemEntries(dir))
                 {
-                    nextOrdinal.TryGetValue(baseName, out int n);
-                    do
-                    {
-                        atari = WithOrdinal(baseName, ++n);
-                    }
-                    while (used.Contains(atari) && n < 1000000);
-                    nextOrdinal[baseName] = n;
+                    string entryName = Path.GetFileName(entry);
+                    if (string.Equals(entryName, name, StringComparison.OrdinalIgnoreCase))
+                        return entryName;
                 }
-
-                used.Add(atari);
-                result.Add(new DirEntry(host, atari));
             }
-
-            return result;
-        }
-
-        /// <summary>The plain names in a host directory. Throws what the enumeration throws:
-        /// the callers decide whether an unreadable directory is "no match" or a path error.</summary>
-        static List<string> ReadHostNames(string dir)
-        {
-            var hosts = new List<string>();
-            foreach (string entry in Directory.EnumerateFileSystemEntries(dir))
-                hosts.Add(Path.GetFileName(entry));
-            return hosts;
-        }
-
-        /// <summary>"LONGNAME.TXT" + 2 -> "LONGNA~2.TXT": the stem gives way to the ordinal.</summary>
-        static string WithOrdinal(string atari, int n)
-        {
-            int dot = atari.IndexOf('.');
-            string stem = dot >= 0 ? atari.Substring(0, dot) : atari;
-            string ext = dot >= 0 ? atari.Substring(dot) : "";
-
-            string tail = "~" + n.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            if (stem.Length + tail.Length > 8)
-                stem = stem.Substring(0, Math.Max(0, 8 - tail.Length));
-
-            return stem + tail + ext;
-        }
-
-        /// <summary>
-        /// A host directory below the mount point as the guest spells it: every component
-        /// replaced by the 8.3 name the guest sees it under. Dgetpath has to answer in these,
-        /// or a program that reads the current path back and builds a filename out of it hands
-        /// us a long name TOS has already clipped to something that matches nothing.
-        /// </summary>
-        static string HostPathToAtariPath(string hostDir)
-        {
-            string full = Path.GetFullPath(hostDir).TrimEnd(Path.DirectorySeparatorChar);
-            if (full.Length <= _hostRoot.Length)
-                return "";
-
-            string rel = full.Substring(_hostRoot.Length).TrimStart(Path.DirectorySeparatorChar);
-            var sb = new StringBuilder(rel.Length + 8);
-            string walk = _hostRoot;
-
-            foreach (string comp in rel.Split(Path.DirectorySeparatorChar))
+            catch
             {
-                if (comp.Length == 0)
-                    continue;
-
-                string shown = comp;
-                try
-                {
-                    List<DirEntry> entries = BuildAtariNames(ReadHostNames(walk));
-                    int hit = entries.FindIndex(e => string.Equals(e.Host, comp, StringComparison.Ordinal));
-                    if (hit < 0)
-                        hit = entries.FindIndex(e => string.Equals(e.Host, comp, StringComparison.OrdinalIgnoreCase));
-                    if (hit >= 0)
-                        shown = entries[hit].Atari;
-                }
-                catch
-                {
-                    // unreadable directory: fall back to the host spelling
-                }
-
-                sb.Append('\\').Append(shown);
-                walk = Path.Combine(walk, comp);
+                // unreadable directory: treated as no match
             }
-
-            return sb.ToString();
+            return null;
         }
 
         /// <summary>Clips a name to 8+3 the way TOS does before it ever reaches the drive.</summary>
@@ -1211,7 +1086,9 @@ namespace ASE
             if (!IsOurDrive(drive))
                 return 0;
 
-            string rel = HostPathToAtariPath(_currentHostDir);
+            string rel = Path.GetFullPath(_currentHostDir).Substring(_hostRoot.Length)
+                             .TrimEnd(Path.DirectorySeparatorChar)
+                             .Replace(Path.DirectorySeparatorChar, '\\');
 
             if (!ASEMain._mem.IsRamArea(address, (uint)rel.Length + 1))
             {
@@ -1749,29 +1626,25 @@ namespace ASE
                                         _hostRoot, StringComparison.OrdinalIgnoreCase);
 
             dta.HostDir = hostDir;
-            dta.Entries = new List<DirEntry>();
+            dta.Entries = new List<string>();
             dta.Current = 0;
 
             if (!isRoot)
             {
-                if (FsFirstMatch(pattern, ".", subdir: true)) dta.Entries.Add(new DirEntry(".", "."));
-                if (FsFirstMatch(pattern, "..", subdir: true)) dta.Entries.Add(new DirEntry("..", ".."));
+                if (FsFirstMatch(pattern, ".", subdir: true)) dta.Entries.Add(".");
+                if (FsFirstMatch(pattern, "..", subdir: true)) dta.Entries.Add("..");
             }
 
             try
             {
-                foreach (DirEntry e in BuildAtariNames(ReadHostNames(hostDir)))
-                {
-                    // Dot-names never reach the guest, and the host name is what says so:
-                    // the mangling turns a leading dot into an ordinary character
-                    if (e.Host.StartsWith("."))
-                        continue;
+                var names = new List<string>();
+                foreach (string entry in Directory.EnumerateFileSystemEntries(hostDir))
+                    names.Add(Path.GetFileName(entry));
+                names.Sort(StringComparer.OrdinalIgnoreCase);
 
-                    // Matched against the name the guest can see, not the host's: a mask of
-                    // LONGNA~1 or *.TXT has to hit a host name too long to pass through intact
-                    if (FsFirstMatch(pattern, e.Atari, subdir: !isRoot))
-                        dta.Entries.Add(e);
-                }
+                foreach (string n in names)
+                    if (FsFirstMatch(pattern, n, subdir: !isRoot))
+                        dta.Entries.Add(n);
             }
             catch
             {
@@ -1833,8 +1706,7 @@ namespace ASE
                     return 1;
                 }
 
-                DirEntry entry = dta.Entries[dta.Current++];
-                string hostName = entry.Host;
+                string hostName = dta.Entries[dta.Current++];
                 string hostPath = hostName == "." ? dta.HostDir
                                 : hostName == ".." ? (Path.GetDirectoryName(dta.HostDir) ?? dta.HostDir)
                                 : Path.Combine(dta.HostDir, hostName);
@@ -1868,7 +1740,7 @@ namespace ASE
                     continue;
 
                 DateTimeToTos(mtime, out ushort timeword, out ushort dateword);
-                WriteDtaEntry(dtaAddr, entry.Atari, attr, timeword, dateword, (uint)size);
+                WriteDtaEntry(dtaAddr, HostNameToAtari(hostName), attr, timeword, dateword, (uint)size);
 
                 SetD0(GEMDOS_EOK);
                 return 1;

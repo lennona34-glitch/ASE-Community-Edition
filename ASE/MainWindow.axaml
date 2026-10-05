@@ -93,6 +93,23 @@
 				</MenuItem>
 
 				<Separator/>
+				<MenuItem Header="Swap disks (A ↔ B) / Next disk" Name="ItemMenuSwapDisks" Click="OnSwapDisksClick" HotKey="Ctrl+D" InputGesture="Ctrl+D">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/disk.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Previous disk in set" Name="ItemMenuPrevDisk" Click="OnPrevDiskClick" HotKey="Ctrl+Shift+D" InputGesture="Ctrl+Shift+D">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/disk.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Multi-disk set…" Name="ItemMenuMultiDiskSet" IsVisible="False">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+
+				<Separator/>
 				<MenuItem Header="Save snapshot" Click="OnSaveSnapshotClick" InputGesture="F11" >
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/cone-striped.svg" Width="16" Height="16"/>
@@ -107,6 +124,21 @@
 				<MenuItem Header="_Library…" Click="OnLibraryClick">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="TOSEC Collection…" Click="OnTosecCollectionClick" HotKey="Ctrl+T" InputGesture="Ctrl+T">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="🎲 Random Game" Click="OnRandomGameClick" HotKey="Ctrl+R" InputGesture="Ctrl+R" ToolTip.Tip="Instantly load and play a random game from your library (Ctrl+R)">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Download games…" Click="OnDownloadGamesClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/disk.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
 				<MenuItem Header="Configure Library…" Click="OnConfigureLibraryClick">
@@ -131,12 +163,27 @@
 						<Svg Path="avares://ASE/Assets/Icons/tools.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
+				<MenuItem Header="Meta Quest 3 Share…" Click="OnQuest3ShareClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/tv.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
 				<MenuItem Header="Debug…" Click="OnDebugClick">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/bug.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
 				<Separator/>
+				<MenuItem Header="Auto-reboot on game load" Name="ItemMenuAutoReboot" Click="OnToggleAutoRebootClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/arrow-clockwise.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Show screen borders" Name="ItemMenuShowBorders" Click="OnToggleShowBordersClick" InputGesture="Alt+B">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/tv.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
 				<MenuItem Header="Toggle full screen" Click="OnToggleFullScreenClick" InputGesture="Alt+Enter">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/arrows-fullscreen.svg" Width="16" Height="16"/>
@@ -167,6 +214,8 @@
 					</MenuItem.Icon>
 				</MenuItem>
 			</MenuItem>
+
+			<MenuItem Header="🎲 Random Game" Click="OnRandomGameClick" HotKey="Ctrl+R" InputGesture="Ctrl+R" FontWeight="SemiBold" Foreground="#4ADE80" ToolTip.Tip="Instantly load and play a random game from your library (Ctrl+R)" />
 
 		</Menu>
 
@@ -236,10 +285,27 @@
 					</StackPanel>
 				</Border>
 				
+				<Button DockPanel.Dock="Left"
+				        Margin="0,0,14,0"
+				        Padding="10,3"
+				        CornerRadius="4"
+				        Background="#242424"
+				        Foreground="#4ADE80"
+				        BorderBrush="#383838"
+				        BorderThickness="1"
+				        Cursor="Hand"
+				        Click="OnRandomGameClick"
+				        ToolTip.Tip="Instantly load and play a random game from your library (Ctrl+R)">
+					<StackPanel Orientation="Horizontal" Spacing="6">
+						<TextBlock Text="🎲" FontSize="13" VerticalAlignment="Center"/>
+						<TextBlock Text="Random Game" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+					</StackPanel>
+				</Button>
+
 				<TextBlock Name="TextBlockStatusBar"
 				           VerticalAlignment="Center"
 				           FontSize="12"
-				           Foreground="#A0A0A0">Press F12/middle mouse button to capture/release input.
+				           Foreground="#A0A0A0">Click screen or press F12 to capture mouse (F12 or middle-click to release).
 					<TextBlock.Styles>
 						<Style Selector="TextBlock.fadeOut">
 							<Style.Animations>

@@ -1,0 +1,139 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ASE"
+        mc:Ignorable="d"
+        x:Class="ASE.ArtworkPickerWindow"
+        Title="Change / Scrape Artwork"
+        Classes="aseDialog"
+        Width="750" Height="620"
+        CanResize="True"
+        MinWidth="600" MinHeight="450"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20,16,20,16">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0,0,0,14" ColumnSpacing="14">
+            <Border Classes="dialogHeaderIcon" Width="44" Height="44" CornerRadius="10" Background="#1A00D2FF" BorderBrush="#4000D2FF" BorderThickness="1">
+                <Svg Path="avares://ASE/Assets/Icons/image.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock x:Name="TextGameTitle" FontSize="17" FontWeight="SemiBold" Text="Game Artwork Manager"/>
+                <TextBlock x:Name="TextSubTitle" Opacity="0.7" FontSize="12" Text="Select authentic box art, title screen, or screenshot"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Search Bar -->
+        <Border Grid.Row="1" Margin="0,0,0,12" Padding="12" CornerRadius="8" Background="#121620" BorderBrush="#252F42" BorderThickness="1">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <TextBox x:Name="TextSearchQuery"
+                         PlaceholderText="Search game title on Internet Archive..."
+                         KeyDown="OnSearchKeyDown"
+                         VerticalAlignment="Center"/>
+                <Button Grid.Column="1"
+                        Classes="compact accent"
+                        Click="OnSearchClick"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Svg Path="avares://ASE/Assets/Icons/search.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                        <TextBlock VerticalAlignment="Center">Search Online</TextBlock>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area: Candidate Cards or Status -->
+        <Border Grid.Row="2" CornerRadius="8" Background="#0C1017" BorderBrush="#1C2433" BorderThickness="1" ClipToBounds="True">
+            <Grid>
+                <!-- Loading indicator -->
+                <StackPanel x:Name="LoadingPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="12"
+                            IsVisible="False">
+                    <ProgressBar IsIndeterminate="True" Width="200" Height="4"/>
+                    <TextBlock x:Name="TextLoadingStatus" Text="Searching for authentic artwork candidates..." Opacity="0.7" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Empty state -->
+                <TextBlock x:Name="TextEmpty"
+                           Text="No artwork candidates found online. You can choose a local file below."
+                           Opacity="0.6"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="False"/>
+
+                <!-- Candidates Grid -->
+                <ScrollViewer x:Name="CandidatesScroll" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="CandidatesList" Margin="12">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="local:ArtworkCandidateItem">
+                                <Border Margin="8" Width="190" Padding="8" CornerRadius="8"
+                                        Background="#151B27" BorderBrush="#263347" BorderThickness="1"
+                                        BoxShadow="0 4 8 0 #40000000">
+                                    <StackPanel Spacing="6">
+                                        <!-- Image container -->
+                                        <Border Height="120" CornerRadius="6" Background="#0A0D14" ClipToBounds="True">
+                                            <Panel>
+                                                <Image Source="{Binding Image}" Stretch="Uniform" IsVisible="{Binding HasImage}"/>
+                                                <TextBlock Text="Loading..." FontSize="11" Opacity="0.4"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           IsVisible="{Binding !HasImage}"/>
+                                            </Panel>
+                                        </Border>
+
+                                        <!-- Badge -->
+                                        <Border HorizontalAlignment="Left" Padding="6,2" CornerRadius="4" Background="#1E293B">
+                                            <TextBlock Text="{Binding Candidate.Badge}" FontSize="11" Foreground="#00D2FF" FontWeight="Medium"/>
+                                        </Border>
+
+                                        <!-- Title / Filename -->
+                                        <TextBlock Text="{Binding Candidate.FileName}" FontSize="11" TextTrimming="CharacterEllipsis" Opacity="0.8" ToolTip.Tip="{Binding Candidate.FileName}"/>
+                                        <TextBlock Text="{Binding Candidate.Source}" FontSize="10" Opacity="0.5"/>
+
+                                        <!-- Select Button -->
+                                        <Button Classes="compact accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                                Click="OnSelectCandidateClick" Tag="{Binding}">
+                                            <TextBlock Text="Apply as Cover" FontSize="12"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Bottom Action Bar -->
+        <Grid Grid.Row="3" Margin="0,14,0,0" ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="10">
+            <Button Classes="compact" Click="OnChooseLocalFileClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Svg Path="avares://ASE/Assets/Icons/folder.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                    <TextBlock VerticalAlignment="Center">Choose Local Image…</TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="1" Classes="compact" Click="OnRemoveArtworkClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Svg Path="avares://ASE/Assets/Icons/x-lg.svg" Width="12" Height="12" VerticalAlignment="Center"/>
+                    <TextBlock VerticalAlignment="Center">Remove Cover</TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="3" Classes="compact" Click="OnCloseClick" Width="80" HorizontalContentAlignment="Center">
+                <TextBlock VerticalAlignment="Center">Close</TextBlock>
+            </Button>
+        </Grid>
+
+    </Grid>
+
+</Window>

@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -81,7 +81,7 @@
                     </StackPanel>
 
                     <Grid ColumnDefinitions="130,*"
-                          RowDefinitions="Auto,Auto,Auto"
+                          RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                           ColumnSpacing="18"
                           RowSpacing="10">
 
@@ -110,8 +110,29 @@
                                    Grid.Column="0"
                                    Classes="fieldLabel"
                                    VerticalAlignment="Center"
+                                   Text="DEV ID"/>
+                        <TextBox Grid.Row="2"
+                                 Grid.Column="1"
+                                 x:Name="TextSSDevId"
+                                 PlaceholderText="Developer ID (from screenscraper.fr)"/>
+
+                        <TextBlock Grid.Row="3"
+                                   Grid.Column="0"
+                                   Classes="fieldLabel"
+                                   VerticalAlignment="Center"
+                                   Text="DEV PASSWORD"/>
+                        <TextBox Grid.Row="3"
+                                 Grid.Column="1"
+                                 x:Name="TextSSDevPass"
+                                 PlaceholderText="Developer Password / Key"
+                                 PasswordChar="*"/>
+
+                        <TextBlock Grid.Row="4"
+                                   Grid.Column="0"
+                                   Classes="fieldLabel"
+                                   VerticalAlignment="Center"
                                    Text="DOWNLOAD MEDIA"/>
-                        <ToggleSwitch Grid.Row="2"
+                        <ToggleSwitch Grid.Row="4"
                                       Grid.Column="1"
                                       x:Name="SwitchDownloadMedia"
                                       HorizontalAlignment="Left"

@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 
 namespace ASE;
@@ -14,6 +14,8 @@ public partial class LibraryConfigurationWindow : Window
         TextLibraryPath.Text = Config.ConfigOptions.RunninConfig.LibraryPath;
         TextSSUser.Text = Config.ConfigOptions.RunninConfig.ScreenScraperUser;
         TextSSPass.Text = PasswordTextMask;
+        TextSSDevId.Text = Config.ConfigOptions.RunninConfig.ScreenScraperDevId;
+        TextSSDevPass.Text = string.IsNullOrEmpty(Config.ConfigOptions.RunninConfig.ScreenScraperDevPassword) ? "" : PasswordTextMask;
         SwitchDownloadMedia.IsChecked = Config.ConfigOptions.RunninConfig.ScrapeMedia;
 
         // libVLC's default-location search only applies on Windows (macOS locates
@@ -50,11 +52,15 @@ public partial class LibraryConfigurationWindow : Window
     {
         Config.ConfigOptions.RunninConfig.LibraryPath = TextLibraryPath.Text;
         Config.ConfigOptions.RunninConfig.ScreenScraperUser = TextSSUser.Text;
+        Config.ConfigOptions.RunninConfig.ScreenScraperDevId = TextSSDevId.Text?.Trim() ?? "";
         Config.ConfigOptions.RunninConfig.ScrapeMedia = (bool)SwitchDownloadMedia.IsChecked;
         Config.ConfigOptions.RunninConfig.VlcInstallPath = TextVlcPath.Text;
 
         if (!string.IsNullOrEmpty(TextSSPass.Text) && !TextSSPass.Text.Equals(PasswordTextMask))
             Config.ConfigOptions.RunninConfig.ScreenScraperPasswordRaw = TextSSPass.Text;
+
+        if (!string.IsNullOrEmpty(TextSSDevPass.Text) && !TextSSDevPass.Text.Equals(PasswordTextMask))
+            Config.ConfigOptions.RunninConfig.ScreenScraperDevPassword = TextSSDevPass.Text.Trim();
 
         Program.Config.DumpJsonConfig();
     }

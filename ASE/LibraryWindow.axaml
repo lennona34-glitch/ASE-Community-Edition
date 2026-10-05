@@ -4,10 +4,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ASE"
         mc:Ignorable="d"
-        CanResize="False"
+        CanResize="True"
+        MinWidth="860" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
-        Width="1024" Height="800"
+        Width="1080" Height="780"
         x:Class="ASE.LibraryWindow"
         x:DataType="local:LibraryWindow"
         KeyDown="OnWindowKeyDown"
@@ -53,10 +54,10 @@
                 </Style>
 
                 <Style Selector="Border.tile">
-                        <Setter Property="Width" Value="180"/>
-                        <Setter Property="Padding" Value="8"/>
+                        <Setter Property="Width" Value="195"/>
+                        <Setter Property="Padding" Value="10"/>
                         <Setter Property="CornerRadius" Value="10"/>
-                        <Setter Property="BorderThickness" Value="2"/>
+                        <Setter Property="BorderThickness" Value="1.5"/>
                         <Setter Property="BoxShadow" Value="{DynamicResource TileShadow}"/>
                         <Setter Property="BorderBrush" Value="Transparent"/>
                         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
@@ -67,12 +68,12 @@
                         </Setter>
                 </Style>
                 <Style Selector="Border.tile:pointerover">
-                        <Setter Property="BorderBrush" Value="#80EE7326"/>
+                        <Setter Property="BorderBrush" Value="#8000D2FF"/>
                         <Setter Property="BoxShadow" Value="{DynamicResource TileShadowHover}"/>
                 </Style>
-                <!-- Atari Fuji orange ring + glow on the selected game -->
+                <!-- Neon Blue ring + glow on the selected game -->
                 <Style Selector="Border.tile.sel">
-                        <Setter Property="BorderBrush" Value="#EE7326"/>
+                        <Setter Property="BorderBrush" Value="#00D2FF"/>
                         <Setter Property="BoxShadow" Value="{DynamicResource TileShadowSel}"/>
                 </Style>
 
@@ -126,12 +127,88 @@
 
         </Window.Styles>
 
-        <Grid RowDefinitions="Auto,*" Margin="0">
-                <!-- Filter panel -->
-                <Border Grid.Row="0" Padding="0,10"
+        <Grid RowDefinitions="Auto,*,Auto" Margin="0">
+                <!-- Filter & Toolbar panel -->
+                <Border Grid.Row="0" Padding="16,10"
                         Background="{DynamicResource LibraryBarBrush}"
                         BoxShadow="{DynamicResource LibraryBarShadow}" ZIndex="1">
-                        <TextBox x:Name="SearchBox" Width="400" PlaceholderText="🔎 Filter games..." TextChanged="OnSearchChanged"/>
+                        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <Button x:Name="ButtonDownloadGames"
+                                                Classes="compact"
+                                                Click="OnDownloadGamesClick"
+                                                ToolTip.Tip="Download games, demos, and retro software">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                                        <TextBlock VerticalAlignment="Center">Download Games…</TextBlock>
+                                                </StackPanel>
+                                        </Button>
+                                        <Button x:Name="ButtonTosecFolder"
+                                                Classes="compact accent"
+                                                ToolTip.Tip="Select library collection or TOSEC category">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <Svg Path="avares://ASE/Assets/Icons/disk.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                                        <TextBlock x:Name="TextTosecButton" VerticalAlignment="Center">TOSEC ▾</TextBlock>
+                                                </StackPanel>
+                                                <Button.Flyout>
+                                                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                                                <MenuItem x:Name="MenuItemStandardLib" Header="Standard Downloads Library" Click="OnMenuSelectStandardLib">
+                                                                        <MenuItem.Icon>
+                                                                                <Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="14" Height="14"/>
+                                                                        </MenuItem.Icon>
+                                                                </MenuItem>
+                                                                <Separator/>
+                                                                <MenuItem Header="TOSEC Collections:" IsEnabled="False" FontWeight="Bold"/>
+                                                                <MenuItem x:Name="MenuItemTosecAllGames" Header="📁 All TOSEC Games" Click="OnMenuSelectTosecAllGames"/>
+                                                                <MenuItem x:Name="MenuItemTosecSt" Header="   • Games - [ST]" Click="OnMenuSelectTosecSt"/>
+                                                                <MenuItem x:Name="MenuItemTosecStx" Header="   • Games - [STX]" Click="OnMenuSelectTosecStx"/>
+                                                                <MenuItem x:Name="MenuItemTosecPd" Header="   • Games - Public Domain" Click="OnMenuSelectTosecPd"/>
+                                                                <Separator/>
+                                                                <MenuItem Header="Other TOSEC Categories:" IsEnabled="False" FontWeight="Bold"/>
+                                                                <MenuItem x:Name="MenuItemTosecDemos" Header="📁 Demos (TOSEC)" Click="OnMenuSelectTosecDemos"/>
+                                                                <MenuItem x:Name="MenuItemTosecCompilations" Header="📁 Compilations (TOSEC)" Click="OnMenuSelectTosecCompilations"/>
+                                                                <MenuItem x:Name="MenuItemTosecCoverdisks" Header="📁 Coverdisks (TOSEC)" Click="OnMenuSelectTosecCoverdisks"/>
+                                                                <MenuItem x:Name="MenuItemTosecApplications" Header="📁 Applications (TOSEC)" Click="OnMenuSelectTosecApplications"/>
+                                                                <Separator/>
+                                                                <MenuItem Header="Browse Other Folder…" Click="OnMenuBrowseOtherFolder">
+                                                                        <MenuItem.Icon>
+                                                                                <Svg Path="avares://ASE/Assets/Icons/folder.svg" Width="14" Height="14"/>
+                                                                        </MenuItem.Icon>
+                                                                </MenuItem>
+                                                        </MenuFlyout>
+                                                </Button.Flyout>
+                                        </Button>
+                                        <Button x:Name="ButtonRandomGame"
+                                                Classes="compact"
+                                                Click="OnRandomGameClick"
+                                                ToolTip.Tip="Pick a random game to play or preview (Ctrl+R / F5)">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <TextBlock Text="🎲" FontSize="14" VerticalAlignment="Center"/>
+                                                        <TextBlock VerticalAlignment="Center">Random Game</TextBlock>
+                                                </StackPanel>
+                                        </Button>
+                                        <Button x:Name="ButtonScrapeArtwork"
+                                                Classes="compact"
+                                                Click="OnScrapeMissingArtworkClick"
+                                                ToolTip.Tip="Scrape missing box art and title screens from online archive">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <Svg Path="avares://ASE/Assets/Icons/image.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                                        <TextBlock VerticalAlignment="Center">Scrape Artwork…</TextBlock>
+                                                </StackPanel>
+                                        </Button>
+                                </StackPanel>
+                                <TextBox Grid.Column="1" x:Name="SearchBox" Width="400" HorizontalAlignment="Center" PlaceholderText="🔎 Filter games..." TextChanged="OnSearchChanged"/>
+                                <Button Grid.Column="2"
+                                        x:Name="ButtonRefreshLibrary"
+                                        Classes="compact"
+                                        Click="OnRefreshLibraryClick"
+                                        ToolTip.Tip="Reload library">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <Svg Path="avares://ASE/Assets/Icons/arrow-clockwise.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                                <TextBlock VerticalAlignment="Center">Refresh</TextBlock>
+                                        </StackPanel>
+                                </Button>
+                        </Grid>
                 </Border>
                 <!-- Library panel -->
                 <Grid Grid.Row="1">
@@ -171,23 +248,103 @@
                                                                                                 <Svg Path="avares://ASE/Assets/Icons/card-text.svg" Width="16" Height="16"/>
                                                                                         </MenuItem.Icon>
                                                                                 </MenuItem>
+                                                                                <Separator/>
+                                                                                <MenuItem Header="Change / Scrape Artwork…" Click="OnContextChangeArtworkClick">
+                                                                                        <MenuItem.Icon>
+                                                                                                <Svg Path="avares://ASE/Assets/Icons/image.svg" Width="16" Height="16"/>
+                                                                                        </MenuItem.Icon>
+                                                                                </MenuItem>
+                                                                                <MenuItem Header="Choose Local Image…" Click="OnContextChooseImageClick">
+                                                                                        <MenuItem.Icon>
+                                                                                                <Svg Path="avares://ASE/Assets/Icons/folder.svg" Width="14" Height="14"/>
+                                                                                        </MenuItem.Icon>
+                                                                                </MenuItem>
+                                                                                <MenuItem Header="Remove Artwork" Click="OnContextRemoveArtworkClick">
+                                                                                        <MenuItem.Icon>
+                                                                                                <Svg Path="avares://ASE/Assets/Icons/x-lg.svg" Width="14" Height="14"/>
+                                                                                        </MenuItem.Icon>
+                                                                                </MenuItem>
+                                                                                <Separator/>
+                                                                                <MenuItem Header="Uninstall / Delete…" Click="OnContextUninstallClick">
+                                                                                        <MenuItem.Icon>
+                                                                                                <Svg Path="avares://ASE/Assets/Icons/x-lg.svg" Width="14" Height="14"/>
+                                                                                        </MenuItem.Icon>
+                                                                                </MenuItem>
                                                                         </ContextMenu>
                                                                 </Border.ContextMenu>
                                                                 <StackPanel Spacing="8">
-                                                                        <Panel Height="210">
-                                                                                <Border CornerRadius="6" ClipToBounds="True"
-                                                                                        Background="{DynamicResource CardBorderBrush}"
+                                                                        <Panel Height="175">
+                                                                                <!-- Retro 3.5" Atari ST Diskette when no cover is available -->
+                                                                                <Border CornerRadius="8" ClipToBounds="True"
+                                                                                        Background="#181B22"
+                                                                                        BorderBrush="#2E3440" BorderThickness="1.5"
                                                                                         IsVisible="{Binding !HasCover}">
-                                                                                        <TextBlock Text="💾" FontSize="42"
-                                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                                                   Opacity="0.4"/>
+                                                                                        <Grid>
+                                                                                                <!-- Metal Sliding Shutter at top -->
+                                                                                                <Border Height="44" Width="92" VerticalAlignment="Top"
+                                                                                                        HorizontalAlignment="Center"
+                                                                                                        CornerRadius="0,0,4,4"
+                                                                                                        BorderBrush="#3D4455" BorderThickness="1,0,1,1">
+                                                                                                        <Border.Background>
+                                                                                                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                                                                                                        <GradientStop Offset="0" Color="#6C7588"/>
+                                                                                                                        <GradientStop Offset="0.5" Color="#8B95AA"/>
+                                                                                                                        <GradientStop Offset="1" Color="#5A6274"/>
+                                                                                                                </LinearGradientBrush>
+                                                                                                        </Border.Background>
+                                                                                                        <!-- Drive head oval cutout in shutter -->
+                                                                                                        <Border Width="12" Height="22" CornerRadius="6"
+                                                                                                                Background="#101216"
+                                                                                                                BorderBrush="#3A404E" BorderThickness="1"
+                                                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                                </Border>
+
+                                                                                                <!-- Floppy Disk Label -->
+                                                                                                <Border Margin="12,50,12,12" CornerRadius="4" ClipToBounds="True"
+                                                                                                        Background="#ECEFF4"
+                                                                                                        BorderBrush="#D8DEE9" BorderThickness="1">
+                                                                                                        <Grid RowDefinitions="Auto,*,Auto">
+                                                                                                                <!-- Retro Rainbow / Atari Stripe Bar -->
+                                                                                                                <Grid Grid.Row="0" Height="5" ColumnDefinitions="*,*,*">
+                                                                                                                        <Border Grid.Column="0" Background="#E05252"/>
+                                                                                                                        <Border Grid.Column="1" Background="#EBCB8B"/>
+                                                                                                                        <Border Grid.Column="2" Background="#00D2FF"/>
+                                                                                                                </Grid>
+
+                                                                                                                <!-- Game title printed on diskette label -->
+                                                                                                                <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="6,4">
+                                                                                                                        <TextBlock Text="{Binding Name}"
+                                                                                                                                   Foreground="#2E3440"
+                                                                                                                                   FontFamily="Consolas, Monaco, monospace"
+                                                                                                                                   FontSize="11"
+                                                                                                                                   FontWeight="Bold"
+                                                                                                                                   TextAlignment="Center"
+                                                                                                                                   TextWrapping="Wrap"
+                                                                                                                                   MaxLines="3"
+                                                                                                                                   TextTrimming="CharacterEllipsis"/>
+                                                                                                                </StackPanel>
+
+                                                                                                                <!-- Diskette Subtitle / Format indicator -->
+                                                                                                                <Border Grid.Row="2" Background="#E5E9F0" Padding="4,2">
+                                                                                                                        <TextBlock Text="ATARI ST • 3.5&quot; DISK"
+                                                                                                                                   Foreground="#7B88A1"
+                                                                                                                                   FontSize="8"
+                                                                                                                                   FontWeight="SemiBold"
+                                                                                                                                   HorizontalAlignment="Center"/>
+                                                                                                                </Border>
+                                                                                                        </Grid>
+                                                                                                </Border>
+                                                                                        </Grid>
                                                                                 </Border>
-                                                                                <!-- ClipToBounds so the ribbon slides out from behind the cover's top edge -->
+
+                                                                                <!-- Real Box / Screenshot Cover when available -->
                                                                                 <Grid ClipToBounds="True">
-                                                                                        <Image Source="{Binding Cover}"
-                                                                                               Stretch="Uniform"
-                                                                                               IsVisible="{Binding HasCover}"/>
-                                                                                        <Border Classes="details" Height="28" Background="#EE7326"
+                                                                                        <Border CornerRadius="6" ClipToBounds="True">
+                                                                                                <Image Source="{Binding Cover}"
+                                                                                                       Stretch="Uniform"
+                                                                                                       IsVisible="{Binding HasCover}"/>
+                                                                                        </Border>
+                                                                                        <Border Classes="details" Height="28" Background="#00B4DB"
                                                                                                 VerticalAlignment="Top" CornerRadius="4,4,0,0"
                                                                                                 BoxShadow="0 10 10 0 #80000000"
                                                                                                 ToolTip.Tip="Also: right-click or Space"
@@ -204,14 +361,15 @@
                                                                                    TextWrapping="Wrap"
                                                                                    TextTrimming="CharacterEllipsis"
                                                                                    MaxLines="2"
-                                                                                   Height="36"
-                                                                                   FontSize="13"/>
+                                                                                   Height="34"
+                                                                                   FontSize="13"
+                                                                                   FontWeight="SemiBold"/>
                                                                         <!-- GameMenu compilation -->
                                                                         <TextBlock Text="{Binding Item.GameMenuGroupRelease}"
                                                                                    TextAlignment="Center"
                                                                                    TextTrimming="CharacterEllipsis"
                                                                                    Height="14"
-                                                                                   Margin="0,-12,0,0"
+                                                                                   Margin="0,-6,0,0"
                                                                                    FontSize="11"
                                                                                    Foreground="{DynamicResource AccentTextBrush}" />
                                                                 </StackPanel>
@@ -223,13 +381,97 @@
                 </Grid>
                 
                 <!-- Shown when the library is empty or the search has no matches -->
-                <TextBlock Grid.Row="1" x:Name="EmptyMessage"
-                           IsVisible="False"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Opacity="0.6" FontSize="18"/>
+                <StackPanel Grid.Row="1" x:Name="EmptyPanel"
+                            IsVisible="False"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Spacing="14">
+                        <TextBlock x:Name="EmptyMessage"
+                                   HorizontalAlignment="Center"
+                                   Opacity="0.7" FontSize="18"/>
+                        <Button x:Name="ButtonEmptyDownload"
+                                Classes="compact accent"
+                                HorizontalAlignment="Center"
+                                Padding="14,8"
+                                Click="OnDownloadGamesClick">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Svg Path="avares://ASE/Assets/Icons/collection-fill.svg" Width="16" Height="16" VerticalAlignment="Center"/>
+                                        <TextBlock FontSize="14" VerticalAlignment="Center">Download Games &amp; Demos</TextBlock>
+                                </StackPanel>
+                        </Button>
+                </StackPanel>
+
+                <!-- Bottom Pager Bar -->
+                <Border Grid.Row="2" Padding="16,8"
+                        Background="{DynamicResource LibraryBarBrush}"
+                        BoxShadow="{DynamicResource LibraryBarShadow}"
+                        BorderThickness="0,1,0,0"
+                        BorderBrush="{DynamicResource CardBorderBrush}"
+                        ZIndex="1">
+                        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                                <!-- Left: Collection info & Scrape Page button -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TextCollectionCount"
+                                                   Text="0 games in library"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource AccentTextBrush}"/>
+                                        <Button x:Name="ButtonScrapePage"
+                                                Classes="compact"
+                                                Click="OnScrapeCurrentPageClick"
+                                                ToolTip.Tip="Scrape online box art for missing covers on this page (fast &amp; rate-limit safe)">
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                        <Svg Path="avares://ASE/Assets/Icons/image.svg" Width="13" Height="13" VerticalAlignment="Center"/>
+                                                        <TextBlock x:Name="TextScrapePageBtn" VerticalAlignment="Center" FontSize="12">Scrape Page Artwork</TextBlock>
+                                                </StackPanel>
+                                        </Button>
+                                </StackPanel>
+
+                                <!-- Center: Pager Navigation Controls -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Button x:Name="ButtonFirstPage" Classes="compact" Click="OnFirstPageClick" ToolTip.Tip="First Page (Home)" Padding="8,4">
+                                                <TextBlock Text="⏮" FontSize="12"/>
+                                        </Button>
+                                        <Button x:Name="ButtonPrevPage" Classes="compact" Click="OnPrevPageClick" ToolTip.Tip="Previous Page (Page Up)" Padding="10,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <TextBlock Text="◀" FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Prev" FontSize="12" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                        </Button>
+
+                                        <Border Background="{DynamicResource CardBackgroundBrush}"
+                                                CornerRadius="4" Padding="12,4" Margin="4,0"
+                                                BorderThickness="1" BorderBrush="{DynamicResource CardBorderBrush}">
+                                                <TextBlock x:Name="TextPageInfo"
+                                                           Text="Page 1 of 1"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <Button x:Name="ButtonNextPage" Classes="compact" Click="OnNextPageClick" ToolTip.Tip="Next Page (Page Down)" Padding="10,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <TextBlock Text="Next" FontSize="12" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="▶" FontSize="11" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                        </Button>
+                                        <Button x:Name="ButtonLastPage" Classes="compact" Click="OnLastPageClick" ToolTip.Tip="Last Page (End)" Padding="8,4">
+                                                <TextBlock Text="⏭" FontSize="12"/>
+                                        </Button>
+                                </StackPanel>
+
+                                <!-- Right: Page Range Indicator -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TextPageRange"
+                                                   Text="Showing 0 of 0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Opacity="0.7"/>
+                                </StackPanel>
+                        </Grid>
+                </Border>
 
                 <!-- Game detail: modal overlay with the title, downloaded synopsis and video preview -->
-                <Grid x:Name="DetailOverlay" Grid.Row="0" Grid.RowSpan="2" ZIndex="100" IsVisible="False">
+                <Grid x:Name="DetailOverlay" Grid.Row="0" Grid.RowSpan="3" ZIndex="100" IsVisible="False">
                         <!-- Click outside the card closes it -->
                         <Border Background="#B0000000" Tapped="OnDetailBackdropTapped"/>
                         <Border x:Name="DetailCard" Width="720" MaxHeight="700"
@@ -245,7 +487,7 @@
                                                 <Image x:Name="DetailBackdrop" Stretch="UniformToFill"/>
                                                 <Border Background="{DynamicResource DetailBackdropFade}"/>
                                         </Panel>
-                                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="24,24,24,0">
+                                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="24,24,24,0">
                                                 <!-- Drop shadow keeps the header readable over bright title screens -->
                                                 <StackPanel Grid.Column="0" Spacing="2" Effect="drop-shadow(0 2 10 #C0000000)">
                                                         <TextBlock x:Name="DetailTitle" FontSize="30" FontWeight="Bold" TextWrapping="Wrap"/>
@@ -259,8 +501,24 @@
                                                                 <TextBlock VerticalAlignment="Center">Play</TextBlock>
                                                         </StackPanel>
                                                 </Button>
-                                                <Button Grid.Column="2" Classes="detailbtn" Content="X" Click="OnDetailCloseClick"
-                                                         CornerRadius="4" FontSize="16" VerticalAlignment="Top" Margin="4,0,0,0" Padding="8,4"/>
+                                                <Button Grid.Column="2" Classes="detailbtn" Click="OnDetailRandomClick"
+                                                         CornerRadius="4" FontSize="16" VerticalAlignment="Top" Margin="6,0,0,0" Padding="8,4"
+                                                         ToolTip.Tip="Roll another random game (Ctrl+R / F5)">
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                                <TextBlock Text="🎲" FontSize="14" VerticalAlignment="Center"/>
+                                                                <TextBlock VerticalAlignment="Center">Random</TextBlock>
+                                                        </StackPanel>
+                                                </Button>
+                                                <Button Grid.Column="3" Classes="detailbtn" Click="OnDetailUninstallClick"
+                                                         CornerRadius="4" FontSize="16" VerticalAlignment="Top" Margin="6,0,0,0" Padding="8,4"
+                                                         ToolTip.Tip="Uninstall and delete this game">
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                                <Svg Path="avares://ASE/Assets/Icons/x-lg.svg" Width="14" Height="14" VerticalAlignment="Center"/>
+                                                                <TextBlock VerticalAlignment="Center">Uninstall</TextBlock>
+                                                        </StackPanel>
+                                                </Button>
+                                                <Button Grid.Column="4" Classes="detailbtn" Content="X" Click="OnDetailCloseClick"
+                                                         CornerRadius="4" FontSize="16" VerticalAlignment="Top" Margin="6,0,0,0" Padding="8,4"/>
                                         </Grid>
                                         <!-- Video preview; the screenshot/box art shows behind it until the
                                              video starts, and stays when there is no video or no libvlc -->

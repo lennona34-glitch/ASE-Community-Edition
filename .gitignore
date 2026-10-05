@@ -402,3 +402,9 @@ FodyWeavers.xsd
 
 # Local properties
 Local.props
+
+# ASE Library Caches & Logs
+*.ase_library_cache.json
+.ase_library_cache.json
+Scraper *.log
+Library.json

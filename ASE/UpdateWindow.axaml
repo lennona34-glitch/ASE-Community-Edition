@@ -111,7 +111,7 @@
                                  EndPoint="100%,100%">
                 <GradientStop Color="#04050A" Offset="0"/>
                 <GradientStop Color="#070910" Offset="0.5"/>
-                <GradientStop Color="#100A06" Offset="1"/>
+                <GradientStop Color="#001824" Offset="1"/>
             </LinearGradientBrush>
         </Grid.Background>
 
@@ -152,9 +152,9 @@
                                      Opacity="0.55">
                                 <Ellipse.Fill>
                                     <RadialGradientBrush>
-                                        <GradientStop Color="#59EE7326" Offset="0"/>
-                                        <GradientStop Color="#1EEE7326" Offset="0.55"/>
-                                        <GradientStop Color="#00EE7326" Offset="1"/>
+                                        <GradientStop Color="#5900D2FF" Offset="0"/>
+                                        <GradientStop Color="#1E00D2FF" Offset="0.55"/>
+                                        <GradientStop Color="#0000D2FF" Offset="1"/>
                                     </RadialGradientBrush>
                                 </Ellipse.Fill>
                             </Ellipse>

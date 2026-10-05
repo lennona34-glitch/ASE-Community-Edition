@@ -1,9 +1,13 @@
-﻿using ASE.Models;
+using ASE.Models;
+using ASE.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using TinyDialogsNet;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Net.Http;
+using System.Linq;
 
 namespace ASE;
 
@@ -19,9 +23,13 @@ public partial class ScraperWindow : Window
     /// <summary>Set when a ScreenScraper call reports the daily quota is exhausted, so the
     /// scan is aborted (via _scanCts).</summary>
     bool _quotaExceeded = false;
+    private readonly string _targetLibraryPath;
 
-    public ScraperWindow()
+    public ScraperWindow() : this(null) { }
+
+    public ScraperWindow(string targetLibraryPath)
     {
+        _targetLibraryPath = targetLibraryPath;
         InitializeComponent();
         ButtonCancelScraper.Click += (_, _) => _scanCts.Cancel();
         ButtonOk.Click += (_, _) => Close();
@@ -45,9 +53,13 @@ public partial class ScraperWindow : Window
         // The emulator parks (and stops receiving host input) while scraping
         ASEMain.EnterUiPause();
 
-        if (string.IsNullOrEmpty(Config.ConfigOptions.RunninConfig.ScreenScraperUser) || string.IsNullOrEmpty(Config.ConfigOptions.RunninConfig.LibraryPath) || !Directory.Exists(Config.ConfigOptions.RunninConfig.LibraryPath))
+        string activeLib = !string.IsNullOrEmpty(_targetLibraryPath) && Directory.Exists(_targetLibraryPath)
+            ? _targetLibraryPath
+            : Config.ConfigOptions.RunninConfig.LibraryPath;
+
+        if (string.IsNullOrEmpty(activeLib) || !Directory.Exists(activeLib))
         {
-            TinyDialogs.MessageBox("Error", $"You must configure your library before you can update the metadata.", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+            TinyDialogs.MessageBox("Error", "Please configure your library directory in Library configuration before updating metadata.", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
             ButtonsScraper(false);
             return;
         }
@@ -59,9 +71,9 @@ public partial class ScraperWindow : Window
 
         var gmidentifier = GameMenuIdentifier.LoadFromFile(Path.Combine(AppContext.BaseDirectory, "GameMenus.json"));
 
-        if (File.Exists(Path.Combine(Config.ConfigOptions.RunninConfig.LibraryPath, "Library.json")))
+        if (File.Exists(Path.Combine(activeLib, "Library.json")))
         {
-            string _libraryJson = File.ReadAllText(Path.Combine(Config.ConfigOptions.RunninConfig.LibraryPath, "Library.json"));
+            string _libraryJson = File.ReadAllText(Path.Combine(activeLib, "Library.json"));
             libraryCollection = JsonSerializer.Deserialize<LibraryCollection>(_libraryJson);
         }
 
@@ -77,17 +89,43 @@ public partial class ScraperWindow : Window
             libraryCollection.ASEVersion = Config.Version;
 
             string json = JsonSerializer.Serialize(libraryCollection, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(Path.Combine(Config.ConfigOptions.RunninConfig.LibraryPath, "Library.json"), json);
+            File.WriteAllText(Path.Combine(activeLib, "Library.json"), json);
         }
 
         try
         {
-            if (!Directory.Exists(Path.Combine(Config.ConfigOptions.RunninConfig.LibraryPath, "Media")))
-                Directory.CreateDirectory(Path.Combine(Config.ConfigOptions.RunninConfig.LibraryPath, "Media"));
+            if (!Directory.Exists(Path.Combine(activeLib, "Media")))
+                Directory.CreateDirectory(Path.Combine(activeLib, "Media"));
 
-            logFile = Path.Combine(Config.ConfigOptions.RunninConfig.LibraryPath, $"Scraper {DateTime.Today.ToString("yyyyMMdd")}.log");
+            logFile = Path.Combine(activeLib, $"Scraper {DateTime.Today.ToString("yyyyMMdd")}.log");
 
             File.AppendAllText(logFile, $"*** Scraper starts at {DateTime.Now} ***" + Environment.NewLine);
+
+            bool hasDev = !string.IsNullOrWhiteSpace(Config.ConfigOptions.RunninConfig.ScreenScraperDevId) || BuildCredentials.IsConfigured;
+            if (!hasDev)
+            {
+                var choice = await Dialogs.MessageBox(
+                    "Community Scraper Available",
+                    "ScreenScraper developer API keys are not configured (ScreenScraper requires approved application on their forum/Discord).\n\n" +
+                    "Would you like to use the Free Community Scraper (Internet Archive & Curated DB) instead?\n\n" +
+                    "• No account, login, or API keys required\n" +
+                    "• Automatically downloads game titles, release dates, and box art\n" +
+                    "• 100% free and instant",
+                    MessageBoxDialogType.YesNo,
+                    MessageBoxIconType.Question,
+                    MessageBoxButton.Yes);
+
+                if (choice == MessageBoxButton.Yes)
+                {
+                    await RunCommunityScraperAsync(SaveLibrary);
+                    return;
+                }
+                else
+                {
+                    ButtonsScraper(false);
+                    return;
+                }
+            }
 
             // Verify credentials and remaining daily credits before touching any file.
             TextFilename.Text = "Checking ScreenScraper account...";
@@ -97,10 +135,12 @@ public partial class ScraperWindow : Window
             {
                 string accountMessage = userInfo.QuotaExceeded
                     ? "There are no download credits remaining on your ScreenScraper account today. Please try again later."
-                    : "Could not verify your ScreenScraper credentials. Please check your username and password in the configuration.";
+                    : !string.IsNullOrWhiteSpace(userInfo.Error)
+                        ? $"ScreenScraper returned an error: {userInfo.Error}\n\nPlease check your credentials in Library configuration."
+                        : "Could not verify your ScreenScraper credentials. Please check your username, password, and developer keys in Library configuration.";
 
                 File.AppendAllText(logFile, $"Account check failed: {(string.IsNullOrEmpty(userInfo.Error) ? accountMessage : userInfo.Error)}" + Environment.NewLine);
-                TinyDialogs.MessageBox("Error", accountMessage, MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+                TinyDialogs.MessageBox("ScreenScraper Error", accountMessage, MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
                 ButtonsScraper(false);
                 return;
             }
@@ -461,6 +501,102 @@ public partial class ScraperWindow : Window
         }
 
         return item;
+    }
 
+    async Task RunCommunityScraperAsync(Action saveLibrary)
+    {
+        TextFilename.Text = "Scanning library for disk images...";
+        var validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".stx", ".msa", ".zip" };
+        string libPath = !string.IsNullOrEmpty(_targetLibraryPath) && Directory.Exists(_targetLibraryPath)
+            ? _targetLibraryPath
+            : Config.ConfigOptions.RunninConfig.LibraryPath;
+
+        var files = Directory.EnumerateFiles(libPath, "*.*", new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            MaxRecursionDepth = 3,
+            IgnoreInaccessible = true
+        })
+        .Where(f => validExtensions.Contains(Path.GetExtension(f)))
+        .ToList();
+
+        if (files.Count == 0)
+        {
+            await Dialogs.MessageBox("Info", "No disk images found in the library folder.", MessageBoxDialogType.Ok, MessageBoxIconType.Information, MessageBoxButton.Ok);
+            ButtonsScraper(false);
+            return;
+        }
+
+        string defaultMediaDir = Path.Combine(libPath, "Media");
+        if (!Directory.Exists(defaultMediaDir))
+            Directory.CreateDirectory(defaultMediaDir);
+
+        int found = 0;
+        var scraper = new ArtworkScraperService();
+
+        for (int i = 0; i < files.Count; i++)
+        {
+            if (_scanCts.Token.IsCancellationRequested)
+                break;
+
+            string file = files[i];
+            string fileName = Path.GetFileName(file);
+            string relPath = Path.GetRelativePath(libPath, file);
+            string fileDir = Path.GetDirectoryName(file);
+            string mediaDir = (fileDir != null && fileDir != libPath) ? Path.Combine(fileDir, "Media") : defaultMediaDir;
+            if (!Directory.Exists(mediaDir))
+                Directory.CreateDirectory(mediaDir);
+
+            ProgressScraper.Value = (i * 100) / files.Count;
+            TextFilename.Text = $"[{found} found] Scraping: {fileName}";
+
+            string rawName = Path.GetFileNameWithoutExtension(fileName);
+            string cleanTitle = ArtworkScraperService.CleanGameTitle(rawName);
+
+            // If already has box art, skip
+            string targetBoxPath = Path.Combine(mediaDir, $"Box-{rawName}.png");
+            string cleanBoxPath = !string.IsNullOrEmpty(cleanTitle) ? Path.Combine(mediaDir, $"Box-{cleanTitle}.png") : null;
+            if (File.Exists(targetBoxPath) || (cleanBoxPath != null && File.Exists(cleanBoxPath)))
+            {
+                continue;
+            }
+
+            try
+            {
+                var candidates = await scraper.SearchCandidatesAsync(cleanTitle, rawName, mediaDir, _scanCts.Token);
+                var bestCandidate = candidates.FirstOrDefault(c => c.Badge.Contains("Box") || c.Badge.Contains("Cover") || c.Badge.Contains("Title") || c.Badge.Contains("Snap"));
+
+                if (bestCandidate != null)
+                {
+                    bool saved = await scraper.DownloadAndSaveArtworkAsync(bestCandidate, targetBoxPath, _scanCts.Token);
+                    if (saved)
+                    {
+                        found++;
+                        if (cleanBoxPath != null && !cleanBoxPath.Equals(targetBoxPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            try { File.Copy(targetBoxPath, cleanBoxPath, true); } catch { }
+                        }
+                        string underBox = !string.IsNullOrEmpty(cleanTitle) ? Path.Combine(mediaDir, $"Box-{cleanTitle.Replace(' ', '_')}.png") : null;
+                        if (underBox != null && !underBox.Equals(targetBoxPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            try { File.Copy(targetBoxPath, underBox, true); } catch { }
+                        }
+                    }
+                }
+
+                await Task.Delay(60, _scanCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch { }
+        }
+
+        saveLibrary();
+        ProgressScraper.Value = 100;
+        TextFilename.Text = $"Completed: Scraped metadata & artwork for {found} game(s).";
+        ButtonsScraper(false);
+        await Dialogs.MessageBox("Scraping Complete", $"Successfully retrieved metadata and artwork for {found} game(s) from Libretro and the Internet Archive!", MessageBoxDialogType.Ok, MessageBoxIconType.Information, MessageBoxButton.Ok);
     }
 }

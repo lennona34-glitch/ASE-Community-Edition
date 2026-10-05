@@ -64,4 +64,70 @@ You don’t need to build this library; the binary is already included in this r
 
 ---
 
+## Enhanced Fork Features
+
+This repository includes custom enhancements designed for large retro collections and immersive play:
+
+- 🎮 **Instant Random Game Launcher**:
+  - Click the **`[ 🎲 Random Game ]`** button or press <kbd>Ctrl+R</kbd> / <kbd>F5</kbd> anywhere in the library to immediately boot into a random game from your collection without modal prompts.
+- 📦 **Massive TOSEC & Multi-Disk Library Performance**:
+  - High-speed directory and metadata caching (`.ase_library_cache.json`) allowing silky navigation across libraries with 10,000+ files.
+  - Fast 300-games-per-page grid with pagination controls (`<< First`, `< Prev`, `Next >`, `Last >>`) and live collection counters.
+  - Authentic 3.5" Atari ST floppy diskette placeholder styling with retro embossed labels for titles awaiting box art.
+  - One-click TOSEC quick-selector button.
+- 🖼️ **Libretro CDN & Internet Archive Cover Scraper**:
+  - Direct, zero-configuration online artwork scraper connecting to Libretro's Atari ST CDN (over 1,000 authentic box arts, 1,800 title screens, and 4,000 snapshots) with Internet Archive fallback.
+  - No ScreenScraper developer accounts, API keys, or registration required.
+  - Smart fuzzy title matching (`CleanGameTitle`) that effortlessly pairs complex TOSEC dump codes (e.g. `(1992)(Codemasters)[cr Cynix]`) with clean box art titles.
+  - Both bulk missing artwork scraping and quick per-page scraping supported.
+
+---
+
+## 🥽 Meta Quest (Quest 2 / 3 / Pro) Play Guide
+
+Experience Atari ST gaming inside a virtual retro living room, curved arcade cabinet, or personal IMAX cinema on your Meta Quest headset!
+
+### Setup via Virtual Desktop (Recommended)
+
+1. **Launch Virtual Desktop Streamer** on your Windows PC and open the **Virtual Desktop** app on your Meta Quest.
+2. Select an environment:
+   - **Retro Cinema / Home Theater**: Sit in front of a giant cinema screen.
+   - **The Void**: Float in pure darkness with zero distractions.
+3. **Screen Tuning**:
+   - In the Virtual Desktop overlay menu, enable **Curved Screen** (set curve to ~20-30%) to emulate the gentle curvature of an authentic 14" Atari SC1224 or Philips CM8833 color CRT monitor.
+   - Set the refresh rate to **90Hz or 120Hz** for ultra-smooth 50Hz/60Hz PAL/NTSC Atari ST frame pacing.
+4. **Controllers & Input**:
+   - Pair an Xbox, PlayStation, or 8BitDo Bluetooth controller directly to your Quest or PC.
+   - You can also keep your physical mechanical keyboard nearby for Atari ST typing, flight sims, and adventure games.
+5. **Spatial Audio**:
+   - Enjoy spatialized stereo Atari ST YM2149 chiptune sound and Roland MT-32 MIDI right through the Quest's built-in 3D spatial audio drivers.
+
+### Setup via Meta Quest Link / Air Link / Immersed
+
+1. Connect your headset to your PC via high-speed USB-C (Quest Link) or high-bandwidth 5GHz/6GHz Wi-Fi (Air Link).
+2. Open the Desktop view from the Oculus Dash.
+3. Launch ASE, switch to Fullscreen or borderless windowed mode, and pin the window in your VR space.
+
+---
+
+## 🍴 Forking and Contributing
+
+If you wish to contribute to or fork this project:
+
+1. Fork the upstream repository at [thebitculture/ase](https://github.com/thebitculture/ase).
+2. Clone your fork locally:
+   ```bash
+   git clone https://github.com/<your-username>/ase.git
+   ```
+3. Add the upstream remote to stay up-to-date:
+   ```bash
+   git remote add upstream https://github.com/thebitculture/ase.git
+   ```
+4. Build with .NET 9.0 SDK:
+   ```bash
+   dotnet build -c Release
+   ```
+
+---
+
 (C) _The Bit Culture_ - Public License Version 3

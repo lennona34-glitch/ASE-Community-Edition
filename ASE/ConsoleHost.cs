@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 
  * Wires the emulator's log to the console it was launched from.
  * 
@@ -98,7 +98,7 @@ namespace ASE
                 // A non-zero console window means the process already owns one and there is
                 // nothing to attach to: `dotnet ASE.dll` (the dotnet host is a console program),
                 // or a debugger that made one for us.
-                bool attached = GetConsoleWindow() != IntPtr.Zero || AttachConsole(AttachParentProcess);
+                bool attached = Console.IsOutputRedirected || GetConsoleWindow() != IntPtr.Zero || AttachConsole(AttachParentProcess);
                 bool ownConsole = false;
 
                 // Started from Explorer, a shortcut or the Start menu: there is no console and no

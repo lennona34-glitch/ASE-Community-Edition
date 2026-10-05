@@ -9,6 +9,9 @@
  *
  */
 
+using System;
+using System.Runtime.CompilerServices;
+
 namespace ASE
 {
     public class Video
@@ -152,8 +155,7 @@ namespace ASE
                 }
 
                 uint border = _pal[0];
-                for (int x = 0; x < width; x++)
-                    buffer[rowBase + x] = border;
+                buffer.AsSpan(rowBase, width).Fill(border);
 
                 if (!li.HasDisplay)
                 {
@@ -239,6 +241,7 @@ namespace ASE
                     PaintBorderSpan(li.DeStop, VideoTiming.VISIBLE_RIGHT_CYCLE);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private static unsafe ushort ReadBEWord(uint srcLine, int group, int planes, int plane)
             {
                 uint offsetBytes = (uint)((group * planes + plane) * 2);
@@ -278,8 +281,7 @@ namespace ASE
 
                 if (!li.HasDisplay)
                 {
-                    for (int x = 0; x < width; x++)
-                        buffer[rowBase + x] = pal0;
+                    buffer.AsSpan(rowBase, width).Fill(pal0);
                     return;
                 }
 

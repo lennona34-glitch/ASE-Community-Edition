@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -64,6 +64,7 @@ namespace ASE
                 MaskType = Config.ConfigOptions.RunninConfig.MaskType,
                 AntiAliasing = Config.ConfigOptions.RunninConfig.AntiAliasing,
                 ShowBorders = Config.ConfigOptions.RunninConfig.ShowBorders,
+                StretchToFill = Config.ConfigOptions.RunninConfig.StretchToFill,
                 MonochromeMonitor = Config.ConfigOptions.RunninConfig.MonochromeMonitor,
 
                 MouseSensitivity = Config.ConfigOptions.RunninConfig.MouseSensitivity,
@@ -99,6 +100,8 @@ namespace ASE
             RebindJoymap();
 
             chkShowBorders.IsChecked = Config.ConfigOptions.RunninConfig.ShowBorders;
+            chkShowBorders.IsEnabled = !Config.ConfigOptions.RunninConfig.MonochromeMonitor;
+            chkStretchToFill.IsChecked = Config.ConfigOptions.RunninConfig.StretchToFill;
             chkColorizeDithering.IsChecked = Config.ConfigOptions.RunninConfig.ColorizeDithering;
             ComboEdgeSmoothing.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.EdgeSmoothing;
             ComboAntiAliasing.SelectedIndex = (int)Config.ConfigOptions.RunninConfig.AntiAliasing;
@@ -497,7 +500,9 @@ namespace ASE
             Config.ConfigOptions.RunninConfig.MaskType = configBackup.MaskType;
             Config.ConfigOptions.RunninConfig.AntiAliasing = configBackup.AntiAliasing;
             Config.ConfigOptions.RunninConfig.ShowBorders = configBackup.ShowBorders;
+            Config.ConfigOptions.RunninConfig.StretchToFill = configBackup.StretchToFill;
             Config.ConfigOptions.RunninConfig.MonochromeMonitor = configBackup.MonochromeMonitor;
+            ASEMain.MainWindow?.RefreshAspectRatio();
 
             Config.ConfigOptions.RunninConfig.MouseSensitivity = configBackup.MouseSensitivity;
 
@@ -994,7 +999,19 @@ namespace ASE
         private void ChkShowBorders_OnIsCheckedChanged(object sender, RoutedEventArgs e)
         {
             if (((CheckBox)sender).IsChecked is bool isChecked)
+            {
                 Config.ConfigOptions.RunninConfig.ShowBorders = isChecked;
+                ASEMain.MainWindow?.RefreshAspectRatio();
+            }
+        }
+
+        private void ChkStretchToFill_OnIsCheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (((CheckBox)sender).IsChecked is bool isChecked)
+            {
+                Config.ConfigOptions.RunninConfig.StretchToFill = isChecked;
+                ASEMain.MainWindow?.RefreshAspectRatio();
+            }
         }
 
         // Dithering colorization is deliberately *not* tied to the effects switch next to it:
@@ -1182,6 +1199,8 @@ namespace ASE
 
             if (_crtLayoutReady)
                 SetCrtExpanded(!isChecked);
+
+            chkShowBorders.IsEnabled = !isChecked;
         }
     }
 }

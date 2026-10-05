@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<!-- Absent on clean clones: the app then falls back to user-supplied values. -->
 	<Import Project="Local.props" Condition="Exists('Local.props')" />
@@ -9,7 +9,7 @@
          attaches to the parent's console at the top of Main. Outside Windows the two values are
          the same thing (only the PE header distinguishes the subsystems). -->
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
 	<LangVersion>latest</LangVersion>
@@ -18,6 +18,9 @@
     <Platforms>AnyCPU;x64</Platforms>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -87,7 +90,7 @@
 		<PackageReference Include="Avalonia" Version="12.1.2" />
 		<PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
-		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.2" />
+		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.1" />
 		<PackageReference Include="LibVLCSharp" Version="3.10.1" />
 		<PackageReference Include="sdl2" Version="2.0.5" />
 		<PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
@@ -141,6 +144,9 @@
 
 	<ItemGroup>
 		<None Update="GameMenus.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\CuratedGames.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 
