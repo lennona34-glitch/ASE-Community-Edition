@@ -679,14 +679,23 @@ public partial class LibraryWindow : Window
 
     void LoadSelected() => LoadGame(GamesList.SelectedItem as GameEntry);
 
+    string ResolveGamePath(LibraryItem item)
+    {
+        if (item == null || string.IsNullOrEmpty(item.Filename))
+            return null;
+        return Path.IsPathRooted(item.Filename)
+            ? item.Filename
+            : Path.Combine(_libraryPath, item.Filename);
+    }
+
     async void LoadGame(GameEntry game)
     {
-        if (game == null || string.IsNullOrEmpty(game.Item.Filename))
+        if (game == null)
             return;
 
-        string path = Path.IsPathRooted(game.Item.Filename)
-            ? game.Item.Filename
-            : Path.Combine(_libraryPath, game.Item.Filename);
+        string path = ResolveGamePath(game.Item);
+        if (string.IsNullOrEmpty(path))
+            return;
 
         if (!File.Exists(path))
         {
@@ -1104,8 +1113,28 @@ public partial class LibraryWindow : Window
         if (pool == null || pool.Count == 0)
             return;
 
-        int randomIndex = _rng.Next(pool.Count);
-        var chosenGame = pool[randomIndex];
+        // Filter out Disk 2, Disk 3, Side B, etc. so we only pick bootable primary disks
+        var primaryPool = pool.Where(g =>
+            !DiskSetManager.IsSecondaryDisk(g.Name) &&
+            !DiskSetManager.IsSecondaryDisk(g.Item?.Filename)).ToList();
+
+        var candidatePool = primaryPool.Count > 0 ? primaryPool : pool;
+
+        int randomIndex = _rng.Next(candidatePool.Count);
+        var chosenGame = candidatePool[randomIndex];
+
+        // Extra safeguard: if the chosen game points to a secondary disk, resolve companion Disk 1
+        string resolvedPath = ResolveGamePath(chosenGame.Item);
+        if (!string.IsNullOrEmpty(resolvedPath) && DiskSetManager.IsSecondaryDisk(resolvedPath))
+        {
+            string disk1 = DiskSetManager.FindCompanionDisk(resolvedPath, 1);
+            if (!string.IsNullOrEmpty(disk1) && File.Exists(disk1))
+            {
+                var disk1Game = pool.FirstOrDefault(g => string.Equals(ResolveGamePath(g.Item), disk1, StringComparison.OrdinalIgnoreCase));
+                if (disk1Game != null)
+                    chosenGame = disk1Game;
+            }
+        }
 
         CloseDetail();
         LoadGame(chosenGame);

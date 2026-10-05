@@ -1498,9 +1498,15 @@ namespace ASE
                     var cache = System.Text.Json.JsonSerializer.Deserialize<LibraryWindow.LibraryCacheData>(json);
                     if (cache?.Items != null && cache.Items.Count > 0)
                     {
+                        // Filter out Disk 2, Disk 3, etc. so we only pick bootable primary disks
+                        var primaryItems = cache.Items.Where(it =>
+                            !DiskSetManager.IsSecondaryDisk(it.Name?.FirstOrDefault()?.Text) &&
+                            !DiskSetManager.IsSecondaryDisk(it.Filename)).ToList();
+
+                        var pool = primaryItems.Count > 0 ? primaryItems : cache.Items;
                         var rng = new Random();
-                        int idx = rng.Next(cache.Items.Count);
-                        chosenItem = cache.Items[idx];
+                        int idx = rng.Next(pool.Count);
+                        chosenItem = pool[idx];
                         string fullPath = Path.IsPathRooted(chosenItem.Filename)
                             ? chosenItem.Filename
                             : Path.Combine(Path.GetDirectoryName(cachePath), chosenItem.Filename);
@@ -1529,11 +1535,22 @@ namespace ASE
 
                     if (files.Count > 0)
                     {
+                        // Filter out Disk 2, Disk 3, Side B, etc.
+                        var primaryFiles = files.Where(f => !DiskSetManager.IsSecondaryDisk(Path.GetFileName(f))).ToList();
+                        var pool = primaryFiles.Count > 0 ? primaryFiles : files;
                         var rng = new Random();
-                        chosenFile = files[rng.Next(files.Count)];
+                        chosenFile = pool[rng.Next(pool.Count)];
                     }
                 }
                 catch { }
+            }
+
+            // Extra safeguard: if chosenFile still denotes a secondary disk, resolve Disk 1 in the same directory
+            if (!string.IsNullOrEmpty(chosenFile) && DiskSetManager.IsSecondaryDisk(chosenFile))
+            {
+                string disk1 = DiskSetManager.FindCompanionDisk(chosenFile, 1);
+                if (!string.IsNullOrEmpty(disk1) && File.Exists(disk1))
+                    chosenFile = disk1;
             }
 
             if (!string.IsNullOrEmpty(chosenFile) && File.Exists(chosenFile))

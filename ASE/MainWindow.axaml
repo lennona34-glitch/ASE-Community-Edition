@@ -285,23 +285,6 @@
 					</StackPanel>
 				</Border>
 				
-				<Button DockPanel.Dock="Left"
-				        Margin="0,0,14,0"
-				        Padding="10,3"
-				        CornerRadius="4"
-				        Background="#242424"
-				        Foreground="#4ADE80"
-				        BorderBrush="#383838"
-				        BorderThickness="1"
-				        Cursor="Hand"
-				        Click="OnRandomGameClick"
-				        ToolTip.Tip="Instantly load and play a random game from your library (Ctrl+R)">
-					<StackPanel Orientation="Horizontal" Spacing="6">
-						<TextBlock Text="🎲" FontSize="13" VerticalAlignment="Center"/>
-						<TextBlock Text="Random Game" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
-
 				<TextBlock Name="TextBlockStatusBar"
 				           VerticalAlignment="Center"
 				           FontSize="12"

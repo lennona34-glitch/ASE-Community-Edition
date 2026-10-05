@@ -19,6 +19,21 @@ public static class DiskSetManager
         ".st", ".msa", ".stx", ".dim", ".ipf", ".zip"
     };
 
+    private static readonly Regex SecondaryDiskRegex = new Regex(
+        @"(?:[\(\[\s_.-])(?:disk|disque|disc|side|face)[ _.-]?(?:0?[2-9]|[b-z])(?:[\s_.-]*of[\s_.-]*\d+)?(?:[\)\]\s_.-]|$)",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// Returns true if the file or game name denotes a secondary non-bootable disk (e.g. Disk 2, Disk 3, Side B).
+    /// </summary>
+    public static bool IsSecondaryDisk(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        return SecondaryDiskRegex.IsMatch(name);
+    }
+
     /// <summary>
     /// Searches for a matching companion disk (e.g. Disk 2 / Side B) for a given disk path.
     /// Supports standalone disk images, disk images inside .zip archives, and sets of .zip files.
