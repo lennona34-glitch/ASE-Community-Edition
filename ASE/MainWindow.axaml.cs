@@ -48,9 +48,6 @@ namespace ASE
         // closing whether the user changed it — see OnClosing.
         readonly bool _fullScreenAtStartup = Config.ConfigOptions.RunninConfig.FullScreen;
 
-        // Set when the window is gone, so work that outlives it (the update check, which answers
-        // whenever GitHub feels like it) does not try to parent a dialog on a dead window.
-        bool _closed;
 
         Bitmap BitmapLedDriveOn;
         Bitmap BitmapLedDriveOff;
@@ -258,16 +255,9 @@ namespace ASE
         /// and then still posted, because a query that had already finished would continue
         /// synchronously and ShowDialog needs an owner whose OnOpened has returned.
         /// </summary>
-        private async void ShowUpdateWindowIfNeeded()
+        private void ShowUpdateWindowIfNeeded()
         {
-            // Never faults: the checker reports its own failures and leaves ReleaseInfo null.
-            await ReleaseChecker.Check;
-
-            // The answer can outlive a window closed while the query was still in flight.
-            if (_closed || ReleaseChecker.ReleaseInfo?.ExistsNewVersion != true)
-                return;
-
-            Dispatcher.UIThread.Post(() => _ = new UpdateWindow().ShowDialog(this), DispatcherPriority.Loaded);
+            // Automatic update popup permanently suppressed: Community Edition protects against upstream overwrites.
         }
 
         protected override void OnClosing(WindowClosingEventArgs e)
@@ -289,8 +279,6 @@ namespace ASE
 
         protected override void OnClosed(EventArgs e)
         {
-            _closed = true;
-
             base.OnClosed(e);
             ASEMain.Shutdown();
         }

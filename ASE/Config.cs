@@ -206,7 +206,7 @@ namespace ASE
             // screen one has none — see MainWindow.SetFullScreen.
             public bool FullScreen { get; set; } = false;
 
-            public bool CheckForUpdates { get; set; } = true;   // query GitHub for a newer release at startup
+            public bool CheckForUpdates { get; set; } = false;  // query GitHub for a newer release at startup (disabled by default in Community Edition)
             public bool AutoRebootOnGameLoad { get; set; } = true; // automatically reset/boot into game when a disk image is inserted
             public string LastLibrarySearch { get; set; } = "";
             public string LastDownloaderSearch { get; set; } = "";
@@ -523,8 +523,8 @@ namespace ASE
             Version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
             Version = Regex.Replace(Version, @"^(\d+\.\d+).*", "$1");
 
-            ColoredConsole.WriteLine($"{Environment.NewLine}[[white]]ATARI SYSTEM EMULATOR[[/white]] v{Version} - The Bit Culture {DateTime.Now.Year}");
-            ColoredConsole.WriteLine("👉 [[magenta]]https://github.com/thebitculture/ase[[/magenta]]");
+            ColoredConsole.WriteLine($"{Environment.NewLine}[[white]]ATARI SYSTEM EMULATOR - Community Edition[[/white]] v{Version} - The Bit Culture & Community {DateTime.Now.Year}");
+            ColoredConsole.WriteLine("👉 [[magenta]]https://github.com/lennona34-glitch/ASE-Community-Edition[[/magenta]]");
             ColoredConsole.WriteLine("👉 [[magenta]]https://youtube.com/@thebitculture?si=2s4M5Iu4QbIdq_hn[[/magenta]]" + Environment.NewLine);
 
             if (File.Exists(PathToDefaultConfig))

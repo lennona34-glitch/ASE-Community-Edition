@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ASE
@@ -55,22 +55,32 @@ namespace ASE
                 using var _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
                 _httpClient.DefaultRequestHeaders.Add("User-Agent", $"ASE/{Config.Version}");
 
-                var url = $"https://api.github.com/repos/thebitculture/ASE/releases/latest";
+                var url = $"https://api.github.com/repos/lennona34-glitch/ASE-Community-Edition/releases/latest";
 
                 var response = await _httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    // No release published yet on Community Edition or rate-limited
+                    return;
+                }
 
                 var json = await response.Content.ReadAsStringAsync();
                 var release = JsonSerializer.Deserialize<ReleaseInfoModel>(json);
 
-                var latestVersion = release.TagName.TrimStart('v');
-                release.ExistsNewVersion = Version.Parse(latestVersion) > Version.Parse(Config.Version);
+                if (release != null && !string.IsNullOrWhiteSpace(release.TagName) && Version.TryParse(release.TagName.TrimStart('v'), out var parsedLatest))
+                {
+                    release.ExistsNewVersion = Version.TryParse(Config.Version, out var currentVer) && parsedLatest > currentVer;
+                }
+                else if (release != null)
+                {
+                    release.ExistsNewVersion = false;
+                }
 
                 // Published only once it is complete: the UI thread reads this field without a
                 // lock, and a half-filled model is worse than no answer at all.
                 ReleaseInfo = release;
 
-                if (release.ExistsNewVersion)
+                if (release != null && release.ExistsNewVersion)
                     ColoredConsole.WriteLine($"⭐⭐ New release [[yellow]]{release.TagName}[[/yellow]] available!! from [[magenta]]{release.HtmlUrl}[[/magenta]] ⭐⭐", Config.ConfigOptions.DebugModes.Quiet);
             }
             catch (HttpRequestException httpex)
