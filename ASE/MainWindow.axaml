@@ -173,10 +173,24 @@
 						<Svg Path="avares://ASE/Assets/Icons/bug.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
+				<MenuItem Header="Emulation Speed">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/fast-forward.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+					<MenuItem Header="Normal Speed (100%)" Click="OnSpeedNormalClick" InputGesture="Alt+Left"/>
+					<MenuItem Header="Speed Up" Click="OnSpeedUpClick" InputGesture="Alt+Up"/>
+					<MenuItem Header="Slow Down" Click="OnSpeedDownClick" InputGesture="Alt+Down"/>
+					<MenuItem Header="Maximum Speed (Warp)" Click="OnSpeedMaxClick" InputGesture="Alt+Right"/>
+				</MenuItem>
 				<Separator/>
 				<MenuItem Header="Auto-reboot on game load" Name="ItemMenuAutoReboot" Click="OnToggleAutoRebootClick">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/arrow-clockwise.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Auto-run desktop programs" Name="ItemMenuAutoRunDesktop" Click="OnToggleAutoRunDesktopClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/play-fill.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
 				<MenuItem Header="Show screen borders" Name="ItemMenuShowBorders" Click="OnToggleShowBordersClick" InputGesture="Alt+B">

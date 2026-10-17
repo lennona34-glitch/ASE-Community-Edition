@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using static ASE.Config;
 
 
@@ -139,7 +139,7 @@ namespace ASE
             {
                 zip = ZipFile.OpenRead(path);
 
-                HashSet<string> _extensions = new(StringComparer.OrdinalIgnoreCase) { ".st", ".msa", ".stx" };
+                HashSet<string> _extensions = new(StringComparer.OrdinalIgnoreCase) { ".st", ".msa", ".stx", ".prg", ".tos", ".ttp", ".app" };
                 HashSet<string> ImagesInZip = new HashSet<string>();
 
                 foreach (var entry in zip.Entries)
@@ -213,6 +213,16 @@ namespace ASE
                     Array.Resize(ref Data, DiskConfig.SizeInBytes);
 
                 Stx = null;
+
+                if (ConfigOptions.RunninConfig.AutoRunDesktopPrograms)
+                {
+                    if (ASE.Services.AtariExecutableLauncher.TryInjectAutoRun(Data, out string launchedProg))
+                    {
+                        ColoredConsole.WriteLine(
+                            $"[[green]]Auto-run injected for desktop game:[[/green]] [[yellow]]{launchedProg}[[/yellow]]",
+                            ConfigOptions.DebugModes.Quiet);
+                    }
+                }
 
                 ColoredConsole.WriteLine(
                     $"[[cyan]]FDC[[/cyan]] {Path.GetFileName(path)}: {DiskConfig.Tracks} tracks, " +
@@ -344,6 +354,41 @@ namespace ASE
                 };
 
                 message = $"Floppy image loaded: [[green]]{path}[[/green]]";
+            }
+            // Direct Atari ST executable (.prg, .tos, .ttp, .app)
+            else if (ASE.Services.AtariExecutableLauncher.IsExecutable(path))
+            {
+                byte[] prgBytes;
+                if (zip == null)
+                {
+                    prgBytes = File.ReadAllBytes(path);
+                }
+                else
+                {
+                    var entry = zip.GetEntry(path);
+                    using Stream entryStream = entry.Open();
+                    using MemoryStream ms = new MemoryStream((int)entry.Length);
+                    entryStream.CopyTo(ms);
+                    prgBytes = ms.ToArray();
+                }
+
+                var vDisk = ASE.Services.AtariExecutableLauncher.CreateVirtualFloppy(path, prgBytes, out var geometry);
+                if (vDisk == null || geometry == null)
+                {
+                    message = $"Could not create virtual auto-boot floppy for: [[red]]{path}[[/red]]";
+                    Eject();
+                    return false;
+                }
+
+                DiskConfig = geometry;
+                Data = vDisk;
+                Stx = null;
+
+                ColoredConsole.WriteLine(
+                    $"[[cyan]]FDC[[/cyan]] Created auto-booting virtual floppy for {Path.GetFileName(path)}",
+                    ConfigOptions.DebugModes.Quiet);
+
+                message = $"Executable loaded into virtual floppy: [[green]]{path}[[/green]]";
             }
             else
             {

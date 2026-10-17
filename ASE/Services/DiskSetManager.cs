@@ -16,7 +16,7 @@ public static class DiskSetManager
 {
     private static readonly HashSet<string> DiskExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".st", ".msa", ".stx", ".dim", ".ipf", ".zip"
+        ".st", ".msa", ".stx", ".dim", ".ipf", ".zip", ".prg", ".tos", ".ttp", ".app"
     };
 
     private static readonly Regex SecondaryDiskRegex = new Regex(

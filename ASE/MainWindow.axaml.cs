@@ -121,6 +121,9 @@ namespace ASE
                 ItemMenuAutoReboot.Header = Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad
                     ? "Auto-reboot on game load: On"
                     : "Auto-reboot on game load: Off";
+                ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
+                    ? "Auto-run desktop programs: On"
+                    : "Auto-run desktop programs: Off";
                 AddHandler(DragDrop.DropEvent, OnDrop);
             }
         }
@@ -769,6 +772,10 @@ namespace ASE
                         || s.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
                         || s.EndsWith(".msa", StringComparison.OrdinalIgnoreCase)
                         || s.EndsWith(".stx", StringComparison.OrdinalIgnoreCase)
+                        || s.EndsWith(".prg", StringComparison.OrdinalIgnoreCase)
+                        || s.EndsWith(".tos", StringComparison.OrdinalIgnoreCase)
+                        || s.EndsWith(".ttp", StringComparison.OrdinalIgnoreCase)
+                        || s.EndsWith(".app", StringComparison.OrdinalIgnoreCase)
                         )
                     {
                         HasValidFile = true;
@@ -779,7 +786,7 @@ namespace ASE
             }
 
             if(!HasValidFile)
-                SetStatusBarText($"❌ Dropped file is an invalid disk image");
+                SetStatusBarText($"❌ Dropped file is not a supported disk image or executable");
 
             e.Handled = true;
         }
@@ -794,7 +801,7 @@ namespace ASE
 
             var (canceled, selpath) = await Dialogs.OpenFile($"Select disk image file for drive {DriveLetter(drive)}:",
                 Config.DialogStartFolder(Config.ConfigOptions.RunninConfig.DiskImagesPath),
-                new FileFilter("ST disk images", ["*.st", "*.msa", "*.stx", "*.zip"]));
+                new FileFilter("ST disk images & executables", ["*.st", "*.msa", "*.stx", "*.zip", "*.prg", "*.tos", "*.ttp", "*.app"]));
 
             if (!canceled && selpath.Count() == 1)
                 InsertDisk(drive, selpath.ElementAt(0), null);
@@ -1291,6 +1298,9 @@ namespace ASE
             ItemMenuAutoReboot.Header = Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad
                 ? "Auto-reboot on game load: On"
                 : "Auto-reboot on game load: Off";
+            ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
+                ? "Auto-run desktop programs: On"
+                : "Auto-run desktop programs: Off";
             ItemMenuShowBorders.Header = Config.ConfigOptions.RunninConfig.ShowBorders
                 ? "Show screen borders: On"
                 : "Show screen borders: Off";
@@ -1302,6 +1312,21 @@ namespace ASE
             Program.Config.DumpJsonConfig();
             SetStatusBarText($"Auto-reboot on game load: {(Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad ? "Enabled" : "Disabled")}");
         }
+
+        public void OnToggleAutoRunDesktopClick(object sender, RoutedEventArgs e)
+        {
+            Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms = !Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms;
+            Program.Config.DumpJsonConfig();
+            ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
+                ? "Auto-run desktop programs: On"
+                : "Auto-run desktop programs: Off";
+            SetStatusBarText($"Auto-run desktop programs: {(Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms ? "Enabled" : "Disabled")}");
+        }
+
+        public void OnSpeedNormalClick(object sender, RoutedEventArgs e) => ASEMain.ResetSpeed();
+        public void OnSpeedUpClick(object sender, RoutedEventArgs e) => ASEMain.SpeedUp();
+        public void OnSpeedDownClick(object sender, RoutedEventArgs e) => ASEMain.SlowDown();
+        public void OnSpeedMaxClick(object sender, RoutedEventArgs e) => ASEMain.ToggleMaxSpeed();
 
         public void OnToggleShowBordersClick(object sender, RoutedEventArgs e) => ToggleShowBorders();
 

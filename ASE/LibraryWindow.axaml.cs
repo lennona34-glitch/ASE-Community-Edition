@@ -452,7 +452,7 @@ public partial class LibraryWindow : Window
                 }
                 catch { }
 
-                var diskExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".msa", ".stx", ".dim", ".ipf", ".zip" };
+                var diskExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".msa", ".stx", ".dim", ".ipf", ".zip", ".prg", ".tos", ".ttp", ".app" };
                 libraryCollection.Collection ??= new List<LibraryItem>();
                 var knownFiles = new HashSet<string>(libraryCollection.Collection.Where(i => !string.IsNullOrEmpty(i.Filename)).Select(i => i.Filename), StringComparer.OrdinalIgnoreCase);
 

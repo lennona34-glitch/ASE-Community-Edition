@@ -494,9 +494,11 @@ namespace ASE
                     // ran its scanlines. lineBase - frameClockBase is the sum of the exact line
                     // lengths, so this is the emulated duration of the frame to the cycle.
                     long frameCycles = lineBase - frameClockBase;
-                    next += frameCycles > 0 ? frameCycles / 8_000_000.0 : frame;
+                    double frameDuration = frameCycles > 0 ? frameCycles / 8_000_000.0 : frame;
+                    double effectiveSpeed = ConfigOptions.RunninConfig.MaxSpeed ? 100.0 : Math.Max(0.1, SpeedFactor);
+                    next += frameDuration / effectiveSpeed;
 
-                    if (!ConfigOptions.RunninConfig.MaxSpeed)
+                    if (!ConfigOptions.RunninConfig.MaxSpeed && effectiveSpeed < 10.0)
                     {
                         long profileIdle = FrameProfiler.Stamp();
 
@@ -1083,6 +1085,70 @@ namespace ASE
             SDL.SDL_Quit();
         }
 
+        public static double SpeedFactor { get; set; } = 1.0;
+
+        public static void SpeedUp()
+        {
+            if (ConfigOptions.RunninConfig.MaxSpeed)
+                return;
+
+            if (SpeedFactor < 0.9)
+                SpeedFactor = 1.0;
+            else if (SpeedFactor < 1.4)
+                SpeedFactor = 1.5;
+            else if (SpeedFactor < 1.9)
+                SpeedFactor = 2.0;
+            else if (SpeedFactor < 3.9)
+                SpeedFactor = 4.0;
+            else
+                ConfigOptions.RunninConfig.MaxSpeed = true;
+
+            ReportSpeed();
+        }
+
+        public static void SlowDown()
+        {
+            if (ConfigOptions.RunninConfig.MaxSpeed)
+            {
+                ConfigOptions.RunninConfig.MaxSpeed = false;
+                SpeedFactor = 4.0;
+            }
+            else if (SpeedFactor > 2.5)
+                SpeedFactor = 2.0;
+            else if (SpeedFactor > 1.6)
+                SpeedFactor = 1.5;
+            else if (SpeedFactor > 1.1)
+                SpeedFactor = 1.0;
+            else if (SpeedFactor > 0.6)
+                SpeedFactor = 0.5;
+
+            ReportSpeed();
+        }
+
+        public static void ResetSpeed()
+        {
+            ConfigOptions.RunninConfig.MaxSpeed = false;
+            SpeedFactor = 1.0;
+            ReportSpeed();
+        }
+
+        public static void ToggleMaxSpeed()
+        {
+            ConfigOptions.RunninConfig.MaxSpeed = !ConfigOptions.RunninConfig.MaxSpeed;
+            if (!ConfigOptions.RunninConfig.MaxSpeed)
+                SpeedFactor = 1.0;
+            ReportSpeed();
+        }
+
+        public static void ReportSpeed()
+        {
+            string msg = ConfigOptions.RunninConfig.MaxSpeed
+                ? "⚡ Speed: MAX (Warp)"
+                : $"⏩ Speed: {SpeedFactor * 100:0}%";
+            ColoredConsole.WriteLine($"[[cyan]]SPEED[[/cyan]] {msg}", ConfigOptions.DebugModes.Quiet);
+            Dispatcher.UIThread.Post(() => MainWindow.SetStatusBarText(msg), DispatcherPriority.Input);
+        }
+
         // Middle mouse button toggles input capture, like F12. The same physical press can be
         // reported twice — through the SDL queue and through the Avalonia overlay, depending on
         // platform — so the toggle fires only on the press edge and re-arms on release.
@@ -1369,6 +1435,50 @@ namespace ASE
                             MainWindow.DoSaveSnapshot();
                     }, DispatcherPriority.Input);
 
+                    return;
+                }
+
+                // Speed control: directional arrows (with Alt/Ctrl) and PageUp/PageDown
+                bool alt = (key.mod & SDL.SDL_Keymod.KMOD_ALT) != 0;
+                bool ctrl = (key.mod & SDL.SDL_Keymod.KMOD_CTRL) != 0;
+
+                if (alt || ctrl)
+                {
+                    if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_UP)
+                    {
+                        SpeedUp();
+                        return;
+                    }
+                    if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_DOWN)
+                    {
+                        SlowDown();
+                        return;
+                    }
+                    if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_RIGHT)
+                    {
+                        ToggleMaxSpeed();
+                        return;
+                    }
+                    if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_LEFT)
+                    {
+                        ResetSpeed();
+                        return;
+                    }
+                    if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_TAB)
+                    {
+                        ToggleMaxSpeed();
+                        return;
+                    }
+                }
+
+                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP)
+                {
+                    SpeedUp();
+                    return;
+                }
+                if (key.scancode == SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN)
+                {
+                    SlowDown();
                     return;
                 }
 

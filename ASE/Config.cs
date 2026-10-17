@@ -208,6 +208,7 @@ namespace ASE
 
             public bool CheckForUpdates { get; set; } = false;  // query GitHub for a newer release at startup (disabled by default in Community Edition)
             public bool AutoRebootOnGameLoad { get; set; } = true; // automatically reset/boot into game when a disk image is inserted
+            public bool AutoRunDesktopPrograms { get; set; } = true; // automatically run PRG/TOS from desktop-only disks
             public string LastLibrarySearch { get; set; } = "";
             public string LastDownloaderSearch { get; set; } = "";
 
@@ -816,6 +817,10 @@ namespace ASE
                 case ".msa":
                 case ".stx":
                 case ".zip":
+                case ".prg":
+                case ".tos":
+                case ".ttp":
+                case ".app":
                     ConfigOptions.RunninConfig.FloppyImagePath = path;
                     break;
 

@@ -283,7 +283,7 @@ public class GameCatalogService
 
         try
         {
-            var diskExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".msa", ".stx", ".dim", ".ipf", ".zip" };
+            var diskExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".msa", ".stx", ".dim", ".ipf", ".zip", ".prg", ".tos", ".ttp", ".app" };
 
             // Exact filename -> fullPath
             var filenameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
