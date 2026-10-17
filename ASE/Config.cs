@@ -209,6 +209,7 @@ namespace ASE
             public bool CheckForUpdates { get; set; } = false;  // query GitHub for a newer release at startup (disabled by default in Community Edition)
             public bool AutoRebootOnGameLoad { get; set; } = true; // automatically reset/boot into game when a disk image is inserted
             public bool AutoRunDesktopPrograms { get; set; } = true; // automatically run PRG/TOS from desktop-only disks
+            public bool AutoDetectModelAndTos { get; set; } = true; // automatically select ST vs STE machine model and BIOS based on folder/game tags
             public string LastLibrarySearch { get; set; } = "";
             public string LastDownloaderSearch { get; set; } = "";
 

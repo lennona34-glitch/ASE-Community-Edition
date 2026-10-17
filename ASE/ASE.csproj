@@ -149,6 +149,9 @@
 		<None Update="Resources\CuratedGames.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="TOS\**">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 
 		<!-- ASEHD boot driver (tools/asehd, assembled with vasm — see build.cmd there).
 		     Two flat binaries: the boot sector and the resident driver. Embedded so a

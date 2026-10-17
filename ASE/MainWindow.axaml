@@ -193,6 +193,11 @@
 						<Svg Path="avares://ASE/Assets/Icons/play-fill.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
+				<MenuItem Header="Auto-select ST / STE &amp; BIOS" Name="ItemMenuAutoModelTos" Click="OnToggleAutoModelTosClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/gear.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
 				<MenuItem Header="Show screen borders" Name="ItemMenuShowBorders" Click="OnToggleShowBordersClick" InputGesture="Alt+B">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/tv.svg" Width="16" Height="16"/>

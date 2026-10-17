@@ -124,6 +124,9 @@ namespace ASE
                 ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
                     ? "Auto-run desktop programs: On"
                     : "Auto-run desktop programs: Off";
+                ItemMenuAutoModelTos.Header = Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos
+                    ? "Auto-select ST / STE & BIOS: On"
+                    : "Auto-select ST / STE & BIOS: Off";
                 AddHandler(DragDrop.DropEvent, OnDrop);
             }
         }
@@ -902,6 +905,14 @@ namespace ASE
                 // Check for multi-disc companion (Disk 2 / Side B)
                 bool multiDiscFound = false;
                 string effectivePath = !string.IsNullOrEmpty(Drive(0).ImagePath) ? Drive(0).ImagePath : ImageFile;
+
+                // Auto-detect ST vs STE model and matching TOS BIOS based on folder and tags
+                MachineModelSelector.ModelDecision modelDecision = null;
+                if (!isDiskSwap)
+                {
+                    modelDecision = MachineModelSelector.DetectAndApply(effectivePath, libraryGame);
+                }
+
                 string companionDisk = !isDiskSwap ? DiskSetManager.FindCompanionDisk(effectivePath, 2) : null;
                 if (!string.IsNullOrEmpty(companionDisk) &&
                     !string.Equals(companionDisk, effectivePath, StringComparison.OrdinalIgnoreCase) &&
@@ -932,7 +943,7 @@ namespace ASE
                 {
                     // Multi-disk swap during gameplay: do not reboot
                 }
-                else if (Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad)
+                else if (Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad || (modelDecision != null && modelDecision.Changed))
                 {
                     ASEMain.HardReset();
                 }
@@ -949,7 +960,13 @@ namespace ASE
 
                 EjectDiskItem(drive).IsEnabled = true;
 
-                if (multiDiscFound)
+                if (modelDecision != null && modelDecision.Changed)
+                {
+                    string modelName = modelDecision.TargetModel == Config.ConfigOptions.STModels.STE ? "Atari STE" : "Atari ST";
+                    string tosName = Path.GetFileName(modelDecision.TosPath);
+                    SetStatusBarText($"Auto-configured {modelName} ({tosName}) — {modelDecision.Reason}");
+                }
+                else if (multiDiscFound)
                 {
                     var allDisks = DiskSetManager.GetAllDisksInSet(effectivePath);
                     string countInfo = allDisks.Count > 2 ? $" ({allDisks.Count} disks)" : "";
@@ -1301,6 +1318,9 @@ namespace ASE
             ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
                 ? "Auto-run desktop programs: On"
                 : "Auto-run desktop programs: Off";
+            ItemMenuAutoModelTos.Header = Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos
+                ? "Auto-select ST / STE & BIOS: On"
+                : "Auto-select ST / STE & BIOS: Off";
             ItemMenuShowBorders.Header = Config.ConfigOptions.RunninConfig.ShowBorders
                 ? "Show screen borders: On"
                 : "Show screen borders: Off";
@@ -1321,6 +1341,16 @@ namespace ASE
                 ? "Auto-run desktop programs: On"
                 : "Auto-run desktop programs: Off";
             SetStatusBarText($"Auto-run desktop programs: {(Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms ? "Enabled" : "Disabled")}");
+        }
+
+        public void OnToggleAutoModelTosClick(object sender, RoutedEventArgs e)
+        {
+            Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos = !Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos;
+            Program.Config.DumpJsonConfig();
+            ItemMenuAutoModelTos.Header = Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos
+                ? "Auto-select ST / STE & BIOS: On"
+                : "Auto-select ST / STE & BIOS: Off";
+            SetStatusBarText($"Auto-select ST / STE & BIOS: {(Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos ? "Enabled" : "Disabled")}");
         }
 
         public void OnSpeedNormalClick(object sender, RoutedEventArgs e) => ASEMain.ResetSpeed();

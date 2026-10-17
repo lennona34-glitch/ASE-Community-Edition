@@ -252,6 +252,10 @@ namespace ASE
 
             if (string.IsNullOrEmpty(startupSnapshot))
             {
+                if (!string.IsNullOrEmpty(ConfigOptions.RunninConfig.FloppyImagePath))
+                {
+                    Services.MachineModelSelector.DetectAndApply(ConfigOptions.RunninConfig.FloppyImagePath);
+                }
                 TurnOn();
             }
             else
