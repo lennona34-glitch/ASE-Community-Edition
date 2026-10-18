@@ -314,6 +314,17 @@ namespace ASE
                         }
                     }
                     Stx = null;
+
+                    if (ConfigOptions.RunninConfig.AutoRunDesktopPrograms)
+                    {
+                        if (ASE.Services.AtariExecutableLauncher.TryInjectAutoRun(Data, out string launchedProg))
+                        {
+                            ColoredConsole.WriteLine(
+                                $"[[green]]Auto-run injected for desktop game:[[/green]] [[yellow]]{launchedProg}[[/yellow]]",
+                                ConfigOptions.DebugModes.Quiet);
+                        }
+                    }
+
                     message = $"Floppy image loaded: [[green]]{path}[[/green]]";
                 }
             }

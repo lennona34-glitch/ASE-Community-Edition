@@ -142,6 +142,7 @@ namespace ASE
             ASEMain._mfp.SetMonochromeDetect(VideoTiming.Mono);
 
             _moira.Reset();
+            Services.AtariExecutableLauncher.ResetCountdownOnReset();
             return true;
         }
     }

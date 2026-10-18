@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 
  * Atari ST ACIA emulation functions.
  *
@@ -887,6 +887,9 @@ namespace ASE
         /// <summary>Host mouse motion: accumulated, and reported on the IKBD's next sample tick.</summary>
         public static void MouseMotion(int dx, int dy)
         {
+            if (Math.Abs(dx) > 1 || Math.Abs(dy) > 1)
+                Services.AtariExecutableLauncher.CancelDesktopAutoClick();
+
             lock (_syncLock)
             {
                 if (!MouseEnabled) return;

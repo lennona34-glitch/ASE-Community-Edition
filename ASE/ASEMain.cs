@@ -487,6 +487,11 @@ namespace ASE
 
                     MainWindow.RefreshDriveLed();
 
+                    if (Services.AtariExecutableLauncher.PendingDesktopAutoClick)
+                    {
+                        Services.AtariExecutableLauncher.StepAutoClick();
+                    }
+
                     // The wall-clock budget for this frame follows the cycles it ACTUALLY ran,
                     // not the fixed period: a screen held at 60 Hz gives 508-cycle lines, so the
                     // same 313 lines come out 1252 cycles shorter than the 512-cycle ones

@@ -58,8 +58,7 @@ namespace ASE.Services
 
                 try
                 {
-                    var cfg = new Config();
-                    cfg.DumpJsonConfig();
+                    Program.Config?.DumpJsonConfig();
                 }
                 catch
                 {

@@ -31,6 +31,148 @@ namespace ASE.Services
             return ExecutableExtensions.Contains(ext);
         }
 
+        public static volatile bool PendingDesktopAutoClick = false;
+        private static int _autoClickCountdown = 0;
+        private static int _autoClickStep = 0;
+
+        public static void ArmDesktopAutoClick()
+        {
+            PendingDesktopAutoClick = true;
+            _autoClickCountdown = 160; // ~3.2 seconds at 50Hz: gives GEM time to boot, draw desktop, open window and position mouse
+            _autoClickStep = 0;
+        }
+
+        public static void CancelDesktopAutoClick()
+        {
+            if (PendingDesktopAutoClick)
+            {
+                PendingDesktopAutoClick = false;
+                _autoClickCountdown = 0;
+                _autoClickStep = 0;
+            }
+        }
+
+        public static void ResetCountdownOnReset()
+        {
+            if (PendingDesktopAutoClick)
+            {
+                _autoClickCountdown = 160;
+                _autoClickStep = 0;
+            }
+        }
+
+        public static void StepAutoClick()
+        {
+            if (!PendingDesktopAutoClick) return;
+
+            if (_autoClickCountdown > 0)
+            {
+                _autoClickCountdown--;
+                return;
+            }
+
+            switch (_autoClickStep)
+            {
+                case 0:
+                    // First click down
+                    ACIA.MouseButtonChanged(left: true, pressed: true);
+                    _autoClickStep++;
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                    // Hold button down (~60ms)
+                    _autoClickStep++;
+                    break;
+                case 4:
+                    // First click up
+                    ACIA.MouseButtonChanged(left: true, pressed: false);
+                    _autoClickStep++;
+                    break;
+                case 5:
+                case 6:
+                case 7:
+                    // Delay between clicks (~60ms)
+                    _autoClickStep++;
+                    break;
+                case 8:
+                    // Second click down (double-click trigger)
+                    ACIA.MouseButtonChanged(left: true, pressed: true);
+                    _autoClickStep++;
+                    break;
+                case 9:
+                case 10:
+                case 11:
+                    // Hold button down (~60ms)
+                    _autoClickStep++;
+                    break;
+                case 12:
+                    // Second click up
+                    ACIA.MouseButtonChanged(left: true, pressed: false);
+                    _autoClickStep++;
+                    _autoClickCountdown = 50; // Safety retry delay
+                    break;
+                case 13:
+                    // Retry click down
+                    ACIA.MouseButtonChanged(left: true, pressed: true);
+                    _autoClickStep++;
+                    break;
+                case 14:
+                case 15:
+                case 16:
+                    _autoClickStep++;
+                    break;
+                case 17:
+                    // Retry click up
+                    ACIA.MouseButtonChanged(left: true, pressed: false);
+                    _autoClickStep++;
+                    break;
+                case 18:
+                case 19:
+                case 20:
+                    _autoClickStep++;
+                    break;
+                case 21:
+                    // Retry second click down
+                    ACIA.MouseButtonChanged(left: true, pressed: true);
+                    _autoClickStep++;
+                    break;
+                case 22:
+                case 23:
+                case 24:
+                    _autoClickStep++;
+                    break;
+                case 25:
+                    // Retry second click up
+                    ACIA.MouseButtonChanged(left: true, pressed: false);
+                    PendingDesktopAutoClick = false;
+                    _autoClickStep = 0;
+                    ColoredConsole.WriteLine("[AtariExecutableLauncher] Dispatched auto-double-click for desktop program.", Config.ConfigOptions.DebugModes.Quiet);
+                    break;
+            }
+        }
+
+        public static string BuildDesktopInf(string fullExeName)
+        {
+            var sb = new StringBuilder();
+            sb.Append("#E 18 12 \r\n");
+            sb.Append("#W 00 00 00 07 4C 0C 00 A:\\*.*@\r\n");
+            sb.Append("#W 00 00 02 0B 4C 09 00 @\r\n");
+            sb.Append("#W 00 00 0A 0F 34 09 00 @\r\n");
+            sb.Append("#W 00 00 0E 01 34 09 00 @\r\n");
+            sb.Append("#M 00 00 00 FF A FLOPPY DISK@ @ \r\n");
+            sb.Append("#M 00 01 00 FF B FLOPPY DISK@ @ \r\n");
+            sb.Append("#T 00 03 02 FF   TRASH@ @ \r\n");
+            sb.Append("#F FF 04   @ *.*@ \r\n");
+            sb.Append("#D FF 01   @ *.*@ \r\n");
+            sb.Append("#G 03 FF   *.APP@ @ \r\n");
+            sb.Append("#G 03 FF   *.PRG@ @ \r\n");
+            sb.Append("#P 03 FF   *.TTP@ @ \r\n");
+            sb.Append("#F 03 04   *.TOS@ @ \r\n");
+            sb.Append($"#Z 01 A:\\{fullExeName}@\r\n");
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Creates an in-memory auto-booting Atari ST floppy disk image containing the specified executable.
         /// The program is placed in an AUTO folder (so TOS launches it before desktop) and configured in
@@ -162,7 +304,7 @@ namespace ASE.Services
             WriteDirEntry(disk, rootDirOffset + 1 * 32, name8, ext3, 0x00, 3, (uint)prgBytes.Length, dosTime, dosDate);
             // Entry 2: DESKTOP.INF in root
             string fullExeName = $"{name8.TrimEnd()}.{ext3.TrimEnd()}";
-            string desktopInf = $"#Z 01 A:\\{fullExeName}@\r\n#E F8 00\r\n#W 00 00 02 06 26 0B 00 @\r\n#W 00 00 02 06 26 0B 00 @\r\n#M 00 00 00 00 A:\\*.*@\r\n";
+            string desktopInf = BuildDesktopInf(fullExeName);
             byte[] desktopBytes = Encoding.ASCII.GetBytes(desktopInf);
             WriteDirEntry(disk, rootDirOffset + 2 * 32, "DESKTOP ", "INF", 0x00, (ushort)desktopCluster, (uint)desktopBytes.Length, dosTime, dosDate);
 
@@ -270,8 +412,8 @@ namespace ASE.Services
                 }
             }
 
-            // If it already has an AUTO folder or DESKTOP.INF, or has no programs, don't modify
-            if (hasAuto || hasDesktopInf || candidates.Count == 0 || firstFreeEntryOffset == -1)
+            // If it already has an AUTO folder or has no programs, don't modify
+            if (hasAuto || candidates.Count == 0)
                 return false;
 
             // Pick the best candidate executable
@@ -298,6 +440,18 @@ namespace ASE.Services
             }
 
         FoundPreferred:
+            string fullExeName = $"{best.name8}.{best.ext3}";
+
+            if (hasDesktopInf)
+            {
+                ArmDesktopAutoClick();
+                launchedProgram = fullExeName;
+                return true;
+            }
+
+            if (firstFreeEntryOffset == -1)
+                return false;
+
             // Find a free cluster in FAT1
             int fat1Offset = resSectors * bps;
             int fat2Offset = (resSectors + sectorsPerFat) * bps;
@@ -315,8 +469,7 @@ namespace ASE.Services
 
             if (freeCluster == -1) return false;
 
-            string fullExeName = $"{best.name8}.{best.ext3}";
-            string desktopInf = $"#Z 01 A:\\{fullExeName}@\r\n#E F8 00\r\n#W 00 00 02 06 26 0B 00 @\r\n#W 00 00 02 06 26 0B 00 @\r\n#M 00 00 00 00 A:\\*.*@\r\n";
+            string desktopInf = BuildDesktopInf(fullExeName);
             byte[] desktopBytes = Encoding.ASCII.GetBytes(desktopInf);
 
             int clusterOffset = dataStartOffset + (freeCluster - 2) * clusterSize;
@@ -332,6 +485,7 @@ namespace ASE.Services
             ushort dosDate = GetDosDate(DateTime.Now);
             WriteDirEntry(diskImage, firstFreeEntryOffset, "DESKTOP ", "INF", 0x00, (ushort)freeCluster, (uint)desktopBytes.Length, dosTime, dosDate);
 
+            ArmDesktopAutoClick();
             launchedProgram = fullExeName;
             return true;
         }

@@ -310,6 +310,7 @@ namespace ASE
             if (!ASEMain.IsMouseCaptured &&
                 (p.Properties.IsLeftButtonPressed || p.Properties.IsRightButtonPressed))
             {
+                Services.AtariExecutableLauncher.CancelDesktopAutoClick();
                 ASEMain.CaptureMouse(true);
                 ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true);
                 e.Handled = true;

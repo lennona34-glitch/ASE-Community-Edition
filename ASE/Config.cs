@@ -513,8 +513,8 @@ namespace ASE
         const string AppName = "ASE";
         const string DefaultConfigFileName = "config.json";
 
-        string AppDataConfigPath;
-        string PathToDefaultConfig;
+        string AppDataConfigPath = GetAppDefaultConfigsFilePath();
+        string PathToDefaultConfig = Path.Combine(GetAppDefaultConfigsFilePath(), DefaultConfigFileName);
 
 
         public void LoadConfig(string[] args)
@@ -1080,7 +1080,7 @@ namespace ASE
         public void DumpJsonConfig(string ConfigFile = "")
         {
             if (string.IsNullOrEmpty(ConfigFile))
-                ConfigFile = PathToDefaultConfig;
+                ConfigFile = !string.IsNullOrEmpty(PathToDefaultConfig) ? PathToDefaultConfig : Path.Combine(GetAppDefaultConfigsFilePath(), DefaultConfigFileName);
 
             try
             {
@@ -1093,10 +1093,9 @@ namespace ASE
 
                 File.WriteAllText(ConfigFile, json);
             }
-            catch
+            catch (Exception ex)
             {
-                ColoredConsole.WriteLine($"ERROR: Cannot create [[red]]{ConfigFile}[[//red]] config file.");
-                Environment.Exit(1);
+                ColoredConsole.WriteLine($"WARNING: Cannot save [[red]]{ConfigFile}[[/red]] config file: {ex.Message}");
             }
         }
     }

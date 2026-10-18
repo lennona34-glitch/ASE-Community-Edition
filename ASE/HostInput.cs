@@ -15,8 +15,17 @@ namespace ASE
 
         public static void Reset() => Held.Clear();
 
-        public static void Key(int source, byte key, bool pressed) => Set(source, key, 0, pressed);
-        public static void Joystick(int source, byte mask, bool pressed) => Set(source, 0, mask, pressed);
+        public static void Key(int source, byte key, bool pressed)
+        {
+            if (pressed) Services.AtariExecutableLauncher.CancelDesktopAutoClick();
+            Set(source, key, 0, pressed);
+        }
+
+        public static void Joystick(int source, byte mask, bool pressed)
+        {
+            if (pressed) Services.AtariExecutableLauncher.CancelDesktopAutoClick();
+            Set(source, 0, mask, pressed);
+        }
 
         static void Set(int source, byte key, byte joy, bool pressed)
         {
