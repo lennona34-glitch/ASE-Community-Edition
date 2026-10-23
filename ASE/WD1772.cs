@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 
  * Western Digital WD1772 FDC emulation for Atari ST
  * 
@@ -1099,6 +1099,12 @@ namespace ASE
 
         private static void ExecuteReadSector()
         {
+            if (Services.AtariExecutableLauncher.PendingDesktopAutoClick && Services.AtariExecutableLauncher.AutoClickAttempts >= 1)
+            {
+                Services.AtariExecutableLauncher.CancelDesktopAutoClick();
+                ColoredConsole.WriteLine("[AtariExecutableLauncher] Program launch confirmed via floppy read activity — disarmed auto-click.", ConfigOptions.DebugModes.Quiet);
+            }
+
             bool multi = (commandRegister & 0x10) != 0; // bit 4 = multiple
 
             if (!DriveSelected || !ActiveDrive.HasDisk)

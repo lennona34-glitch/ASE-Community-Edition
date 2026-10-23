@@ -1553,8 +1553,9 @@ namespace ASE
                     // absolute packet, or nothing) and edge-guards the press: the same click
                     // also reaches the Avalonia overlay handler on Windows.
                     bool down = e.type == SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN;
+                    bool isDouble = down && e.button.clicks >= 2;
                     if (e.button.button == SDL.SDL_BUTTON_LEFT)
-                        ACIA.MouseButtonChanged(left: true, pressed: down);
+                        ACIA.MouseButtonChanged(left: true, pressed: down, isDoubleClick: isDouble);
                     else if (e.button.button == SDL.SDL_BUTTON_RIGHT)
                         ACIA.MouseButtonChanged(left: false, pressed: down);
                 }

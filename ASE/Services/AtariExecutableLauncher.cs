@@ -34,12 +34,14 @@ namespace ASE.Services
         public static volatile bool PendingDesktopAutoClick = false;
         private static int _autoClickCountdown = 0;
         private static int _autoClickStep = 0;
+        public static int AutoClickAttempts { get; private set; } = 0;
 
         public static void ArmDesktopAutoClick()
         {
             PendingDesktopAutoClick = true;
-            _autoClickCountdown = 160; // ~3.2 seconds at 50Hz: gives GEM time to boot, draw desktop, open window and position mouse
+            _autoClickCountdown = 250; // ~5.0 seconds at 50Hz: gives GEM time to boot; expedited immediately to 15 frames once GEM positions the mouse
             _autoClickStep = 0;
+            AutoClickAttempts = 0;
         }
 
         public static void CancelDesktopAutoClick()
@@ -49,6 +51,7 @@ namespace ASE.Services
                 PendingDesktopAutoClick = false;
                 _autoClickCountdown = 0;
                 _autoClickStep = 0;
+                AutoClickAttempts = 0;
             }
         }
 
@@ -56,8 +59,24 @@ namespace ASE.Services
         {
             if (PendingDesktopAutoClick)
             {
-                _autoClickCountdown = 160;
+                _autoClickCountdown = 250;
                 _autoClickStep = 0;
+                AutoClickAttempts = 0;
+            }
+        }
+
+        public static void OnMousePositionLoaded()
+        {
+            if (PendingDesktopAutoClick)
+            {
+                // GEM has just sent 0x0E (LOAD MOUSE POSITION) to jump cursor to the first window icon!
+                // Give GEM 15 frames (~300ms) to finish drawing, then trigger rapid double-click.
+                if (_autoClickCountdown > 15)
+                {
+                    _autoClickCountdown = 15;
+                    _autoClickStep = 0;
+                    ColoredConsole.WriteLine("[AtariExecutableLauncher] Mouse position loaded by GEM — scheduling rapid double-click in 15 frames.", Config.ConfigOptions.DebugModes.Quiet);
+                }
             }
         }
 
@@ -79,75 +98,43 @@ namespace ASE.Services
                     _autoClickStep++;
                     break;
                 case 1:
-                case 2:
-                case 3:
-                    // Hold button down (~60ms)
+                    // Hold 1 extra frame (total 2 frames = 40ms)
                     _autoClickStep++;
                     break;
-                case 4:
+                case 2:
                     // First click up
                     ACIA.MouseButtonChanged(left: true, pressed: false);
                     _autoClickStep++;
                     break;
-                case 5:
-                case 6:
-                case 7:
-                    // Delay between clicks (~60ms)
+                case 3:
+                    // Pause 1 extra frame (total 2 frames = 40ms)
                     _autoClickStep++;
                     break;
-                case 8:
-                    // Second click down (double-click trigger)
+                case 4:
+                    // Second click down (blazing fast: 40ms after first up, 80ms after first down!)
                     ACIA.MouseButtonChanged(left: true, pressed: true);
                     _autoClickStep++;
                     break;
-                case 9:
-                case 10:
-                case 11:
-                    // Hold button down (~60ms)
+                case 5:
+                    // Hold 1 extra frame (total 2 frames = 40ms)
                     _autoClickStep++;
                     break;
-                case 12:
+                case 6:
                     // Second click up
                     ACIA.MouseButtonChanged(left: true, pressed: false);
-                    _autoClickStep++;
-                    _autoClickCountdown = 50; // Safety retry delay
-                    break;
-                case 13:
-                    // Retry click down
-                    ACIA.MouseButtonChanged(left: true, pressed: true);
-                    _autoClickStep++;
-                    break;
-                case 14:
-                case 15:
-                case 16:
-                    _autoClickStep++;
-                    break;
-                case 17:
-                    // Retry click up
-                    ACIA.MouseButtonChanged(left: true, pressed: false);
-                    _autoClickStep++;
-                    break;
-                case 18:
-                case 19:
-                case 20:
-                    _autoClickStep++;
-                    break;
-                case 21:
-                    // Retry second click down
-                    ACIA.MouseButtonChanged(left: true, pressed: true);
-                    _autoClickStep++;
-                    break;
-                case 22:
-                case 23:
-                case 24:
-                    _autoClickStep++;
-                    break;
-                case 25:
-                    // Retry second click up
-                    ACIA.MouseButtonChanged(left: true, pressed: false);
-                    PendingDesktopAutoClick = false;
                     _autoClickStep = 0;
-                    ColoredConsole.WriteLine("[AtariExecutableLauncher] Dispatched auto-double-click for desktop program.", Config.ConfigOptions.DebugModes.Quiet);
+                    AutoClickAttempts++;
+
+                    if (AutoClickAttempts >= 8)
+                    {
+                        PendingDesktopAutoClick = false;
+                        ColoredConsole.WriteLine("[AtariExecutableLauncher] Desktop auto-click sequence completed.", Config.ConfigOptions.DebugModes.Quiet);
+                    }
+                    else
+                    {
+                        // Retry every 35 frames (~0.7 seconds) until game loads or 8 attempts completed
+                        _autoClickCountdown = 35;
+                    }
                     break;
             }
         }
@@ -155,7 +142,7 @@ namespace ASE.Services
         public static string BuildDesktopInf(string fullExeName)
         {
             var sb = new StringBuilder();
-            sb.Append("#E 18 12 \r\n");
+            sb.Append("#E F8 00\r\n");
             sb.Append("#W 00 00 00 07 4C 0C 00 A:\\*.*@\r\n");
             sb.Append("#W 00 00 02 0B 4C 09 00 @\r\n");
             sb.Append("#W 00 00 0A 0F 34 09 00 @\r\n");

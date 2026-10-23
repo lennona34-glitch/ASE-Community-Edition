@@ -306,13 +306,15 @@ namespace ASE
                 return;
             }
 
+            bool isDouble = e.ClickCount >= 2;
+
             // If mouse is not yet captured, clicking anywhere on the emulation canvas captures it!
             if (!ASEMain.IsMouseCaptured &&
                 (p.Properties.IsLeftButtonPressed || p.Properties.IsRightButtonPressed))
             {
                 Services.AtariExecutableLauncher.CancelDesktopAutoClick();
                 ASEMain.CaptureMouse(true);
-                ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true);
+                ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true, isDoubleClick: isDouble);
                 e.Handled = true;
                 return;
             }
@@ -322,7 +324,7 @@ namespace ASE
             if (ASEMain.IsMouseCaptured &&
                 (p.Properties.IsLeftButtonPressed || p.Properties.IsRightButtonPressed))
             {
-                ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true);
+                ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true, isDoubleClick: isDouble);
                 e.Handled = true;
             }
         }

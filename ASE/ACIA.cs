@@ -762,6 +762,7 @@ namespace ASE
                     _absX = (_commandBuffer[2] << 8) | _commandBuffer[3];
                     _absY = (_commandBuffer[4] << 8) | _commandBuffer[5];
                     ClampAbsPosition();
+                    Services.AtariExecutableLauncher.OnMousePositionLoaded();
                     break;
 
                 case 0x0F: // SET Y=0 AT BOTTOM
@@ -1040,13 +1041,13 @@ namespace ASE
         /// the SDL queue and the Avalonia overlay, which on Windows BOTH see the same click —
         /// so the edge guard here is what keeps one press from being reported twice.
         /// </summary>
-        public static void MouseButtonChanged(bool left, bool pressed)
+        public static void MouseButtonChanged(bool left, bool pressed, bool isDoubleClick = false)
         {
             lock (_syncLock)
             {
                 int mask = left ? 0x02 : 0x01;
                 bool wasPressed = (_hostMouseButtons & mask) != 0;
-                if (wasPressed == pressed) return;      // same edge through the other path
+                if (wasPressed == pressed && !isDoubleClick) return;      // same edge through the other path
 
                 byte oldJoy = left ? Joystick0Report : Joystick1Report;
                 int oldButtons = _mouseButtons;
@@ -1054,8 +1055,19 @@ namespace ASE
                 _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
                 if (MouseEnabled)
                 {
-                    if (((oldButtons ^ _mouseButtons) & mask) != 0)
+                    if (((oldButtons ^ _mouseButtons) & mask) != 0 || isDoubleClick)
+                    {
                         ReportButtonEdge(left, (_mouseButtons & mask) != 0);
+
+                        // If host OS detected a double-click (e.g. at Windows 300-500ms speed),
+                        // deliver a rapid second pulse into the IKBD queue (within 40ms)
+                        // so Atari ST's strict ~250ms GEM double-click threshold always catches it!
+                        if (left && pressed && isDoubleClick && MouseMode != MouseReportModes.Absolute)
+                        {
+                            PushIkbdPacket((byte)(0xF8 | (_mouseButtons & ~0x02)), 0, 0);
+                            PushIkbdPacket((byte)(0xF8 | _mouseButtons), 0, 0);
+                        }
+                    }
                 }
                 else if (JoystickEnabled)
                 {
