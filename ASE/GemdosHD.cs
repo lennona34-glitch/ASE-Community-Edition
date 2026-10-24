@@ -714,8 +714,9 @@ namespace ASE
             return name.Length > 8 ? name.Substring(0, 8) : name;
         }
 
-        /// <summary>Host file/dir name -> TOS 8.3 uppercase name for a DTA.</summary>
-        static string HostNameToAtari(string name)
+        /// <summary>Host file/dir name -> TOS 8.3 uppercase name for a DTA. Also names the files
+        /// a library hard-disk game is copied into its image with (HardDiskGames).</summary>
+        internal static string HostNameToAtari(string name)
         {
             if (name == "." || name == "..")
                 return name;

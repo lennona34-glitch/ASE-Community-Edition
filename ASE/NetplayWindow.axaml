@@ -1,0 +1,617 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="ASE.NetplayWindow"
+        Title="Online play"
+        Classes="aseDialog"
+        Width="640"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True">
+
+    <Window.Styles>
+        <!-- The cards' icons are one-colour glyphs, not the multi-coloured illustrations
+             option cards normally carry (whose colours the dialog style keeps): they take the
+             app's icon tint like any other icon -->
+        <Style Selector="RadioButton.optionCard Svg.glyph">
+            <Setter Property="Svg.Css" Value="{DynamicResource IconCssNormal}"/>
+        </Style>
+        <Style Selector="RadioButton.optionCard.netChoice">
+            <Setter Property="Padding" Value="16,13"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+        </Style>
+        <Style Selector="RadioButton.optionCard.netChoice:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentSelectedHoverBrush}"/>
+        </Style>
+        <Style Selector="RadioButton.netChoice TextBlock.optionTitle">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="RadioButton.netChoice TextBlock.optionSpecs">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="Border.choiceIcon">
+            <Setter Property="Width" Value="42"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.stepLabel">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Opacity" Value="0.55"/>
+        </Style>
+        <Style Selector="TextBlock.stepLabel.current">
+            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="TextBlock.stepLabel.complete">
+            <Setter Property="Opacity" Value="0.8"/>
+        </Style>
+        <Style Selector="Border.stepBar">
+            <Setter Property="Background" Value="{DynamicResource CardBorderBrush}"/>
+        </Style>
+        <Style Selector="Border.stepBar.current">
+            <Setter Property="Background" Value="{DynamicResource AccentSelectedBrush}"/>
+        </Style>
+        <Style Selector="Border.stepBar.complete">
+            <Setter Property="Background" Value="{DynamicResource AccentSelectedHoverBrush}"/>
+        </Style>
+    </Window.Styles>
+
+    <!--
+        A wizard (see the code-behind): who you are (host or guest), what kind of game, then
+        just what that game needs. With a session running the window opens on its last step.
+    -->
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Header: the step says where you are -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,Auto"
+              Margin="24,20,24,20"
+              ColumnSpacing="14"
+              RowSpacing="18">
+
+            <Border Classes="dialogHeaderIcon">
+                <Svg Path="avares://ASE/Assets/Icons/globe2.svg"
+                     Width="22"
+                     Height="22"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Grid.Column="1"
+                        Spacing="2"
+                        VerticalAlignment="Center">
+                <TextBlock Classes="windowTitle"
+                           x:Name="TextTitle"
+                           Text="Online play"/>
+                <TextBlock Classes="description"
+                           x:Name="TextSubtitle"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <StackPanel Grid.Column="0" Spacing="6">
+                    <TextBlock x:Name="LabelStepRole" Classes="stepLabel" Text="01  YOUR ROLE"/>
+                    <Border x:Name="BarStepRole" Classes="stepBar" Height="3" CornerRadius="2"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock x:Name="LabelStepChoice" Classes="stepLabel" Text="02  THE GAME"/>
+                    <Border x:Name="BarStepChoice" Classes="stepBar" Height="3" CornerRadius="2"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="6">
+                    <TextBlock x:Name="LabelStepConnect" Classes="stepLabel" Text="03  CONNECT"/>
+                    <Border x:Name="BarStepConnect" Classes="stepBar" Height="3" CornerRadius="2"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Scrolls only when the window would be taller than the screen (MaxHeight, set on opening) -->
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24,0,24,0"
+                    Spacing="12">
+
+            <!-- ==================== Step 1: host or join ==================== -->
+            <StackPanel x:Name="StepRole" Spacing="10">
+
+                <RadioButton Classes="optionCard netChoice"
+                             x:Name="CardHost"
+                             GroupName="NetplayRole"
+                             IsCheckedChanged="OnCardChosen">
+                    <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                        <Border Classes="choiceIcon">
+                            <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/broadcast.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Classes="optionTitle" Text="Host a game"/>
+                            <TextBlock Classes="optionSpecs" Text="Start a session on this computer and invite others."/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                    </Grid>
+                </RadioButton>
+
+                <RadioButton Classes="optionCard netChoice"
+                             x:Name="CardJoin"
+                             GroupName="NetplayRole"
+                             IsCheckedChanged="OnCardChosen">
+                    <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                        <Border Classes="choiceIcon">
+                            <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/box-arrow-in-right.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Classes="optionTitle" Text="Join a game"/>
+                            <TextBlock Classes="optionSpecs" Text="Find a nearby session or use an invitation."/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                    </Grid>
+                </RadioButton>
+            </StackPanel>
+
+            <!-- ==================== Step 2, host: what to play ==================== -->
+            <StackPanel x:Name="StepHostKind" Spacing="10">
+                    <RadioButton Classes="optionCard netChoice"
+                                 x:Name="CardTogetherLan"
+                                 GroupName="NetplayKind"
+                                 IsCheckedChanged="OnCardChosen">
+                        <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                            <Border Classes="choiceIcon">
+                                <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/plug.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Classes="optionTitle" Text="Together, at home @ local network"/>
+                                <TextBlock Classes="optionSpecs" Text="Share your ST with players on the same network."/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                        </Grid>
+                    </RadioButton>
+
+                    <RadioButton Classes="optionCard netChoice"
+                                 x:Name="CardTogetherInternet"
+                                 GroupName="NetplayKind"
+                                 IsCheckedChanged="OnCardChosen">
+                        <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                            <Border Classes="choiceIcon">
+                                <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/globe2.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Classes="optionTitle" Text="Together, far away @ Internet"/>
+                                <TextBlock Classes="optionSpecs" Text="Share your ST with a friend using an invitation."/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                        </Grid>
+                    </RadioButton>
+
+                    <RadioButton Classes="optionCard netChoice"
+                                 x:Name="CardMidi"
+                                 GroupName="NetplayKind"
+                                 IsCheckedChanged="OnCardChosen">
+                        <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                            <Border Classes="choiceIcon">
+                                <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/music-note-beamed.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Classes="optionTitle" Text="MIDI cable @ local or Internet"/>
+                                <TextBlock Classes="optionSpecs" Text="Link separate STs for MIDI Maze and similar games."/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                        </Grid>
+                    </RadioButton>
+
+                    <RadioButton Classes="optionCard netChoice"
+                                 x:Name="CardNullModem"
+                                 GroupName="NetplayKind"
+                                 IsCheckedChanged="OnCardChosen">
+                        <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                            <Border Classes="choiceIcon">
+                                <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/arrow-left-right.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Classes="optionTitle" Text="Null-modem cable @ local or Internet"/>
+                                <TextBlock Classes="optionSpecs" Text="Link two STs' serial ports, for games with a serial link."/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                        </Grid>
+                    </RadioButton>
+
+                <TextBlock Classes="description"
+                           TextWrapping="Wrap"
+                           Margin="4,4,4,0"
+                           Text="Play together shares one machine and its game. The cables link each player's own machine."/>
+            </StackPanel>
+
+            <!-- ==================== Step 2, guest: where the game is ==================== -->
+            <StackPanel x:Name="StepGuestWay" Spacing="10">
+
+                <RadioButton Classes="optionCard netChoice"
+                             x:Name="CardFindLan"
+                             GroupName="NetplayWay"
+                             IsCheckedChanged="OnCardChosen">
+                    <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                        <Border Classes="choiceIcon">
+                            <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/plug.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Classes="optionTitle" Text="On your network"/>
+                            <TextBlock Classes="optionSpecs" Text="Find sessions automatically, including cable games."/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                    </Grid>
+                </RadioButton>
+
+                <RadioButton Classes="optionCard netChoice"
+                             x:Name="CardWithCode"
+                             GroupName="NetplayWay"
+                             IsCheckedChanged="OnCardChosen">
+                    <Grid ColumnDefinitions="42,*,Auto" ColumnSpacing="14">
+                        <Border Classes="choiceIcon">
+                            <Svg Classes="glyph" Path="avares://ASE/Assets/Icons/globe2.svg" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Classes="optionTitle" Text="Over the Internet"/>
+                            <TextBlock Classes="optionSpecs" Text="Use the host's link or code, for shared or cable games."/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="›" FontSize="22" Opacity="0.55" VerticalAlignment="Center"/>
+                    </Grid>
+                </RadioButton>
+            </StackPanel>
+
+            <!-- ==================== Step 3: your name (and the host's port) ==================== -->
+            <Border Classes="card" x:Name="CardYou">
+                <Grid ColumnDefinitions="*,Auto"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="16"
+                      RowSpacing="8">
+
+                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                        <TextBlock Classes="section" Text="Your name"/>
+                        <TextBlock Classes="description" Text="What the other players see."/>
+                    </StackPanel>
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             x:Name="TextName"
+                             MaxLength="32"
+                             PlaceholderText="Player"/>
+
+                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="3" x:Name="PanelPortLabel">
+                        <TextBlock Classes="section" Text="UDP port"/>
+                        <TextBlock Classes="description" Text="Default 19850."/>
+                    </StackPanel>
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             x:Name="TextPort"
+                             Width="110"/>
+                </Grid>
+            </Border>
+
+            <!-- What happens when the host starts -->
+            <StackPanel x:Name="PanelSetupHint"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        Margin="4,0">
+                <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" VerticalAlignment="Top" Width="14" Height="14" Margin="0,2,0,0"/>
+                <TextBlock x:Name="TextSetupHint"
+                           Classes="description"
+                           TextWrapping="Wrap"
+                           MaxWidth="520"/>
+            </StackPanel>
+
+            <!-- ==================== Host lobby ==================== -->
+
+            <!-- The invitation code (over the Internet; on demand with the cables) -->
+            <Border Classes="card" x:Name="CardInvite">
+                <StackPanel Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                        <StackPanel Grid.Column="0" Spacing="3">
+                            <TextBlock Classes="section" x:Name="TextInviteTitle" Text="Send this code"/>
+                            <TextBlock Classes="description"
+                                       x:Name="TextInviteHint"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                x:Name="ButtonInvite"
+                                Classes="compact"
+                                VerticalAlignment="Center"
+                                Content="Create code"
+                                Click="OnInviteClick"/>
+                    </Grid>
+
+                    <Grid x:Name="PanelInvite" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Border Classes="keycap" Padding="10,8">
+                            <SelectableTextBlock x:Name="TextInvite"
+                                                 FontFamily="Consolas,Menlo,monospace"
+                                                 FontSize="13"
+                                                 TextWrapping="Wrap"/>
+                        </Border>
+                        <Button Grid.Column="1"
+                                Classes="accent compact"
+                                VerticalAlignment="Center"
+                                Content="Copy"
+                                Click="OnCopyInviteClick"/>
+                    </Grid>
+
+                    <TextBlock x:Name="TextLinkCode"
+                               Classes="description"
+                               TextWrapping="Wrap"/>
+
+                    <!-- With a link, the code that needs no website, for whoever cannot use the link -->
+                    <Expander x:Name="ExpanderManualCode"
+                              HorizontalAlignment="Stretch"
+                              Header="Without the website"
+                              Expanded="OnManualCodeToggled"
+                              Collapsed="OnManualCodeToggled">
+                        <StackPanel Spacing="10">
+                            <TextBlock Classes="description"
+                                       TextWrapping="Wrap"
+                                       Text="This code does the same without the website and never expires. A player who joins with it may have to send you back an answer code, which goes in the box below."/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <Border Classes="keycap" Padding="10,8">
+                                    <SelectableTextBlock x:Name="TextManualCode"
+                                                         FontFamily="Consolas,Menlo,monospace"
+                                                         FontSize="12"
+                                                         TextWrapping="Wrap"/>
+                                </Border>
+                                <Button Grid.Column="1"
+                                        Classes="compact"
+                                        VerticalAlignment="Center"
+                                        Content="Copy"
+                                        Click="OnCopyManualCodeClick"/>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+
+                    <StackPanel x:Name="PanelAnswer" Spacing="6">
+                        <TextBlock Classes="description"
+                                   TextWrapping="Wrap"
+                                   Text="Somebody cannot get through? Their ASE shows them an answer code: paste it here."/>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <TextBox Grid.Column="0"
+                                     x:Name="TextAnswer"
+                                     FontFamily="Consolas,Menlo,monospace"
+                                     FontSize="12"
+                                     PlaceholderText="Their answer code"
+                                     KeyDown="OnAnswerKeyDown"/>
+                            <Button Grid.Column="1"
+                                    Classes="compact"
+                                    Content="Let them in"
+                                    Click="OnUseAnswerClick"/>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Who is in the game -->
+            <Border Classes="card" x:Name="CardPlayers">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="3">
+                        <TextBlock Classes="section" Text="Players"/>
+                        <TextBlock Classes="description" x:Name="TextNoPlayers" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel x:Name="PanelPlayers" Spacing="6"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Playing one machine together (Netplay.Lockstep) -->
+            <Border Classes="card" x:Name="CardTogether">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                    <StackPanel Grid.Column="0" Spacing="3">
+                        <TextBlock Classes="section" x:Name="TextTogetherTitle" Text="Ready?"/>
+                        <TextBlock Classes="description"
+                                   x:Name="TextShareHint"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            x:Name="ButtonShare"
+                            Classes="accent"
+                            VerticalAlignment="Center"
+                            Padding="16,8"
+                            Content="Play together"
+                            Click="OnShareClick"/>
+                </Grid>
+            </Border>
+
+            <!-- ==================== Guest: choosing the game ==================== -->
+
+            <!-- Games found on the local network -->
+            <Border Classes="card" x:Name="CardLan">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="3">
+                        <TextBlock Classes="section" Text="Games on your network"/>
+                        <TextBlock Classes="description"
+                                   x:Name="TextLanHint"
+                                   TextWrapping="Wrap"
+                                   Text="Looking…"/>
+                    </StackPanel>
+
+                    <ListBox x:Name="ListGames"
+                             MaxHeight="160"
+                             SelectionMode="Single"
+                             SelectionChanged="OnGameSelected"
+                             DoubleTapped="OnGameDoubleTapped"/>
+                </StackPanel>
+            </Border>
+
+            <!-- The invitation code -->
+            <Border Classes="card" x:Name="CardCode">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="3">
+                        <TextBlock Classes="section" Text="The host's invitation"/>
+                        <TextBlock Classes="description"
+                                   TextWrapping="Wrap"
+                                   Text="Paste the link or the code the host sent you, and press Join."/>
+                    </StackPanel>
+
+                    <TextBox x:Name="TextCode"
+                             FontFamily="Consolas,Menlo,monospace"
+                             FontSize="12"
+                             PlaceholderText="https://thebitculture.com/j/…, or the code"
+                             KeyDown="OnCodeKeyDown"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Invitation links that open ASE: the ase: link type goes on the system only when
+                 the user says so here, and comes off the same way -->
+            <Expander x:Name="ExpanderLinks"
+                      HorizontalAlignment="Stretch"
+                      Header="Open invitation links in ASE?">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="description"
+                               x:Name="TextLinksHint"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button x:Name="ButtonLinksNo"
+                                Classes="compact"
+                                Click="OnLinksNoClick"/>
+                        <Button x:Name="ButtonLinksYes"
+                                Classes="accent compact"
+                                Click="OnLinksYesClick"/>
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+
+            <!-- Joining by address, for whoever needs it -->
+            <Expander x:Name="ExpanderAddress"
+                      HorizontalAlignment="Stretch"
+                      Header="Join by address instead">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="description"
+                               TextWrapping="Wrap"
+                               Text="The host's IP address or name, followed by :port when it is not 19850. For a host that forwarded the port in their router, or an IPv6 address; one with a port goes in brackets: [2001:db8::1]:19850."/>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <TextBox Grid.Column="0"
+                                 x:Name="TextAddress"
+                                 PlaceholderText="192.168.1.20"
+                                 KeyDown="OnAddressKeyDown"/>
+                        <Button Grid.Column="1"
+                                x:Name="ButtonJoinAddress"
+                                Classes="compact"
+                                Content="Join"
+                                Click="OnJoinAddressClick"/>
+                    </Grid>
+                </StackPanel>
+            </Expander>
+
+            <!-- ==================== Guest lobby ==================== -->
+            <Border Classes="card" x:Name="CardGuest">
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="section" x:Name="TextGuestTitle"/>
+                    <TextBlock Classes="description"
+                               x:Name="TextGuestDetail"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- The answer code, while joining with a code -->
+            <Border Classes="card" x:Name="CardAnswerCode">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="3">
+                        <TextBlock Classes="section" Text="Not getting through?"/>
+                        <TextBlock Classes="description"
+                                   x:Name="TextAnswerHint"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Border Classes="keycap" Padding="10,8">
+                            <SelectableTextBlock x:Name="TextAnswerCode"
+                                                 FontFamily="Consolas,Menlo,monospace"
+                                                 FontSize="13"
+                                                 TextWrapping="Wrap"/>
+                        </Border>
+                        <Button Grid.Column="1"
+                                x:Name="ButtonCopyAnswer"
+                                Classes="accent compact"
+                                VerticalAlignment="Center"
+                                Content="Copy"
+                                Click="OnCopyAnswerClick"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ==================== Both sides ==================== -->
+
+            <!-- This computer's addresses, for whoever joins by address -->
+            <Expander x:Name="ExpanderAddresses"
+                      HorizontalAlignment="Stretch"
+                      Header="Your addresses">
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="description"
+                               TextWrapping="Wrap"
+                               Text="For a player joining by address: on your network, the first one; over the Internet, your public address with the port forwarded to this computer in your router, or an IPv6 address, which needs no forwarding."/>
+                    <SelectableTextBlock x:Name="TextAddresses"
+                                         FontFamily="Consolas,Menlo,monospace"
+                                         FontSize="12"
+                                         TextWrapping="Wrap"/>
+                </StackPanel>
+            </Expander>
+
+            <!-- What is happening -->
+            <Border Classes="statusPill" x:Name="PillStatus" IsVisible="False">
+                <TextBlock Classes="statusPill" x:Name="TextStatus" TextWrapping="Wrap"/>
+            </Border>
+
+            <TextBlock x:Name="TextError"
+                       Classes="description"
+                       Foreground="#E06C6C"
+                       TextWrapping="Wrap"
+                       IsVisible="False"/>
+
+            <!-- A word on privacy, where it applies -->
+            <StackPanel x:Name="PanelNote"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        Margin="4,0">
+                <Svg Path="avares://ASE/Assets/Icons/info-circle.svg" VerticalAlignment="Top" Width="14" Height="14" Margin="0,2,0,0"/>
+                <TextBlock Classes="description"
+                           TextWrapping="Wrap"
+                           MaxWidth="520"
+                           x:Name="TextNote"/>
+            </StackPanel>
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer: back on the left, the step's actions on the right -->
+        <Border Grid.Row="2"
+                Classes="dialogFooter"
+                Margin="0,18,0,0">
+
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0"
+                        Classes="dialogAction"
+                        x:Name="ButtonBack"
+                        Content="Back"
+                        Click="OnBackClick"/>
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="10">
+
+                    <Button x:Name="ButtonStop"
+                            MinWidth="100"
+                            HorizontalContentAlignment="Center"
+                            Content="Stop hosting"
+                            Click="OnStopClick"/>
+
+                    <Button Classes="dialogAction"
+                            Content="Close"
+                            Click="OnCloseClick"/>
+
+                    <Button Classes="accent"
+                            x:Name="ButtonPrimary"
+                            MinWidth="100"
+                            HorizontalContentAlignment="Center"
+                            Content="Start"
+                            Click="OnPrimaryClick"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

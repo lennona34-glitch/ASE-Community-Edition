@@ -96,6 +96,22 @@
                         <Setter Property="IsHitTestVisible" Value="True"/>
                         <Setter Property="RenderTransform" Value="translateY(0px)"/>
                 </Style>
+                <!-- Hard-disk badge (PPutnik's adaptations): white on red in the cover's top-right
+                     corner, stepping down below the Details ribbon while the tile is hovered -->
+                <Style Selector="Border.tile Border.hdBadge">
+                        <Setter Property="RenderTransform" Value="translateY(0px)"/>
+                        <Setter Property="Transitions">
+                                <Transitions>
+                                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                                </Transitions>
+                        </Setter>
+                </Style>
+                <Style Selector="Border.tile:pointerover Border.hdBadge">
+                        <Setter Property="RenderTransform" Value="translateY(28px)"/>
+                </Style>
+                <Style Selector="Border.hdBadge Svg">
+                        <Setter Property="Svg.Css" Value="* { fill: #fff; }"/>
+                </Style>
                 <Style Selector="Button.detailbtn">
                         <Setter Property="Effect" Value="drop-shadow(0 2 5 #C0000000)" />
                 </Style>
@@ -355,6 +371,16 @@
                                                                                                 </StackPanel>
                                                                                         </Border>                                                                                                
                                                                                 </Grid>
+                                                                                <!-- Hard-disk adaptation: above the ribbon, so it stays in sight -->
+                                                                                <Border Classes="hdBadge"
+                                                                                        IsVisible="{Binding Item.PPAdapted}"
+                                                                                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                                        Margin="0,4,4,0" Padding="5,4" CornerRadius="5"
+                                                                                        Background="#D32F2F"
+                                                                                        BoxShadow="0 2 6 0 #80000000"
+                                                                                        ToolTip.Tip="Hard disk version (PPutnik)">
+                                                                                        <Svg Path="avares://ASE/Assets/Icons/hdd.svg" Width="18" Height="18"/>
+                                                                                </Border>
                                                                         </Panel>
                                                                         <TextBlock Text="{Binding Name}"
                                                                                    TextAlignment="Center"

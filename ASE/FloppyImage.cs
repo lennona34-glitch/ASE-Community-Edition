@@ -22,6 +22,10 @@ namespace ASE
         // linear Data buffer; the WD1772 branches on Stx != null.
         public STXImage Stx;
 
+        // The STX file as it was read. The parsed structures cannot be written back as a file,
+        // so a session snapshot carries this plus the current sector payloads (see SaveMedia).
+        byte[] StxSource;
+
         // Writes only modify the in-memory image, they are never written back to the file,
         // so disks can be left unprotected by default (games can save, TOS can write, etc.)
         public bool WriteProtected = false;
@@ -213,6 +217,7 @@ namespace ASE
                     Array.Resize(ref Data, DiskConfig.SizeInBytes);
 
                 Stx = null;
+                StxSource = null;
 
                 if (ConfigOptions.RunninConfig.AutoRunDesktopPrograms)
                 {
@@ -325,6 +330,7 @@ namespace ASE
                         }
                     }
 
+                    StxSource = null;
                     message = $"Floppy image loaded: [[green]]{path}[[/green]]";
                 }
             }
@@ -352,19 +358,12 @@ namespace ASE
                     return false;
                 }
                 Data = null;
-
-                // Approximate geometry for the code paths shared with .ST/.MSA (head
-                // clamping in seek/step); the actual sector layout comes from the
-                // per-track STX structures.
-                DiskConfig = new Configuration
-                {
-                    Sides = Stx.Sides,
-                    Tracks = Math.Max(80, Stx.MaxTrack + 1),
-                    SectorsPerTrack = 9,
-                    SectorSize = 512
-                };
+                StxSource = file;
+                DiskConfig = StxGeometry(Stx);
 
                 message = $"Floppy image loaded: [[green]]{path}[[/green]]";
+                if (Stx.MissingBytes > 0)
+                    message += $" ([[yellow]]{Stx.MissingBytes}[[/yellow]] bytes past the end of the file read as zeros)";
             }
             // Direct Atari ST executable (.prg, .tos, .ttp, .app)
             else if (ASE.Services.AtariExecutableLauncher.IsExecutable(path))
@@ -560,17 +559,160 @@ namespace ASE
             return null;
         }
 
+        /// <summary>
+        /// Approximate geometry of an STX disk, for the code paths shared with .ST/.MSA (head
+        /// clamping in seek/step); the actual sector layout comes from the per-track structures.
+        /// </summary>
+        static Configuration StxGeometry(STXImage stx) => new Configuration
+        {
+            Sides = stx.Sides,
+            Tracks = Math.Max(80, stx.MaxTrack + 1),
+            SectorsPerTrack = 9,
+            SectorSize = 512
+        };
+
         public void Eject()
         {
             ConfigOptions.RunninConfig.FloppyImagePath = "";
             ImagePath = "";
             Data = null;
             Stx = null;
+            StxSource = null;
 
             // An empty drive reads as write protected, but the change from the disk that was in
             // it has to be signalled all the same: without it TOS keeps using its cached
             // directory as if the disk were still there.
             SignalDiskTransition();
+        }
+
+        // ---------------- Media state (deterministic sessions) ----------------
+        //
+        // A path is not enough to put a machine back exactly: floppy writes only ever reach the
+        // in-memory image, so the disk in the drive is the file plus everything the program has
+        // written since. A session snapshot — what an input recording starts from, and what one
+        // computer will hand the other in online play — carries the disk as the drive holds it.
+        // ST and MSA are both a flat sector buffer by now, so they travel as that buffer plus
+        // its geometry; an STX travels as the original file (its parsed structures cannot be
+        // written back as one) followed by the payload of every sector, which is where writes
+        // land.
+
+        const byte MediaFlat = 0;
+        const byte MediaStx = 1;
+
+        /// <summary>Identifies what is in the drive, by reference: it changes whenever a disk is
+        /// inserted or ejected, whatever the path says. Compared before and after a disk action
+        /// to know whether it changed anything.</summary>
+        public object MediaToken => (object)Data ?? Stx;
+
+        /// <summary>How many times the program has written to the disk in the drive. With
+        /// <see cref="MediaToken"/>, whether the drive still holds exactly the disk a time-warp
+        /// moment saw (<see cref="TimeWarp"/>), which decides whether going back to it has to put
+        /// the disk back too.</summary>
+        public int Writes { get; private set; }
+
+        /// <summary>A sector or a track was written into the image (emulation thread).</summary>
+        public void NoteWrite() => Writes++;
+
+        /// <summary>Writes the disk exactly as the drive holds it (see the section above). With
+        /// <paramref name="fileNameOnly"/> its path loses the folders, for a disk that goes to
+        /// another computer.</summary>
+        public void SaveMedia(Snapshot.Writer w, bool fileNameOnly = false)
+        {
+            w.Bool(HasDisk);
+            if (!HasDisk)
+                return;
+
+            w.Str(fileNameOnly ? Path.GetFileName(ImagePath) : ImagePath);
+            w.Bool(WriteProtected);
+
+            if (Stx == null)
+            {
+                w.U8(MediaFlat);
+                w.I32(DiskConfig.Sides);
+                w.I32(DiskConfig.Tracks);
+                w.I32(DiskConfig.SectorsPerTrack);
+                w.I32(DiskConfig.SectorSize);
+                w.I32(Data.Length);
+                w.Bytes(Data);
+            }
+            else
+            {
+                w.U8(MediaStx);
+                w.I32(StxSource.Length);
+                w.Bytes(StxSource);
+                Stx.SaveSectorData(w);
+            }
+        }
+
+        /// <summary>
+        /// Puts back a disk written by <see cref="SaveMedia"/>, or empties the drive. With
+        /// <paramref name="signalTransition"/> the change is reported to TOS as an insert or eject
+        /// would be (a disk swap replayed during a session); without it the disk is simply there,
+        /// as it was in the machine the snapshot was taken from, and any pending transition is
+        /// cancelled so the two machines agree on the write protect line. Throws on a payload that
+        /// does not describe a disk, leaving the drive as it was.
+        /// </summary>
+        public void RestoreMedia(Snapshot.Reader r, bool signalTransition)
+        {
+            if (!r.Bool())
+            {
+                ImagePath = "";
+                Data = null;
+                Stx = null;
+                StxSource = null;
+            }
+            else
+            {
+                string path = r.Str();
+                bool writeProtected = r.Bool();
+                byte kind = r.U8();
+
+                if (kind == MediaFlat)
+                {
+                    var geometry = new Configuration
+                    {
+                        Sides = r.I32(),
+                        Tracks = r.I32(),
+                        SectorsPerTrack = r.I32(),
+                        SectorSize = r.I32()
+                    };
+                    byte[] data = r.Bytes(r.I32());
+
+                    if (geometry.Sides < 1 || geometry.Sides > 2 || geometry.Tracks < 1 || geometry.Tracks > 255
+                        || geometry.SectorsPerTrack < 1 || geometry.SectorsPerTrack > 64 || geometry.SectorSize != 512
+                        || data.Length != geometry.SizeInBytes)
+                        throw new InvalidDataException("Corrupt disk image in the session data.");
+
+                    DiskConfig = geometry;
+                    Data = data;
+                    Stx = null;
+                    StxSource = null;
+                }
+                else if (kind == MediaStx)
+                {
+                    byte[] source = r.Bytes(r.I32());
+                    STXImage stx = STXImage.TryLoad(source, out string error)
+                                   ?? throw new InvalidDataException($"Corrupt STX image in the session data ({error}).");
+                    stx.LoadSectorData(r);
+
+                    Stx = stx;
+                    StxSource = source;
+                    Data = null;
+                    DiskConfig = StxGeometry(stx);
+                }
+                else
+                {
+                    throw new InvalidDataException($"Unknown disk image kind ({kind}) in the session data.");
+                }
+
+                ImagePath = path;
+                WriteProtected = writeProtected;
+            }
+
+            if (signalTransition)
+                SignalDiskTransition();
+            else
+                ClearDiskTransition();
         }
 
     }

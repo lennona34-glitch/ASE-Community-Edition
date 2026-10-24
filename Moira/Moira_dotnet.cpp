@@ -13,7 +13,7 @@ class MoiraHost : public moira::Moira {
 private:
     moira_callbacks cb;
 
-    // Campos para manejar el bus error pendiente
+    // State of the pending bus error
     bool pendingBusError;
     uint32_t busErrorAddress;
     bool busErrorIsWrite;
@@ -23,7 +23,7 @@ private:
     // the guarded instruction has NOT been executed yet.
     bool bpHit;
 
-    // Método helper para lanzar bus error si está pendiente
+    // Throws the pending bus error, if there is one
     void throwPendingBusErrorIfNeeded() const {
         if (pendingBusError) {
             auto* self = const_cast<MoiraHost*>(this);

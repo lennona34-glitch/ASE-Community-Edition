@@ -80,6 +80,33 @@
   </Style>
 
   <!--
+    Warning note: something the user must not miss — why a window cannot do what it is for
+    right now. Light red, with the warning triangle (an Svg of class warningIcon) beside the
+    text (a TextBlock of class warningText).
+  -->
+  <Style Selector="Border.warningNote">
+    <Setter Property="Background" Value="{DynamicResource WarningBackgroundBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource WarningBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="Padding" Value="12,10"/>
+  </Style>
+
+  <Style Selector="Border.warningNote Svg.warningIcon">
+    <Setter Property="Width" Value="18"/>
+    <Setter Property="Height" Value="18"/>
+    <Setter Property="VerticalAlignment" Value="Top"/>
+    <Setter Property="Svg.Css" Value="{DynamicResource WarningIconCss}"/>
+  </Style>
+
+  <Style Selector="Border.warningNote TextBlock.warningText">
+    <Setter Property="Foreground" Value="{DynamicResource WarningTextBrush}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+  <!--
     Option card: a RadioButton drawn as a selectable panel, for choices between
     equivalent alternatives (monitor type, …) that deserve an illustration and a
     line of specs rather than a bare label. Preferred over a ToggleSwitch there,
@@ -107,21 +134,11 @@
           <ContentPresenter Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Foreground="{TemplateBinding Foreground}"
-                            HorizontalAlignment="Center"
+                            HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"/>
         </Border>
       </ControlTemplate>
     </Setter>
-    <Setter Property="Transitions">
-      <Transitions>
-        <BrushTransition Property="Background" Duration="0:0:0.12"/>
-        <BrushTransition Property="BorderBrush" Duration="0:0:0.12"/>
-      </Transitions>
-    </Setter>
-  </Style>
-
-  <Style Selector="RadioButton.optionCard:pointerover">
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentSoftHoverBrush}"/>
   </Style>
 
   <!-- Foreground is inherited by the card's text, which tints with the selection. -->
@@ -129,6 +146,17 @@
     <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource AccentSelectedBrush}"/>
     <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+  </Style>
+
+  <!-- The outline stays illuminated for the whole hover, also on a selected card. -->
+  <Style Selector="RadioButton.optionCard:pointerover">
+    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentSelectedHoverBrush}"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style Selector="RadioButton.optionCard:checked:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentSelectedHoverBrush}"/>
   </Style>
 
   <Style Selector="RadioButton.optionCard:disabled">

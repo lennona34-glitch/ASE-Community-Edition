@@ -89,6 +89,16 @@ namespace ASE
         /// drive letter is placed after them (see GemdosHD).</summary>
         public static int PartitionCount { get; private set; }
 
+        /// <summary>The image attached this power-on, or null. Not necessarily the configured
+        /// one: a hard-disk game from the library attaches its own (see HardDiskGames).</summary>
+        public static string AttachedImagePath => _devs[0]?.Path;
+
+        /// <summary>
+        /// Whether the attached disk may boot. A library hard-disk game always does — booting
+        /// it is the whole point, and the user's own switch is about the user's own disk.
+        /// </summary>
+        static bool BootEnabled => HardDiskGames.Active || ConfigOptions.RunninConfig.BootFromHardDisk;
+
         // Controller state
         static readonly byte[] _command = new byte[16];
         static int _byteCount;
@@ -127,10 +137,16 @@ namespace ASE
             _pendingWrite = null;
             _irqRaiseClock = -1;
 
-            if (!ConfigOptions.RunninConfig.AcsiImageEnabled)
-                return;
+            // A hard-disk game from the library takes the bus for itself: its image in place of
+            // the configured one, for as long as the game is the machine's (HardDiskGames).
+            string path;
 
-            string path = ConfigOptions.RunninConfig.AcsiImagePath ?? "";
+            if (HardDiskGames.Active)
+                path = HardDiskGames.ImagePath;
+            else if (ConfigOptions.RunninConfig.AcsiImageEnabled)
+                path = ConfigOptions.RunninConfig.AcsiImagePath ?? "";
+            else
+                return;
 
             if (!File.Exists(path))
             {
@@ -172,8 +188,29 @@ namespace ASE
 
             ColoredConsole.WriteLine($"ACSI: hard disk image [[green]]{path}[[/green]] " +
                 $"({size / (1024.0 * 1024.0):F1} MB, {PartitionCount} partition{(PartitionCount == 1 ? "" : "s")}" +
-                $"{(ConfigOptions.RunninConfig.BootFromHardDisk ? ", bootable" : ", boot disabled")}).",
+                $"{(BootEnabled ? ", bootable" : ", boot disabled")}).",
                 ConfigOptions.DebugModes.Quiet);
+        }
+
+        /// <summary>
+        /// The attached image's whole contents, or null with none attached. A snapshot of a
+        /// library hard-disk game carries its disk, whose state the saved RAM depends on (the
+        /// GEMDOS and driver buffers point into it). Read through the open stream, so writes
+        /// still in its buffer are included. Emulation paused.
+        /// </summary>
+        public static byte[] ReadAttachedImage()
+        {
+            var image = _devs[0]?.Image;
+            if (image == null)
+                return null;
+
+            if (!_devs[0].ReadOnly)
+                image.Flush();
+
+            var data = new byte[image.Length];
+            image.Position = 0;
+            image.ReadExactly(data);
+            return data;
         }
 
         /// <summary>Closes the image file. Safe to call with nothing attached.</summary>
@@ -658,7 +695,7 @@ namespace ASE
                     // $1234, so TOS skips the DMA boot. Only the delivered copy is touched —
                     // the image keeps its boot sector, and a driver loaded from floppy still
                     // sees a valid partition table (the checksum word is not partition data).
-                    if (lba == 0 && count > 0 && !ConfigOptions.RunninConfig.BootFromHardDisk)
+                    if (lba == 0 && count > 0 && !BootEnabled)
                     {
                         ushort sum = 0;
                         for (int i = 0; i < SectorSize; i += 2)

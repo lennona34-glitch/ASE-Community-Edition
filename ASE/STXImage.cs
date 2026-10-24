@@ -95,6 +95,7 @@ namespace ASE
         public byte Revision;
         public int MaxTrack;    // highest track number present
         public int Sides;       // 1 or 2
+        public int MissingBytes; // bytes the descriptors point at past the end of the file, read as zeros
 
         // Key: track | (side << 7), same encoding the STX TrackNumber byte uses
         readonly Dictionary<int, Track> _tracks = new();
@@ -103,6 +104,38 @@ namespace ASE
         {
             _tracks.TryGetValue((track & 0x7F) | (side << 7), out Track t);
             return t;
+        }
+
+        /// <summary>
+        /// Writes the payload of every sector that has one, tracks in key order and sectors in
+        /// rotational order: what writes have changed since the file was parsed. Read back by
+        /// <see cref="LoadSectorData"/> over the same file, which yields the same structure and
+        /// therefore the same walk (FloppyImage.SaveMedia).
+        /// </summary>
+        public void SaveSectorData(Snapshot.Writer w)
+        {
+            foreach (int key in _tracks.Keys.OrderBy(k => k))
+                foreach (Sector sec in _tracks[key].Sectors)
+                {
+                    w.Bool(sec.Data != null);
+                    if (sec.Data != null)
+                        w.Bytes(sec.Data);
+                }
+        }
+
+        /// <summary>Puts back sector payloads written by <see cref="SaveSectorData"/>. Throws when
+        /// they do not fit this image — another file, or a corrupt payload.</summary>
+        public void LoadSectorData(Snapshot.Reader r)
+        {
+            foreach (int key in _tracks.Keys.OrderBy(k => k))
+                foreach (Sector sec in _tracks[key].Sectors)
+                {
+                    if (r.Bool() != (sec.Data != null))
+                        throw new InvalidDataException("STX sector data does not match the image.");
+
+                    if (sec.Data != null)
+                        Array.Copy(r.Bytes(sec.Data.Length), sec.Data, sec.Data.Length);
+                }
         }
 
         public static STXImage TryLoad(byte[] f, out string error)
@@ -121,6 +154,22 @@ namespace ASE
 
         static ushort LE16(byte[] f, int o) => (ushort)(f[o] | (f[o + 1] << 8));
         static uint LE32(byte[] f, int o) => f[o] | ((uint)f[o + 1] << 8) | ((uint)f[o + 2] << 16) | ((uint)f[o + 3] << 24);
+
+        /// <summary>
+        /// Copies <paramref name="length"/> bytes of the file into <paramref name="dest"/> as far as
+        /// the file reaches, leaving the rest zero and counting it in <see cref="MissingBytes"/>.
+        /// Hatari points into the loaded buffer without checking, and images exist whose last
+        /// track declares more than the file holds: Shadow of the Beast II ends with a track
+        /// (79, side 1) that has no sectors and a 6500-byte track image stopping 2 bytes short
+        /// of it. Rejecting the whole disk over bytes of an unformatted track is the wrong trade.
+        /// </summary>
+        void CopyFromFile(byte[] f, int offset, byte[] dest, int length)
+        {
+            int available = offset < 0 || offset >= f.Length ? 0 : Math.Min(length, f.Length - offset);
+            if (available > 0)
+                Array.Copy(f, offset, dest, 0, available);
+            MissingBytes += length - available;
+        }
 
         static STXImage Parse(byte[] f)
         {
@@ -185,7 +234,7 @@ namespace ASE
                             Data = new byte[512]
                         };
                         sec.IdCrc = ComputeIdCrc(sec);
-                        Array.Copy(f, p + s * 512, sec.Data, 0, 512);
+                        img.CopyFromFile(f, p + s * 512, sec.Data, 512);
                         track.Sectors.Add(sec);
                         bytePosition += RAW_SECTOR_512;
                     }
@@ -206,7 +255,7 @@ namespace ASE
                         int imgSizeOff = trackDataBase + imgHdr - 2;
                         int imageSize = LE16(f, imgSizeOff);
                         track.TrackImage = new byte[imageSize];
-                        Array.Copy(f, trackDataBase + imgHdr, track.TrackImage, 0, imageSize);
+                        img.CopyFromFile(f, trackDataBase + imgHdr, track.TrackImage, imageSize);
                         sectorsImageBase = trackDataBase + imgHdr + imageSize;
                     }
 
@@ -234,12 +283,12 @@ namespace ASE
                         {
                             sec.SectorSize = 128 << (sec.IdSize & 3);
                             sec.Data = new byte[sec.SectorSize];
-                            Array.Copy(f, trackDataBase + dataOffset, sec.Data, 0, sec.SectorSize);
+                            img.CopyFromFile(f, trackDataBase + dataOffset, sec.Data, sec.SectorSize);
 
                             if ((sec.FdcStatus & SECTOR_FLAG_FUZZY) != 0)
                             {
                                 sec.FuzzyMask = new byte[sec.SectorSize];
-                                Array.Copy(f, fuzzyPos, sec.FuzzyMask, 0, sec.SectorSize);
+                                img.CopyFromFile(f, fuzzyPos, sec.FuzzyMask, sec.SectorSize);
                                 fuzzyPos += sec.SectorSize;
                             }
 

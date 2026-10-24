@@ -165,7 +165,7 @@ public partial class CreateHardDiskWindow : Window
         // The running machine holds the attached image open, and truncating a disk under a
         // mounted file system corrupts it anyway. The OS error for this is cryptic, so it is
         // caught here instead.
-        if (Acsi.EmulationOn && SamePath(path, Config.ConfigOptions.RunninConfig.AcsiImagePath))
+        if (Acsi.EmulationOn && SamePath(path, Acsi.AttachedImagePath))
         {
             await Error("That image is attached to the running machine. Reset with the ACSI disk switched off, or pick another file.");
             return;
@@ -204,134 +204,15 @@ public partial class CreateHardDiskWindow : Window
         Close(path);
     }
 
-    // ==================== Atari disk layout ====================
-    // A raw image of zeros is not something TOS can use: it needs a root sector with a
-    // partition table and, inside the partition, a FAT16 file system. Both are written here
-    // rather than by a tool on the ST, so the arithmetic can be checked in one place.
-    //
-    //   sector 0        root sector: partition table (no boot checksum yet — the disk only
-    //                   becomes bootable once tools/asehd installs its driver)
-    //   sectors 1-31    reserved for that driver
-    //   sector 32...    partition C: — boot record with the BPB, two FATs, root directory
-    //
-    // The Atari boot record stores the partition length in a 16-bit field, which is what caps
-    // an unaided TOS partition at 32 MB; past that it is left at zero and the real length comes
-    // from the 32-bit field in the partition table, which is where a driver reads it anyway.
-    const int RootSectorPartitionTable = 0x1C2;
-
+    // The layout itself (partition table, FAT, root directory) is AtariHdImage's, shared with
+    // the library's hard-disk games; this only adds the driver, last, so the disk boots on its
+    // own with nothing to run on the ST. A build carrying no driver still produces a perfectly
+    // good — just unbootable — disk.
     static void WriteAtariLayout(FileStream fs, long totalSectors)
     {
-        int sectorSize = Acsi.SectorSize;
-        long partSectors = totalSectors - AtariHdDriver.PartitionFirstSector;
-        if (partSectors < 64)
-            return;                     // too small to hold a file system; leave it blank
-
-        const int reserved = 1;         // the boot record itself
-        const int numFats = 2;
-        const int rootEntries = 512;
-        int rootSectors = rootEntries * 32 / sectorSize;
-
-        // Sectors per cluster: the smallest power of two that keeps the cluster count inside
-        // the 16-bit field of the BPB, with room to spare (32768 rather than 65535). A small
-        // image goes the other way — with too few clusters the file system is FAT12, not
-        // FAT16, so one sector per cluster is used to stay in 16-bit territory as long as
-        // possible. Below ~2 MB it is FAT12 whatever we do, and the driver reads that from
-        // the cluster count rather than being told.
-        int spc = 2;
-        while (partSectors / spc > 32768 && spc < 64)
-            spc <<= 1;
-        if (spc == 2 && partSectors / 2 < 4085)
-            spc = 1;
-
-        // Sectors per FAT and cluster count depend on each other; a few passes settle it.
-        int spf = 1;
-        long clusters = 0;
-        for (int i = 0; i < 8; i++)
-        {
-            long dataSectors = partSectors - reserved - (long)numFats * spf - rootSectors;
-            clusters = dataSectors / spc;
-            int needed = (int)(((clusters + 2) * 2 + sectorSize - 1) / sectorSize);
-            if (needed == spf) break;
-            spf = needed;
-        }
-
-        // ---- root sector: one partition, the rest of the table left empty ----
-        var root = new byte[sectorSize];
-        WriteBE32(root, RootSectorPartitionTable, (uint)totalSectors);
-
-        int p = RootSectorPartitionTable + 4;
-        root[p] = 0x01;                                     // exists
-        // "BGM" is the id for a partition described by the 32-bit fields, "GEM" the classic
-        // one TOS can also read on its own below 32 MB.
-        string id = partSectors > 65535 ? "BGM" : "GEM";
-        root[p + 1] = (byte)id[0]; root[p + 2] = (byte)id[1]; root[p + 3] = (byte)id[2];
-        WriteBE32(root, p + 4, (uint)AtariHdDriver.PartitionFirstSector);
-        WriteBE32(root, p + 8, (uint)partSectors);
-        // The checksum word at $1FE stays zero on purpose: TOS only executes a root sector
-        // whose words add up to $1234, so a freshly created image never tries to boot.
-
-        fs.Position = 0;
-        fs.Write(root, 0, sectorSize);
-
-        // ---- partition boot record (BPB fields are little-endian) ----
-        var boot = new byte[sectorSize];
-        boot[0] = 0x60; boot[1] = 0x1C;                     // BRA.S over the BPB
-        WriteAscii(boot, 2, "ASE   ", 6);                   // OEM
-        boot[8] = 0x41; boot[9] = 0x53; boot[10] = 0x45;    // serial
-        WriteLE16(boot, 11, sectorSize);                    // bytes per sector
-        boot[13] = (byte)spc;                               // sectors per cluster
-        WriteLE16(boot, 14, reserved);
-        boot[16] = numFats;
-        WriteLE16(boot, 17, rootEntries);
-        WriteLE16(boot, 19, partSectors <= 65535 ? (int)partSectors : 0);
-        boot[21] = 0xF8;                                    // media descriptor: fixed disk
-        WriteLE16(boot, 22, spf);
-        WriteLE16(boot, 24, 63);                            // sectors per track (cosmetic)
-        WriteLE16(boot, 26, 16);                            // heads (cosmetic)
-        WriteLE16(boot, 28, 0);                             // hidden sectors
-
-        fs.Position = AtariHdDriver.PartitionFirstSector * sectorSize;
-        fs.Write(boot, 0, sectorSize);
-
-        // ---- both FATs: media descriptor plus the end-of-chain entry ----
-        // Everything else is already zero, which is what "free cluster" means.
-        var fatHead = new byte[] { 0xF8, 0xFF, 0xFF, 0xFF };
-        for (int i = 0; i < numFats; i++)
-        {
-            fs.Position = (AtariHdDriver.PartitionFirstSector + reserved + (long)i * spf) * sectorSize;
-            fs.Write(fatHead, 0, fatHead.Length);
-        }
-
-        ColoredConsole.WriteLine(
-            $"ACSI: partition C: at sector {AtariHdDriver.PartitionFirstSector}, {partSectors:N0} sectors, " +
-            $"{ClusterSizeText(spc * sectorSize)} clusters, {clusters:N0} of them, FAT {spf} sectors.",
-            Config.ConfigOptions.DebugModes.Quiet);
-
-        // Last: make it boot on its own. Nothing to install on the ST, and a build carrying no
-        // driver still produces a perfectly good — just unbootable — disk. The driver reads
-        // the partition table itself at boot, so the geometry above is not passed anywhere.
-        AtariHdDriver.Install(fs, root);
-    }
-
-    // A small image ends up with 512-byte clusters, and "0 KB" reads like a bug.
-    static string ClusterSizeText(int bytes) =>
-        bytes >= 1024 ? $"{bytes / 1024} KB" : $"{bytes} byte";
-
-    static void WriteBE32(byte[] b, int off, uint v)
-    {
-        b[off] = (byte)(v >> 24); b[off + 1] = (byte)(v >> 16);
-        b[off + 2] = (byte)(v >> 8); b[off + 3] = (byte)v;
-    }
-
-    static void WriteLE16(byte[] b, int off, int v)
-    {
-        b[off] = (byte)v; b[off + 1] = (byte)(v >> 8);
-    }
-
-    static void WriteAscii(byte[] b, int off, string s, int len)
-    {
-        for (int i = 0; i < len; i++)
-            b[off + i] = (byte)(i < s.Length ? s[i] : ' ');
+        var layout = AtariHdImage.Format(fs, totalSectors);
+        if (layout != null)
+            AtariHdDriver.Install(fs, layout.RootSector);
     }
 
     static bool SamePath(string a, string b)

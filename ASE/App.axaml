@@ -97,6 +97,12 @@
           <SolidColorBrush x:Key="AccentTextBrush">#0088A8</SolidColorBrush>
           <SolidColorBrush x:Key="LibraryBarBrush">#C8C8C8</SolidColorBrush>
 
+          <!-- A warning the user must not miss (Border.warningNote) -->
+          <SolidColorBrush x:Key="WarningBackgroundBrush">#FDECEC</SolidColorBrush>
+          <SolidColorBrush x:Key="WarningBorderBrush">#F2B8B5</SolidColorBrush>
+          <SolidColorBrush x:Key="WarningTextBrush">#9F1D1D</SolidColorBrush>
+          <x:String x:Key="WarningIconCss">* { fill: #C62828; }</x:String>
+
           <!-- Game detail card: fades the title-screen backdrop into the card colour. -->
           <LinearGradientBrush x:Key="DetailBackdropFade" StartPoint="50%,0%" EndPoint="50%,100%">
             <GradientStop Color="#00F7F7F7" Offset="0.0"/>
@@ -126,6 +132,12 @@
           <SolidColorBrush x:Key="CardBorderBrush">#373737</SolidColorBrush>
           <SolidColorBrush x:Key="AccentTextBrush">#00D2FF</SolidColorBrush>
           <SolidColorBrush x:Key="LibraryBarBrush">#101010</SolidColorBrush>
+
+          <!-- A warning the user must not miss (Border.warningNote) -->
+          <SolidColorBrush x:Key="WarningBackgroundBrush">#3A1C1C</SolidColorBrush>
+          <SolidColorBrush x:Key="WarningBorderBrush">#7A2E2E</SolidColorBrush>
+          <SolidColorBrush x:Key="WarningTextBrush">#FFB4AB</SolidColorBrush>
+          <x:String x:Key="WarningIconCss">* { fill: #FF8A80; }</x:String>
 
           <!-- Game detail card: fades the title-screen backdrop into the card colour. -->
           <LinearGradientBrush x:Key="DetailBackdropFade" StartPoint="50%,0%" EndPoint="50%,100%">

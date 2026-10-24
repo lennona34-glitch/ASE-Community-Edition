@@ -1,0 +1,9202 @@
+[
+  {
+    "Path": "100prob",
+    "Name": "100 Problemes"
+  },
+  {
+    "Path": "180",
+    "Name": "180"
+  },
+  {
+    "Path": "10thfram",
+    "Name": "10th Frame"
+  },
+  {
+    "Path": "1stdivm",
+    "Name": "1st Division Manager"
+  },
+  {
+    "Path": "1stservt",
+    "Name": "1st Serve Tennis"
+  },
+  {
+    "Path": "1943",
+    "Name": "1943"
+  },
+  {
+    "Path": "20000l",
+    "Name": "20000 Leagues Under Sea"
+  },
+  {
+    "Path": "21grpdg",
+    "Name": "21 PD/Shareware games"
+  },
+  {
+    "Path": "221bs_hd",
+    "Name": "221B Baker Street"
+  },
+  {
+    "Path": "221bs",
+    "Name": "221B Baker Street HAGA"
+  },
+  {
+    "Path": "3dconkit",
+    "Name": "3D Construction Kit"
+  },
+  {
+    "Path": "3dgalax",
+    "Name": "3D Galax"
+  },
+  {
+    "Path": "3dlab",
+    "Name": "3D Labyrinth"
+  },
+  {
+    "Path": "3dpool",
+    "Name": "3D Pool"
+  },
+  {
+    "Path": "3dpoolo",
+    "Name": "3D Pool old v."
+  },
+  {
+    "Path": "4fit",
+    "Name": "4 Fit"
+  },
+  {
+    "Path": "5thgear",
+    "Name": "5th Gear"
+  },
+  {
+    "Path": "8ball",
+    "Name": "8 Ball"
+  },
+  {
+    "Path": "9lives",
+    "Name": "9 Lives"
+  },
+  {
+    "Path": "a320ab",
+    "Name": "A320 Airbus"
+  },
+  {
+    "Path": "aaargh",
+    "Name": "Aaargh!"
+  },
+  {
+    "Path": "academgx",
+    "Name": "Academy"
+  },
+  {
+    "Path": "acctris",
+    "Name": "Acc-Tris"
+  },
+  {
+    "Path": "aceinvad",
+    "Name": "Ace Invaders"
+  },
+  {
+    "Path": "actionf",
+    "Name": "Action Fighter"
+  },
+  {
+    "Path": "addamsf",
+    "Name": "Addams Family"
+  },
+  {
+    "Path": "addictab",
+    "Name": "Addicta Ball"
+  },
+  {
+    "Path": "adim1213",
+    "Name": "ADI Maths 12-13"
+  },
+  {
+    "Path": "adim1314",
+    "Name": "ADI Maths 13-14"
+  },
+  {
+    "Path": "adim1415",
+    "Name": "ADI Maths 14-15"
+  },
+  {
+    "Path": "adim4eme",
+    "Name": "ADI Maths 4eme"
+  },
+  {
+    "Path": "adimce1",
+    "Name": "ADI Maths CE1"
+  },
+  {
+    "Path": "adimce2",
+    "Name": "ADI Maths CE2"
+  },
+  {
+    "Path": "adiengl",
+    "Name": "Adi English"
+  },
+  {
+    "Path": "adibou",
+    "Name": "Adibou"
+  },
+  {
+    "Path": "adrnlynn",
+    "Name": "Adrenallyn"
+  },
+  {
+    "Path": "advfrum",
+    "Name": "Advanced Fruit Machine Sim"
+  },
+  {
+    "Path": "adskisjy",
+    "Name": "Advanced Ski Simulator"
+  },
+  {
+    "Path": "advqs",
+    "Name": "Adventures of Quick & Sylva"
+  },
+  {
+    "Path": "advenrh",
+    "Name": "Adventures of Robin Hood"
+  },
+  {
+    "Path": "advtenn",
+    "Name": "Advantage Tennis"
+  },
+  {
+    "Path": "aesopf",
+    "Name": "Aesop's Fables"
+  },
+  {
+    "Path": "africrai",
+    "Name": "African Raiders"
+  },
+  {
+    "Path": "afrikorp",
+    "Name": "Afrika Korps"
+  },
+  {
+    "Path": "aftertw",
+    "Name": "After the War"
+  },
+  {
+    "Path": "afterbur",
+    "Name": "Afterburner"
+  },
+  {
+    "Path": "age",
+    "Name": "AGE Advanced Galactic Empire"
+  },
+  {
+    "Path": "agiquest",
+    "Name": "AGI Quest 1"
+  },
+  {
+    "Path": "aigledor",
+    "Name": "Aigle D'Or"
+  },
+  {
+    "Path": "airball",
+    "Name": "Airball"
+  },
+  {
+    "Path": "airboran",
+    "Name": "Airborne Ranger"
+  },
+  {
+    "Path": "airbucks",
+    "Name": "Airbucks"
+  },
+  {
+    "Path": "airsuply",
+    "Name": "Air Supply"
+  },
+  {
+    "Path": "airwarr",
+    "Name": "Air Warrior"
+  },
+  {
+    "Path": "albedo",
+    "Name": "Albedo"
+  },
+  {
+    "Path": "albion",
+    "Name": "Albion"
+  },
+  {
+    "Path": "alcantor",
+    "Name": "Alcantor"
+  },
+  {
+    "Path": "alaboard",
+    "Name": "All Aboard"
+  },
+  {
+    "Path": "alcatraz",
+    "Name": "Alcatraz"
+  },
+  {
+    "Path": "alcon",
+    "Name": "Alcon"
+  },
+  {
+    "Path": "alf",
+    "Name": "ALF"
+  },
+  {
+    "Path": "aliants",
+    "Name": "Aliants"
+  },
+  {
+    "Path": "a_blast",
+    "Name": "Alien Blast"
+  },
+  {
+    "Path": "ab_flat",
+    "Name": "Alien Blast Flat"
+  },
+  {
+    "Path": "alienf",
+    "Name": "Alien Fires"
+  },
+  {
+    "Path": "alienpat",
+    "Name": "Alien Patrol"
+  },
+  {
+    "Path": "aliens",
+    "Name": "Aliens"
+  },
+  {
+    "Path": "aliensmc",
+    "Name": "Aliens PD Pool"
+  },
+  {
+    "Path": "aliensto",
+    "Name": "Alien Storm"
+  },
+  {
+    "Path": "aliestjy",
+    "Name": "Alien Storm HAGA"
+  },
+  {
+    "Path": "aliensyn",
+    "Name": "Alien Syndrome"
+  },
+  {
+    "Path": "aliensjy",
+    "Name": "Alien Syndrome"
+  },
+  {
+    "Path": "alienwrd",
+    "Name": "Alien World"
+  },
+  {
+    "Path": "alphatut",
+    "Name": "Alphabet Tutor"
+  },
+  {
+    "Path": "alphaw",
+    "Name": "Alpha Waves"
+  },
+  {
+    "Path": "alphamax",
+    "Name": "Alphamax"
+  },
+  {
+    "Path": "altair",
+    "Name": "Altair"
+  },
+  {
+    "Path": "alteredb",
+    "Name": "Altered Beast"
+  },
+  {
+    "Path": "alternre",
+    "Name": "Alternate Reality"
+  },
+  {
+    "Path": "amazeing",
+    "Name": "Amazeing"
+  },
+  {
+    "Path": "amazings",
+    "Name": "Amazing Spiderman"
+  },
+  {
+    "Path": "amazon",
+    "Name": "Amazon"
+  },
+  {
+    "Path": "ambrstar",
+    "Name": "Amberstar"
+  },
+  {
+    "Path": "amerpool",
+    "Name": "American Pool"
+  },
+  {
+    "Path": "amichsp",
+    "Name": "Ami Chans Strip Poker"
+  },
+  {
+    "Path": "ammotrck",
+    "Name": "Ammotrack"
+  },
+  {
+    "Path": "amoebaw",
+    "Name": "Amoeba Wars"
+  },
+  {
+    "Path": "ampool",
+    "Name": "Archer Maclean's Pool"
+  },
+  {
+    "Path": "anlsrome",
+    "Name": "Anals of Rome"
+  },
+  {
+    "Path": "anarchy",
+    "Name": "Anarchy"
+  },
+  {
+    "Path": "ancawis",
+    "Name": "Ancient Art of War in Skies"
+  },
+  {
+    "Path": "ancientg",
+    "Name": "Ancient Games"
+  },
+  {
+    "Path": "andesatk",
+    "Name": "Andes Attack"
+  },
+  {
+    "Path": "androm",
+    "Name": "Andromeda"
+  },
+  {
+    "Path": "angedc",
+    "Name": "Ange de Cristal"
+  },
+  {
+    "Path": "animkind",
+    "Name": "Animal Kingdom"
+  },
+  {
+    "Path": "annihil",
+    "Name": "Annihilator"
+  },
+  {
+    "Path": "anotherw",
+    "Name": "Another World"
+  },
+  {
+    "Path": "antago",
+    "Name": "Antago"
+  },
+  {
+    "Path": "anticpng",
+    "Name": "Antic Pong"
+  },
+  {
+    "Path": "apachef",
+    "Name": "Apache Flight"
+  },
+  {
+    "Path": "apb",
+    "Name": "APB All Points Bulletin"
+  },
+  {
+    "Path": "apbjy",
+    "Name": "APB All Points Bulletin HAGA"
+  },
+  {
+    "Path": "apprent",
+    "Name": "Apprentice"
+  },
+  {
+    "Path": "apprmoc",
+    "Name": "Apprends Moi A Compter"
+  },
+  {
+    "Path": "aptitest",
+    "Name": "Aptitude Test"
+  },
+  {
+    "Path": "aquan",
+    "Name": "Aquanaut old v."
+  },
+  {
+    "Path": "aquanua",
+    "Name": "Aquanaut"
+  },
+  {
+    "Path": "arbotarg",
+    "Name": "Arborea, Crystals Of & Targhan"
+  },
+  {
+    "Path": "arcadfrm",
+    "Name": "Arcade Fruit Machine"
+  },
+  {
+    "Path": "arctrivq",
+    "Name": "Arcade Trivia Quiz"
+  },
+  {
+    "Path": "arcadia",
+    "Name": "Arcadia"
+  },
+  {
+    "Path": "archipel",
+    "Name": "Archipelagos"
+  },
+  {
+    "Path": "arcticf",
+    "Name": "Arctic Fox"
+  },
+  {
+    "Path": "arcticm",
+    "Name": "Arctic Moves"
+  },
+  {
+    "Path": "arenaert",
+    "Name": "Arena Earth"
+  },
+  {
+    "Path": "argon",
+    "Name": "Argon"
+  },
+  {
+    "Path": "arkan2",
+    "Name": "Arkanoid 2"
+  },
+  {
+    "Path": "arkan3",
+    "Name": "Arkanoid '3'"
+  },
+  {
+    "Path": "arkanoid",
+    "Name": "Arkanoid"
+  },
+  {
+    "Path": "armada",
+    "Name": "Armada"
+  },
+  {
+    "Path": "armagman",
+    "Name": "Armageddon Man"
+  },
+  {
+    "Path": "armalyte",
+    "Name": "Armalyte"
+  },
+  {
+    "Path": "armourg",
+    "Name": "Armour Geddon"
+  },
+  {
+    "Path": "armymvjy",
+    "Name": "Army Moves"
+  },
+  {
+    "Path": "artdream",
+    "Name": "Artificial Dreams"
+  },
+  {
+    "Path": "artura",
+    "Name": "Artura"
+  },
+  {
+    "Path": "ascot",
+    "Name": "Ascot"
+  },
+  {
+    "Path": "asgard",
+    "Name": "Asgard"
+  },
+  {
+    "Path": "astaroth",
+    "Name": "Astaroth"
+  },
+  {
+    "Path": "astate",
+    "Name": "Astate"
+  },
+  {
+    "Path": "asteidia",
+    "Name": "Asteroidia"
+  },
+  {
+    "Path": "asterdl",
+    "Name": "Asteroids DeLuxe"
+  },
+  {
+    "Path": "asterchr",
+    "Name": "Asterix Chez Rahazade"
+  },
+  {
+    "Path": "asteridd",
+    "Name": "Asterix in the Dung. of Doom"
+  },
+  {
+    "Path": "asterixg",
+    "Name": "Asterix Operation Getafix"
+  },
+  {
+    "Path": "asterosd",
+    "Name": "Asteroids (SD)"
+  },
+  {
+    "Path": "astro2k",
+    "Name": "Astro 2000"
+  },
+  {
+    "Path": "astromc",
+    "Name": "Astro Marine Corps"
+  },
+  {
+    "Path": "astropan",
+    "Name": "Astro Panic"
+  },
+  {
+    "Path": "atarigp",
+    "Name": "Atari GP"
+  },
+  {
+    "Path": "atarplan",
+    "Name": "Atari Planetarium"
+  },
+  {
+    "Path": "atslalom",
+    "Name": "Atari Slalom"
+  },
+  {
+    "Path": "atax",
+    "Name": "ATAX"
+  },
+  {
+    "Path": "atckdagt",
+    "Name": "Attack of the Dangerous Alien .."
+  },
+  {
+    "Path": "atf2",
+    "Name": "ATF2"
+  },
+  {
+    "Path": "atomant",
+    "Name": "Atom Ant"
+  },
+  {
+    "Path": "atomicrk",
+    "Name": "Atomic Robo-Kid"
+  },
+  {
+    "Path": "atomino",
+    "Name": "Atomino"
+  },
+  {
+    "Path": "atomix",
+    "Name": "Atomix"
+  },
+  {
+    "Path": "atomsmsh",
+    "Name": "Atom Smasher"
+  },
+  {
+    "Path": "atcarniv",
+    "Name": "At the Carnival"
+  },
+  {
+    "Path": "autempsj",
+    "Name": "Au Temps Jadis"
+  },
+  {
+    "Path": "autoduel",
+    "Name": "Auto Duel"
+  },
+  {
+    "Path": "autorenn",
+    "Name": "Auto Rennen"
+  },
+  {
+    "Path": "av8b",
+    "Name": "AV8B Harrier Assault"
+  },
+  {
+    "Path": "aventesp",
+    "Name": "Aventura Espacial"
+  },
+  {
+    "Path": "aventorg",
+    "Name": "Aventura Original"
+  },
+  {
+    "Path": "avmoktar",
+    "Name": "Aventures de Moktar"
+  },
+  {
+    "Path": "avinab",
+    "Name": "Avina Blue"
+  },
+  {
+    "Path": "awesome",
+    "Name": "Awesome"
+  },
+  {
+    "Path": "axanthes",
+    "Name": "Axanthes 1-3"
+  },
+  {
+    "Path": "barb2pal",
+    "Name": "Axe of Rage"
+  },
+  {
+    "Path": "axelsmh",
+    "Name": "Axels Magic Hammer"
+  },
+  {
+    "Path": "axelsmjy",
+    "Name": "Axels Magic H. HAGA"
+  },
+  {
+    "Path": "azarian",
+    "Name": "Azarian"
+  },
+  {
+    "Path": "b17ff",
+    "Name": "B17 Flying  Fortress"
+  },
+  {
+    "Path": "baal",
+    "Name": "Baal"
+  },
+  {
+    "Path": "babayaga",
+    "Name": "Baba Yaga"
+  },
+  {
+    "Path": "babyjo",
+    "Name": "Baby Jo"
+  },
+  {
+    "Path": "backfut2",
+    "Name": "Back to the Future II"
+  },
+  {
+    "Path": "backfut3",
+    "Name": "Back to the Future III"
+  },
+  {
+    "Path": "backtoga",
+    "Name": "Back to the Golden Age"
+  },
+  {
+    "Path": "backgam",
+    "Name": "Backgammon"
+  },
+  {
+    "Path": "backgroy",
+    "Name": "Backgammon Royale"
+  },
+  {
+    "Path": "backlash",
+    "Name": "Backlash"
+  },
+  {
+    "Path": "badcat",
+    "Name": "Bad Cat"
+  },
+  {
+    "Path": "badcomp",
+    "Name": "Bad Company"
+  },
+  {
+    "Path": "badlands",
+    "Name": "Badlands"
+  },
+  {
+    "Path": "balbigb",
+    "Name": "Balade au Pays de Big Ben"
+  },
+  {
+    "Path": "ballbust",
+    "Name": "Ballbuster"
+  },
+  {
+    "Path": "ballgame",
+    "Name": "Ball Game"
+  },
+  {
+    "Path": "ballpark",
+    "Name": "Ball Park"
+  },
+  {
+    "Path": "ballsqst",
+    "Name": "Balls Quest"
+  },
+  {
+    "Path": "ballzone",
+    "Name": "Ball Zone"
+  },
+  {
+    "Path": "balofp90",
+    "Name": "Balance of Power 1990"
+  },
+  {
+    "Path": "ballstx",
+    "Name": "Ballistix"
+  },
+  {
+    "Path": "ballsup",
+    "Name": "Balls Up"
+  },
+  {
+    "Path": "bambifup",
+    "Name": "Bambino Fait un Puzzle"
+  },
+  {
+    "Path": "bang",
+    "Name": "Bang"
+  },
+  {
+    "Path": "bankbust",
+    "Name": "Bank Buster"
+  },
+  {
+    "Path": "bangknig",
+    "Name": "Bangkok Knights"
+  },
+  {
+    "Path": "barb2pal",
+    "Name": "Barbarian 2 (Palace)"
+  },
+  {
+    "Path": "barbpsgx",
+    "Name": "Barbarian (Psygnosis) GX v"
+  },
+  {
+    "Path": "barbpsyg",
+    "Name": "Barbarian (Psygnosis)"
+  },
+  {
+    "Path": "barb2psy",
+    "Name": "Barbarian 2  (Psygnosis)"
+  },
+  {
+    "Path": "barbuw",
+    "Name": "Barbarian the Ultimate Warrior"
+  },
+  {
+    "Path": "bardtale",
+    "Name": "Bards Tale"
+  },
+  {
+    "Path": "bargona",
+    "Name": "Bargon Attack"
+  },
+  {
+    "Path": "barreint",
+    "Name": "Barre l'intrus"
+  },
+  {
+    "Path": "bartvstw",
+    "Name": "Bart vs the World"
+  },
+  {
+    "Path": "baseball",
+    "Name": "Baseball"
+  },
+  {
+    "Path": "basdeort",
+    "Name": "Bases de l'Orthographe"
+  },
+  {
+    "Path": "bat",
+    "Name": "B.A.T."
+  },
+  {
+    "Path": "batfr",
+    "Name": "B.A.T. Fr"
+  },
+  {
+    "Path": "bat2",
+    "Name": "B.A.T. II"
+  },
+  {
+    "Path": "bat2docs",
+    "Name": "B.A.T. II Docs"
+  },
+  {
+    "Path": "bat2fr",
+    "Name": "B.A.T. II Fr"
+  },
+  {
+    "Path": "battship",
+    "Name": "Battleships"
+  },
+  {
+    "Path": "batltris",
+    "Name": "Battletris"
+  },
+  {
+    "Path": "batmanmo",
+    "Name": "Batman the Movie"
+  },
+  {
+    "Path": "batmccgx",
+    "Name": "Batman  the  Caped  Crusader"
+  },
+  {
+    "Path": "battlebo",
+    "Name": "Battle Bound"
+  },
+  {
+    "Path": "battlec",
+    "Name": "Battle Command"
+  },
+  {
+    "Path": "batlc",
+    "Name": "Battle Command old v."
+  },
+  {
+    "Path": "battlech",
+    "Name": "Battle Chess"
+  },
+  {
+    "Path": "battlemr",
+    "Name": "Battle Master"
+  },
+  {
+    "Path": "battlepr",
+    "Name": "Battle Probe"
+  },
+  {
+    "Path": "battletc",
+    "Name": "Battletech"
+  },
+  {
+    "Path": "bob",
+    "Name": "Battle of Britain"
+  },
+  {
+    "Path": "battlez",
+    "Name": "Battle Zone"
+  },
+  {
+    "Path": "battlezo",
+    "Name": "Battle Zone old v."
+  },
+  {
+    "Path": "battlhwk",
+    "Name": "Battlehawks 1943"
+  },
+  {
+    "Path": "beachv",
+    "Name": "Beach Volley"
+  },
+  {
+    "Path": "beam",
+    "Name": "Beam"
+  },
+  {
+    "Path": "beastbus",
+    "Name": "Beast Busters"
+  },
+  {
+    "Path": "beastlor",
+    "Name": "BeastLord"
+  },
+  {
+    "Path": "berlin48",
+    "Name": "Berlin 48"
+  },
+  {
+    "Path": "bermudap",
+    "Name": "Bermuda Project"
+  },
+  {
+    "Path": "bertts",
+    "Name": "Bert the Squirt"
+  },
+  {
+    "Path": "berzerk",
+    "Name": "Berzerk"
+  },
+  {
+    "Path": "betatau",
+    "Name": "Beta Tau"
+  },
+  {
+    "Path": "betterdt",
+    "Name": "Better Dead than Alien"
+  },
+  {
+    "Path": "bevhilsc",
+    "Name": "Beverly Hills Cop"
+  },
+  {
+    "Path": "beyondip",
+    "Name": "Beyond the Ice Palace"
+  },
+  {
+    "Path": "beyondz",
+    "Name": "Beyond Zork"
+  },
+  {
+    "Path": "bigbusns",
+    "Name": "Big Business"
+  },
+  {
+    "Path": "biggamef",
+    "Name": "Big Game Fishing"
+  },
+  {
+    "Path": "bignose",
+    "Name": "Big Nose"
+  },
+  {
+    "Path": "bigrun",
+    "Name": "Big Run"
+  },
+  {
+    "Path": "bigrunjy",
+    "Name": "Big Run HAGA"
+  },
+  {
+    "Path": "billpalm",
+    "Name": "Bill Palmer"
+  },
+  {
+    "Path": "billssim",
+    "Name": "Billiards Simulator"
+  },
+  {
+    "Path": "billsim2",
+    "Name": "Billiards Simulator 2"
+  },
+  {
+    "Path": "billyb",
+    "Name": "Billy Bounce"
+  },
+  {
+    "Path": "billyboy",
+    "Name": "Billy Boy"
+  },
+  {
+    "Path": "bimbost",
+    "Name": "Bimbo Story"
+  },
+  {
+    "Path": "biochall",
+    "Name": "Bio Challenge"
+  },
+  {
+    "Path": "bionicc",
+    "Name": "Bionic Commando"
+  },
+  {
+    "Path": "bismarck",
+    "Name": "Bismarck"
+  },
+  {
+    "Path": "bittner",
+    "Name": "Bittner"
+  },
+  {
+    "Path": "black11",
+    "Name": "Black 1.1"
+  },
+  {
+    "Path": "blackcou",
+    "Name": "Black Cauldron"
+  },
+  {
+    "Path": "blackhor",
+    "Name": "Black Hornet"
+  },
+  {
+    "Path": "blacktig",
+    "Name": "Black Tiger"
+  },
+  {
+    "Path": "blaclamp",
+    "Name": "Black Lamp"
+  },
+  {
+    "Path": "blagst",
+    "Name": "Blagst"
+  },
+  {
+    "Path": "blaster",
+    "Name": "Blaster"
+  },
+  {
+    "Path": "blastods",
+    "Name": "Blasteroids"
+  },
+  {
+    "Path": "blazingt",
+    "Name": "Blazing Thunder"
+  },
+  {
+    "Path": "blindlab",
+    "Name": "Blind Labyrinth"
+  },
+  {
+    "Path": "blinky",
+    "Name": "Blinky's Scary School"
+  },
+  {
+    "Path": "blinkyjy",
+    "Name": "Blinky's Scary HAGA"
+  },
+  {
+    "Path": "blockbst",
+    "Name": "Blockbuster"
+  },
+  {
+    "Path": "blockout",
+    "Name": "Block Out"
+  },
+  {
+    "Path": "bloodmon",
+    "Name": "Blood Money"
+  },
+  {
+    "Path": "bloodwyc",
+    "Name": "Bloodwych"
+  },
+  {
+    "Path": "blueang",
+    "Name": "Blue Angel"
+  },
+  {
+    "Path": "bluemax",
+    "Name": "Blue Max"
+  },
+  {
+    "Path": "blueber",
+    "Name": "Blueberry De,Fr"
+  },
+  {
+    "Path": "bluesbro",
+    "Name": "Blues Brothers"
+  },
+  {
+    "Path": "bmxsim",
+    "Name": "BMX Simulator"
+  },
+  {
+    "Path": "bobwiner",
+    "Name": "Bob Winner"
+  },
+  {
+    "Path": "bobbles",
+    "Name": "Bobbles"
+  },
+  {
+    "Path": "bobo",
+    "Name": "Bobo"
+  },
+  {
+    "Path": "boggit",
+    "Name": "Boggit"
+  },
+  {
+    "Path": "boing",
+    "Name": "Boing"
+  },
+  {
+    "Path": "bolo",
+    "Name": "Bolo"
+  },
+  {
+    "Path": "bombcmd",
+    "Name": "Bomber Command"
+  },
+  {
+    "Path": "bombfusi",
+    "Name": "Bomb Fusion"
+  },
+  {
+    "Path": "bombjack",
+    "Name": "Bomb Jack"
+  },
+  {
+    "Path": "bombbugs",
+    "Name": "Bombs and Bugs"
+  },
+  {
+    "Path": "bombuzgx",
+    "Name": "Bombuzal"
+  },
+  {
+    "Path": "bomtris",
+    "Name": "Bomtris"
+  },
+  {
+    "Path": "bonanza",
+    "Name": "Bonanza Bros"
+  },
+  {
+    "Path": "boom",
+    "Name": "Boom"
+  },
+  {
+    "Path": "borrowtm",
+    "Name": "Borrowed Time"
+  },
+  {
+    "Path": "bostonbc",
+    "Name": "Boston Bomb Club"
+  },
+  {
+    "Path": "botics",
+    "Name": "Botics"
+  },
+  {
+    "Path": "boulderd",
+    "Name": "Boulder Dash"
+  },
+  {
+    "Path": "boulderk",
+    "Name": "Boulder Dash C. Kit"
+  },
+  {
+    "Path": "bounceou",
+    "Name": "Bounced Out"
+  },
+  {
+    "Path": "bouncinb",
+    "Name": "Bouncing Boubles"
+  },
+  {
+    "Path": "bratacas",
+    "Name": "Brataccas"
+  },
+  {
+    "Path": "brat",
+    "Name": "Brat"
+  },
+  {
+    "Path": "breachhe",
+    "Name": "Breach"
+  },
+  {
+    "Path": "breach2",
+    "Name": "Breach 2"
+  },
+  {
+    "Path": "breakacc",
+    "Name": "Breakout ACC"
+  },
+  {
+    "Path": "bridod",
+    "Name": "Bride of Dracula"
+  },
+  {
+    "Path": "bsquad",
+    "Name": "B Squad"
+  },
+  {
+    "Path": "bubblebo",
+    "Name": "Bubble Bobble"
+  },
+  {
+    "Path": "bubblegh",
+    "Name": "Bubble Ghost"
+  },
+  {
+    "Path": "bubldiz",
+    "Name": "Bubble Dizzy"
+  },
+  {
+    "Path": "bubldzjy",
+    "Name": "Bubble Dizzy HAGA"
+  },
+  {
+    "Path": "bubblep",
+    "Name": "Bubble Plus"
+  },
+  {
+    "Path": "bubblesm",
+    "Name": "Bubbles McGee"
+  },
+  {
+    "Path": "buffalob",
+    "Name": "Buffalo Bill"
+  },
+  {
+    "Path": "bug",
+    "Name": "Bug"
+  },
+  {
+    "Path": "bugbash",
+    "Name": "Bug Bash"
+  },
+  {
+    "Path": "bugbasjy",
+    "Name": "Bug Bash HAGA"
+  },
+  {
+    "Path": "buggybgx",
+    "Name": "Buggy Boy"
+  },
+  {
+    "Path": "buggybjy",
+    "Name": "Buggy Boy HAGA"
+  },
+  {
+    "Path": "bugspray",
+    "Name": "Bug Spray"
+  },
+  {
+    "Path": "builderl",
+    "Name": "Builderland"
+  },
+  {
+    "Path": "bullysd",
+    "Name": "Bully's Sporting Darts"
+  },
+  {
+    "Path": "bumerang",
+    "Name": "Bumerang"
+  },
+  {
+    "Path": "bumpyaf",
+    "Name": "Bumpy's Arcade Fantasy"
+  },
+  {
+    "Path": "bundmpro",
+    "Name": "BundesLiga Man Pro"
+  },
+  {
+    "Path": "bunnybr",
+    "Name": "Bunny Bricks"
+  },
+  {
+    "Path": "burgerdr",
+    "Name": "Burger Dream"
+  },
+  {
+    "Path": "burgerm",
+    "Name": "Burger Man"
+  },
+  {
+    "Path": "byteman",
+    "Name": "Byteman"
+  },
+  {
+    "Path": "cabal",
+    "Name": "Cabal"
+  },
+  {
+    "Path": "cadaver",
+    "Name": "Cadaver"
+  },
+  {
+    "Path": "cadavjy",
+    "Name": "Cadaver HAGA"
+  },
+  {
+    "Path": "capayojy",
+    "Name": "Cadaver the Payoff"
+  },
+  {
+    "Path": "caesar",
+    "Name": "Caesar"
+  },
+  {
+    "Path": "calgam2",
+    "Name": "California Games II"
+  },
+  {
+    "Path": "calgames",
+    "Name": "California Games"
+  },
+  {
+    "Path": "cannonf",
+    "Name": "Cannon Fodder"
+  },
+  {
+    "Path": "cannonfa",
+    "Name": "Cannon Fodder w. audio track"
+  },
+  {
+    "Path": "capncarn",
+    "Name": "Cap'n Carnage"
+  },
+  {
+    "Path": "captamdt",
+    "Name": "Captain America DTDTG"
+  },
+  {
+    "Path": "captbld",
+    "Name": "Captain Blood"
+  },
+  {
+    "Path": "captcrem",
+    "Name": "Capt Cremmin"
+  },
+  {
+    "Path": "captfizz",
+    "Name": "Captain Fizz"
+  },
+  {
+    "Path": "captplan",
+    "Name": "Captain Planet"
+  },
+  {
+    "Path": "captive",
+    "Name": "Captive"
+  },
+  {
+    "Path": "captiveh",
+    "Name": "Captive HAGA"
+  },
+  {
+    "Path": "cards",
+    "Name": "Cards"
+  },
+  {
+    "Path": "carlos",
+    "Name": "Carlos"
+  },
+  {
+    "Path": "carmensd",
+    "Name": "Carmen Sandiego"
+  },
+  {
+    "Path": "carrcgx",
+    "Name": "Carrier Command"
+  },
+  {
+    "Path": "carsh",
+    "Name": "Cars"
+  },
+  {
+    "Path": "cartoonc",
+    "Name": "Cartoon Capers"
+  },
+  {
+    "Path": "carvup",
+    "Name": "Car-Vup"
+  },
+  {
+    "Path": "carvupff",
+    "Name": "Car-Vup the Final Frontier"
+  },
+  {
+    "Path": "caseofms",
+    "Name": "Case of the Mixed Shymer"
+  },
+  {
+    "Path": "casinrul",
+    "Name": "Casino Roulette"
+  },
+  {
+    "Path": "castleca",
+    "Name": "Castle Capers"
+  },
+  {
+    "Path": "castlegx",
+    "Name": "Castle Master"
+  },
+  {
+    "Path": "castmuc",
+    "Name": "Castle Master old v."
+  },
+  {
+    "Path": "castles",
+    "Name": "Castles"
+  },
+  {
+    "Path": "castlew",
+    "Name": "Castle Warrior"
+  },
+  {
+    "Path": "castjdf",
+    "Name": "Castors Juniors ..."
+  },
+  {
+    "Path": "catch23",
+    "Name": "Catch 23"
+  },
+  {
+    "Path": "catch23f",
+    "Name": "Catch 23 for Falcon"
+  },
+  {
+    "Path": "cavemani",
+    "Name": "Cavemania"
+  },
+  {
+    "Path": "cavemaze",
+    "Name": "Cave Maze"
+  },
+  {
+    "Path": "caverun2",
+    "Name": "Cave Runner II"
+  },
+  {
+    "Path": "cavrigel",
+    "Name": "Caverns Of Rigel"
+  },
+  {
+    "Path": "centaurn",
+    "Name": "Centaurion"
+  },
+  {
+    "Path": "centsqrs",
+    "Name": "Centerfold Squares"
+  },
+  {
+    "Path": "centi",
+    "Name": "Centipede (SD)"
+  },
+  {
+    "Path": "chainrea",
+    "Name": "Chain Reaction"
+  },
+  {
+    "Path": "chalgolf",
+    "Name": "Challenge Golf"
+  },
+  {
+    "Path": "chambsha",
+    "Name": "Chambers of Shaolin"
+  },
+  {
+    "Path": "champraj",
+    "Name": "Champion of the Raj"
+  },
+  {
+    "Path": "champbas",
+    "Name": "Championship Baseball"
+  },
+  {
+    "Path": "chital",
+    "Name": "Championship M. Italia 95"
+  },
+  {
+    "Path": "chawski",
+    "Name": "Championship Water-Skiing"
+  },
+  {
+    "Path": "chswrest",
+    "Name": "Championship Wrestling"
+  },
+  {
+    "Path": "chaos",
+    "Name": "Chaos"
+  },
+  {
+    "Path": "chaose",
+    "Name": "Chaos Engine"
+  },
+  {
+    "Path": "chaosejy",
+    "Name": "Chaos Engine HAGA"
+  },
+  {
+    "Path": "chargolb",
+    "Name": "Charge of the Light Brigade"
+  },
+  {
+    "Path": "chariots",
+    "Name": "Chariots of Wrath"
+  },
+  {
+    "Path": "chase",
+    "Name": "Chase"
+  },
+  {
+    "Path": "chasehq",
+    "Name": "Chase HQ"
+  },
+  {
+    "Path": "chashqjy",
+    "Name": "Chase HQ HAGA"
+  },
+  {
+    "Path": "chasehq2",
+    "Name": "Chase HQ 2"
+  },
+  {
+    "Path": "chasanta",
+    "Name": "Chateau Santa"
+  },
+  {
+    "Path": "ches2150",
+    "Name": "Chess Player 2150"
+  },
+  {
+    "Path": "chesp2he",
+    "Name": "Chess Player 2150 HAGE"
+  },
+  {
+    "Path": "chec2175",
+    "Name": "Chess Champion 2175"
+  },
+  {
+    "Path": "chessch",
+    "Name": "Chess Champion 2175 Fr"
+  },
+  {
+    "Path": "chessm2k",
+    "Name": "Chessmaster 2000"
+  },
+  {
+    "Path": "chicag30",
+    "Name": "Chicago 30"
+  },
+  {
+    "Path": "chicag90",
+    "Name": "Chicago 90"
+  },
+  {
+    "Path": "chkarate",
+    "Name": "Chinese Karate"
+  },
+  {
+    "Path": "chipschl",
+    "Name": "Chips Challenge"
+  },
+  {
+    "Path": "chiropih",
+    "Name": "Chiropodist In Hell"
+  },
+  {
+    "Path": "chopperx",
+    "Name": "Chopper X"
+  },
+  {
+    "Path": "chronio",
+    "Name": "Chronicles of Omega"
+  },
+  {
+    "Path": "chronoq2",
+    "Name": "Chrono Quest 2"
+  },
+  {
+    "Path": "chronoq",
+    "Name": "Chrono Quest"
+  },
+  {
+    "Path": "chubbyg",
+    "Name": "Chubby Gristle"
+  },
+  {
+    "Path": "chucyaft",
+    "Name": "Chuck Yeager's AFT"
+  },
+  {
+    "Path": "chuckiee",
+    "Name": "Chuckie Egg"
+  },
+  {
+    "Path": "chuckejy",
+    "Name": "Chuckie Egg HAGA"
+  },
+  {
+    "Path": "chuckie2",
+    "Name": "Chuckie Egg 2"
+  },
+  {
+    "Path": "chuck2jy",
+    "Name": "Chuckie Egg 2 HAGA"
+  },
+  {
+    "Path": "chucrock",
+    "Name": "Chuck Rock"
+  },
+  {
+    "Path": "circuit",
+    "Name": "Circuit, Le"
+  },
+  {
+    "Path": "circattr",
+    "Name": "Circus Attractions"
+  },
+  {
+    "Path": "circgms",
+    "Name": "Circus Games"
+  },
+  {
+    "Path": "ciscoh",
+    "Name": "Cisco Heat"
+  },
+  {
+    "Path": "ciscohjy",
+    "Name": "Cisco Heat HAGA"
+  },
+  {
+    "Path": "civiliz",
+    "Name": "Civilization"
+  },
+  {
+    "Path": "cjeleph",
+    "Name": "CJ's Elephant Antics"
+  },
+  {
+    "Path": "cjinusa",
+    "Name": "CJ In USA"
+  },
+  {
+    "Path": "cjinusjy",
+    "Name": "CJ In USA HAGA"
+  },
+  {
+    "Path": "classic4",
+    "Name": "Classic 4"
+  },
+  {
+    "Path": "classinv",
+    "Name": "Classic Invaders"
+  },
+  {
+    "Path": "classv1",
+    "Name": "Classiques 1"
+  },
+  {
+    "Path": "classrm",
+    "Name": "Classroom Maths 2"
+  },
+  {
+    "Path": "clevers",
+    "Name": "Clever and Smart"
+  },
+  {
+    "Path": "clodhop",
+    "Name": "Clod Hopper"
+  },
+  {
+    "Path": "cloudkd",
+    "Name": "Cloud Kingdom"
+  },
+  {
+    "Path": "cloudkjy",
+    "Name": "Cloud Kingdom HAGA"
+  },
+  {
+    "Path": "clownom",
+    "Name": "Clownomania"
+  },
+  {
+    "Path": "cluedomd",
+    "Name": "Cluedo Master Detective"
+  },
+  {
+    "Path": "clubbacg",
+    "Name": "Club Backgammon"
+  },
+  {
+    "Path": "cococoq",
+    "Name": "Coco Coq"
+  },
+  {
+    "Path": "cocoons",
+    "Name": "Cocoons of Jusse"
+  },
+  {
+    "Path": "codefac",
+    "Name": "Code Facile"
+  },
+  {
+    "Path": "codeice",
+    "Name": "Codename Iceman"
+  },
+  {
+    "Path": "cohort",
+    "Name": "Cohort"
+  },
+  {
+    "Path": "colawars",
+    "Name": "Colawars"
+  },
+  {
+    "Path": "colbeq",
+    "Name": "Colonel's Bequest"
+  },
+  {
+    "Path": "colbeqst",
+    "Name": "Colonel's Bequest HAGE"
+  },
+  {
+    "Path": "collapse",
+    "Name": "Collapse"
+  },
+  {
+    "Path": "coloncq",
+    "Name": "Colonial Conquest"
+  },
+  {
+    "Path": "colorado",
+    "Name": "Colorado"
+  },
+  {
+    "Path": "colorcl",
+    "Name": "Color Clash"
+  },
+  {
+    "Path": "colchess",
+    "Name": "Colossus Chess"
+  },
+  {
+    "Path": "coltris",
+    "Name": "Col-Tris"
+  },
+  {
+    "Path": "columns",
+    "Name": "Columns"
+  },
+  {
+    "Path": "combor",
+    "Name": "Combo Racer"
+  },
+  {
+    "Path": "commando",
+    "Name": "Commando"
+  },
+  {
+    "Path": "comp1",
+    "Name": "Companion 1"
+  },
+  {
+    "Path": "comscrab",
+    "Name": "Computer Scrabble"
+  },
+  {
+    "Path": "confusn",
+    "Name": "Confusion"
+  },
+  {
+    "Path": "conqcam",
+    "Name": "Conquest's Of Camelot"
+  },
+  {
+    "Path": "conquer",
+    "Name": "Conqueror"
+  },
+  {
+    "Path": "continc",
+    "Name": "Continental Circus"
+  },
+  {
+    "Path": "coolcrtw",
+    "Name": "Cool Croc Twins"
+  },
+  {
+    "Path": "coolwrld",
+    "Name": "Cool World"
+  },
+  {
+    "Path": "coronam",
+    "Name": "Corona Magica"
+  },
+  {
+    "Path": "corpor",
+    "Name": "Corporation"
+  },
+  {
+    "Path": "corporjy",
+    "Name": "Corporation HAGA"
+  },
+  {
+    "Path": "corrupt",
+    "Name": "Corruption"
+  },
+  {
+    "Path": "corsarie",
+    "Name": "Corsarie"
+  },
+  {
+    "Path": "cosmos",
+    "Name": "Cosmos"
+  },
+  {
+    "Path": "cosmpir",
+    "Name": "Cosmic Pirate"
+  },
+  {
+    "Path": "cougarf",
+    "Name": "Cougar Force"
+  },
+  {
+    "Path": "countd2",
+    "Name": "Count Duckula 2"
+  },
+  {
+    "Path": "countduc",
+    "Name": "Count Duckula"
+  },
+  {
+    "Path": "countera",
+    "Name": "Counter Atack"
+  },
+  {
+    "Path": "crackdwn",
+    "Name": "Crackdown"
+  },
+  {
+    "Path": "cracked",
+    "Name": "Cracked"
+  },
+  {
+    "Path": "crafton",
+    "Name": "Crafton and Xunk"
+  },
+  {
+    "Path": "crapman",
+    "Name": "Crapman"
+  },
+  {
+    "Path": "crashtp",
+    "Name": "Crash Time Plumber"
+  },
+  {
+    "Path": "crazyc3",
+    "Name": "Crazy Cars III"
+  },
+  {
+    "Path": "crazyc",
+    "Name": "Crazy Cars"
+  },
+  {
+    "Path": "cc2",
+    "Name": "Crazy Cars 2"
+  },
+  {
+    "Path": "crazyc2",
+    "Name": "Crazy Cars II old v."
+  },
+  {
+    "Path": "crazyh",
+    "Name": "Crazy Harold"
+  },
+  {
+    "Path": "crazysht",
+    "Name": "Crazy Shot"
+  },
+  {
+    "Path": "creaturs",
+    "Name": "Creatures"
+  },
+  {
+    "Path": "creepy",
+    "Name": "Creepy"
+  },
+  {
+    "Path": "cricketc",
+    "Name": "Cricket Captain"
+  },
+  {
+    "Path": "crimcgx",
+    "Name": "Crime City"
+  },
+  {
+    "Path": "crimedrc",
+    "Name": "Crime De Regents Court"
+  },
+  {
+    "Path": "crimednp",
+    "Name": "Crime Does Not Pay"
+  },
+  {
+    "Path": "crimewav",
+    "Name": "Crime Wave"
+  },
+  {
+    "Path": "crimscrn",
+    "Name": "Crimson Crown"
+  },
+  {
+    "Path": "critmass",
+    "Name": "Citical Mass"
+  },
+  {
+    "Path": "crossbow",
+    "Name": "Crossbow"
+  },
+  {
+    "Path": "crossl",
+    "Name": "Crossland"
+  },
+  {
+    "Path": "crown",
+    "Name": "Crown"
+  },
+  {
+    "Path": "crucoren",
+    "Name": "Cruise for a Corpse En"
+  },
+  {
+    "Path": "crucores",
+    "Name": "Cruise for a Corpse Es"
+  },
+  {
+    "Path": "croispuc",
+    "Name": "Croisiere pour un Cadave Fr"
+  },
+  {
+    "Path": "cruisegx",
+    "Name": "Cruise for a Corpse GX En"
+  },
+  {
+    "Path": "crush",
+    "Name": "Crush"
+  },
+  {
+    "Path": "crystalc",
+    "Name": "Crystal Castles"
+  },
+  {
+    "Path": "crystkd",
+    "Name": "Crystal Kingdom Dizzy"
+  },
+  {
+    "Path": "crystarb",
+    "Name": "Crystals of Arborea En."
+  },
+  {
+    "Path": "crystarf",
+    "Name": "Crystals of Arborea Fr."
+  },
+  {
+    "Path": "arbotarg",
+    "Name": "Crystals of Arborea & Targhan"
+  },
+  {
+    "Path": "csb_dmaa",
+    "Name": "Chaos Strikes Back DMAA"
+  },
+  {
+    "Path": "csbgx",
+    "Name": "Chaos Strikes Back"
+  },
+  {
+    "Path": "csbh",
+    "Name": "Chaos Strikes Back HD"
+  },
+  {
+    "Path": "curseazr",
+    "Name": "Curse of Azriel"
+  },
+  {
+    "Path": "curbolda",
+    "Name": "Curse of Bolda"
+  },
+  {
+    "Path": "curseazb",
+    "Name": "Curse of the Azure Bonds"
+  },
+  {
+    "Path": "cursera",
+    "Name": "Curse of RA"
+  },
+  {
+    "Path": "custod",
+    "Name": "Custodian"
+  },
+  {
+    "Path": "cyberast",
+    "Name": "Cyber Assault"
+  },
+  {
+    "Path": "cyberbal",
+    "Name": "Cyberball"
+  },
+  {
+    "Path": "cybercn3",
+    "Name": "Cybercon III"
+  },
+  {
+    "Path": "cybercop",
+    "Name": "CyberCop"
+  },
+  {
+    "Path": "cyberdr",
+    "Name": "Cyberdrome"
+  },
+  {
+    "Path": "cybermnd",
+    "Name": "Cybermind"
+  },
+  {
+    "Path": "cybernoi",
+    "Name": "Cybernoid"
+  },
+  {
+    "Path": "cybernjy",
+    "Name": "Cybernoid HAGA"
+  },
+  {
+    "Path": "cyberno2",
+    "Name": "Cybernoid 2"
+  },
+  {
+    "Path": "cyber2jy",
+    "Name": "Cybernoid 2 HAGA"
+  },
+  {
+    "Path": "cyberntx",
+    "Name": "Cybernetix"
+  },
+  {
+    "Path": "dailydhr",
+    "Name": "Daily Double Horse Racing"
+  },
+  {
+    "Path": "dalekatt",
+    "Name": "Dalek Attack"
+  },
+  {
+    "Path": "daleytoc",
+    "Name": "Daley Thompson's Olymic Challenge"
+  },
+  {
+    "Path": "damessim",
+    "Name": "Dames Simulator"
+  },
+  {
+    "Path": "damocles",
+    "Name": "Damocles"
+  },
+  {
+    "Path": "dandare3",
+    "Name": "Dan Dare 3"
+  },
+  {
+    "Path": "dangmiss",
+    "Name": "Dangerous Mission"
+  },
+  {
+    "Path": "darkman",
+    "Name": "Darkman"
+  },
+  {
+    "Path": "darkcast",
+    "Name": "Dark Castle"
+  },
+  {
+    "Path": "darkfus",
+    "Name": "Dark Fusion"
+  },
+  {
+    "Path": "darkperl",
+    "Name": "Dark Pearl"
+  },
+  {
+    "Path": "darkside",
+    "Name": "Dark Side"
+  },
+  {
+    "Path": "dmunsiv1",
+    "Name": "Dave Munsie Vol 1"
+  },
+  {
+    "Path": "dayattrs",
+    "Name": "Day at the Races"
+  },
+  {
+    "Path": "dayoftph",
+    "Name": "Day of the Pharaoh"
+  },
+  {
+    "Path": "dayofv",
+    "Name": "Day of the Viper"
+  },
+  {
+    "Path": "daysofth",
+    "Name": "Days of Thunder"
+  },
+  {
+    "Path": "dday",
+    "Name": "D-Day"
+  },
+  {
+    "Path": "ddayl",
+    "Name": "D-Day alt. v."
+  },
+  {
+    "Path": "deadland",
+    "Name": "Deadland"
+  },
+  {
+    "Path": "galdregd",
+    "Name": "Death Bringer"
+  },
+  {
+    "Path": "deathbr",
+    "Name": "Deathbringer"
+  },
+  {
+    "Path": "deatstar",
+    "Name": "Deathstar"
+  },
+  {
+    "Path": "deathstr",
+    "Name": "Deathstrike"
+  },
+  {
+    "Path": "barbuw",
+    "Name": "Death Sword"
+  },
+  {
+    "Path": "deathtr",
+    "Name": "Death Trap"
+  },
+  {
+    "Path": "debut",
+    "Name": "Debut"
+  },
+  {
+    "Path": "deep",
+    "Name": "Deep"
+  },
+  {
+    "Path": "deepspac",
+    "Name": "Deep Space"
+  },
+  {
+    "Path": "defcrown",
+    "Name": "Defender of the Crown"
+  },
+  {
+    "Path": "defearth",
+    "Name": "Defenders of the Earth"
+  },
+  {
+    "Path": "deflektr",
+    "Name": "Deflektor"
+  },
+  {
+    "Path": "defndr2",
+    "Name": "Defender 2"
+  },
+  {
+    "Path": "dejavu",
+    "Name": "Deja Vu"
+  },
+  {
+    "Path": "dejavu2",
+    "Name": "Deja Vu 2"
+  },
+  {
+    "Path": "dejavuhe",
+    "Name": "Deja Vu HAGE v"
+  },
+  {
+    "Path": "deliver",
+    "Name": "Deliverance"
+  },
+  {
+    "Path": "deltap",
+    "Name": "Delta Patrol"
+  },
+  {
+    "Path": "dlxinvad",
+    "Name": "Deluxe Invaders"
+  },
+  {
+    "Path": "deluxnos",
+    "Name": "Deluxe Nostromo"
+  },
+  {
+    "Path": "delstrp",
+    "Name": "Deluxe Strip Poker"
+  },
+  {
+    "Path": "demon",
+    "Name": "Demon"
+  },
+  {
+    "Path": "demon2",
+    "Name": "Demon 2"
+  },
+  {
+    "Path": "demonblu",
+    "Name": "Demon Blue"
+  },
+  {
+    "Path": "demonst",
+    "Name": "Demons Tomb"
+  },
+  {
+    "Path": "demonswi",
+    "Name": "Demons Winter"
+  },
+  {
+    "Path": "denndnse",
+    "Name": "Dennis and Denise"
+  },
+  {
+    "Path": "denvpdc",
+    "Name": "Denver Pr. .. Couleurs"
+  },
+  {
+    "Path": "denvprds",
+    "Name": "Denver Pr. .. Des Sons"
+  },
+  {
+    "Path": "desktopg",
+    "Name": "Desktop Games - 3"
+  },
+  {
+    "Path": "deslator",
+    "Name": "Desolator"
+  },
+  {
+    "Path": "detonat",
+    "Name": "Detonator STE"
+  },
+  {
+    "Path": "deuteros",
+    "Name": "Deuteros"
+  },
+  {
+    "Path": "devious",
+    "Name": "Devious Designs"
+  },
+  {
+    "Path": "raffles",
+    "Name": "Devon Aire"
+  },
+  {
+    "Path": "dgener",
+    "Name": "D/Generation"
+  },
+  {
+    "Path": "diablo",
+    "Name": "Diablo"
+  },
+  {
+    "Path": "diamondi",
+    "Name": "Diamond  Ice"
+  },
+  {
+    "Path": "diammine",
+    "Name": "Diamond  Mine"
+  },
+  {
+    "Path": "dickshtu",
+    "Name": "Dick Shoots Them Up"
+  },
+  {
+    "Path": "diplomcy",
+    "Name": "Diplomacy"
+  },
+  {
+    "Path": "disc",
+    "Name": "Disc"
+  },
+  {
+    "Path": "discipls",
+    "Name": "Disciples of Steel"
+  },
+  {
+    "Path": "discover",
+    "Name": "Discovery"
+  },
+  {
+    "Path": "disk15",
+    "Name": "Disk15 15 games"
+  },
+  {
+    "Path": "divebomb",
+    "Name": "Dive Bomber"
+  },
+  {
+    "Path": "dizzydic",
+    "Name": "Dizzy Dice"
+  },
+  {
+    "Path": "dizzypan",
+    "Name": "Dizzy Panic"
+  },
+  {
+    "Path": "dizzyw",
+    "Name": "Dizzy Wizard"
+  },
+  {
+    "Path": "dodgem",
+    "Name": "Dodg'em"
+  },
+  {
+    "Path": "dogfight",
+    "Name": "Dogfight"
+  },
+  {
+    "Path": "dogsofw",
+    "Name": "Dogs of War"
+  },
+  {
+    "Path": "domain",
+    "Name": "Domain"
+  },
+  {
+    "Path": "dominat",
+    "Name": "Dominator"
+  },
+  {
+    "Path": "domnaton",
+    "Name": "Domination"
+  },
+  {
+    "Path": "donaldpg",
+    "Name": "Donald Ducks Playground"
+  },
+  {
+    "Path": "donaldac",
+    "Name": "Donald's Alphabet Chase"
+  },
+  {
+    "Path": "doodleb",
+    "Name": "Doodle Bug"
+  },
+  {
+    "Path": "doubdare",
+    "Name": "Double Dare"
+  },
+  {
+    "Path": "doubledr",
+    "Name": "Double Dragon"
+  },
+  {
+    "Path": "doubdr2",
+    "Name": "Double Dragon 2"
+  },
+  {
+    "Path": "doubdr3",
+    "Name": "Double Dragon 3"
+  },
+  {
+    "Path": "douglrmb",
+    "Name": "Douglas Rockmoor B.D."
+  },
+  {
+    "Path": "downhch",
+    "Name": "Downhill Challenge"
+  },
+  {
+    "Path": "downtpps",
+    "Name": "Down the Pipes"
+  },
+  {
+    "Path": "dragflam",
+    "Name": "Dragons of Flame"
+  },
+  {
+    "Path": "draglair",
+    "Name": "Dragon's Lair"
+  },
+  {
+    "Path": "dragles",
+    "Name": "Dragon's Lair IV  Escape from ..."
+  },
+  {
+    "Path": "dragmaze",
+    "Name": "Dragon Maze"
+  },
+  {
+    "Path": "dragninj",
+    "Name": "Dragon Ninja"
+  },
+  {
+    "Path": "dragonbr",
+    "Name": "Dragons Breath old v."
+  },
+  {
+    "Path": "dragonbr",
+    "Name": "Dragon Breed"
+  },
+  {
+    "Path": "dragonfl",
+    "Name": "Dragonflight"
+  },
+  {
+    "Path": "dragforc",
+    "Name": "Dragon Force"
+  },
+  {
+    "Path": "dragonl2",
+    "Name": "Dragon's Lair II"
+  },
+  {
+    "Path": "dragonl3",
+    "Name": "Dragon's Lair III"
+  },
+  {
+    "Path": "dragonld",
+    "Name": "Dragon Lord  aka Dragons Breath"
+  },
+  {
+    "Path": "dragonl",
+    "Name": "Dragonlord"
+  },
+  {
+    "Path": "dragonsc",
+    "Name": "Dragon Scape"
+  },
+  {
+    "Path": "dragonsp",
+    "Name": "Dragond Spirit"
+  },
+  {
+    "Path": "drakkhen",
+    "Name": "Drakkhen"
+  },
+  {
+    "Path": "dreadnou",
+    "Name": "Dreadnoughts"
+  },
+  {
+    "Path": "dreamzon",
+    "Name": "Dream Zone"
+  },
+  {
+    "Path": "driller",
+    "Name": "Driller"
+  },
+  {
+    "Path": "drivingf",
+    "Name": "Driving Force"
+  },
+  {
+    "Path": "droid",
+    "Name": "Droid"
+  },
+  {
+    "Path": "drwhodal",
+    "Name": "Doctor Who and Daleks"
+  },
+  {
+    "Path": "duckdash",
+    "Name": "Duck Dash"
+  },
+  {
+    "Path": "ducktals",
+    "Name": "Duck Tales"
+  },
+  {
+    "Path": "dugger",
+    "Name": "Dugger"
+  },
+  {
+    "Path": "dungeon",
+    "Name": "Dungeon"
+  },
+  {
+    "Path": "dunglord",
+    "Name": "Dungeon Lord"
+  },
+  {
+    "Path": "dm_adma",
+    "Name": "Dungeon Master ADMA"
+  },
+  {
+    "Path": "dmcsbfhd",
+    "Name": "Dungeon Master and CSB"
+  },
+  {
+    "Path": "dmfr",
+    "Name": "Dungeon Master French"
+  },
+  {
+    "Path": "dmh112",
+    "Name": "Dungeon Master a2009"
+  },
+  {
+    "Path": "dmgx",
+    "Name": "Dungeon Master GX"
+  },
+  {
+    "Path": "dmhaga",
+    "Name": "Dungeon Master HAGA"
+  },
+  {
+    "Path": "dungmast",
+    "Name": "Dungeon Master"
+  },
+  {
+    "Path": "dweabys",
+    "Name": "Dweabys Quest"
+  },
+  {
+    "Path": "dynablst",
+    "Name": "Dynablaster"
+  },
+  {
+    "Path": "dynamdux",
+    "Name": "Dynamite Dux"
+  },
+  {
+    "Path": "dynamo",
+    "Name": "Dynamo  aka Captain Dynamo"
+  },
+  {
+    "Path": "dynwars",
+    "Name": "Dynasty Wars"
+  },
+  {
+    "Path": "dyter07",
+    "Name": "Dyter-07"
+  },
+  {
+    "Path": "eaglesr",
+    "Name": "Eagle's Rider"
+  },
+  {
+    "Path": "eaglestr",
+    "Name": "Eaglestar"
+  },
+  {
+    "Path": "eco",
+    "Name": "ECO"
+  },
+  {
+    "Path": "eddtd",
+    "Name": "Edd the Duck"
+  },
+  {
+    "Path": "eddtdjy",
+    "Name": "Edd the Duck HAGA"
+  },
+  {
+    "Path": "edenbluz",
+    "Name": "Eden Blues"
+  },
+  {
+    "Path": "egerie",
+    "Name": "Egerie"
+  },
+  {
+    "Path": "ego",
+    "Name": "EGO"
+  },
+  {
+    "Path": "elecpool",
+    "Name": "Electronic Pool"
+  },
+  {
+    "Path": "elektron",
+    "Name": "Elektron"
+  },
+  {
+    "Path": "elementl",
+    "Name": "Elemental"
+  },
+  {
+    "Path": "elf",
+    "Name": "Elf"
+  },
+  {
+    "Path": "elfmv",
+    "Name": "Elf by Micro Value"
+  },
+  {
+    "Path": "eliminat",
+    "Name": "Eliminator"
+  },
+  {
+    "Path": "elimingx",
+    "Name": "Eliminator GX"
+  },
+  {
+    "Path": "eliminjy",
+    "Name": "Eliminator HAGA"
+  },
+  {
+    "Path": "elite",
+    "Name": "Elite"
+  },
+  {
+    "Path": "elite2m",
+    "Name": "Elite 2MB RAM"
+  },
+  {
+    "Path": "elvenc1",
+    "Name": "Elven Crystals 1"
+  },
+  {
+    "Path": "elvenc2",
+    "Name": "Elven Crystals 2"
+  },
+  {
+    "Path": "elviramd",
+    "Name": "Elvira Mistress of the Dark"
+  },
+  {
+    "Path": "elvira2",
+    "Name": "Elvira 2"
+  },
+  {
+    "Path": "elvira2h",
+    "Name": "Elvira 2 HD"
+  },
+  {
+    "Path": "elviraag",
+    "Name": "Elvira the Arcade Game"
+  },
+  {
+    "Path": "emmanue",
+    "Name": "Emmanuelle"
+  },
+  {
+    "Path": "empmines",
+    "Name": "Emperor of the Mines"
+  },
+  {
+    "Path": "empsbpd",
+    "Name": "Empire Strikes Back PD"
+  },
+  {
+    "Path": "emotion",
+    "Name": "E-Motion"
+  },
+  {
+    "Path": "enchland",
+    "Name": "Enchanted Land"
+  },
+  {
+    "Path": "encount",
+    "Name": "Encounter"
+  },
+  {
+    "Path": "enduror",
+    "Name": "Enduro Racer"
+  },
+  {
+    "Path": "englchsp",
+    "Name": "England Championship Special"
+  },
+  {
+    "Path": "enoc",
+    "Name": "ENOC"
+  },
+  {
+    "Path": "enterpr",
+    "Name": "Enterprise"
+  },
+  {
+    "Path": "entombed",
+    "Name": "Entombed"
+  },
+  {
+    "Path": "epicc",
+    "Name": "EPIC GX"
+  },
+  {
+    "Path": "epic",
+    "Name": "EPIC"
+  },
+  {
+    "Path": "equbuild",
+    "Name": "Equation Builder"
+  },
+  {
+    "Path": "erik",
+    "Name": "ERIK"
+  },
+  {
+    "Path": "escape",
+    "Name": "Escape"
+  },
+  {
+    "Path": "escapefp",
+    "Name": "Escape from the Planet of the Robot M."
+  },
+  {
+    "Path": "eskimgs",
+    "Name": "Eskimo Games"
+  },
+  {
+    "Path": "esprit",
+    "Name": "Esprit"
+  },
+  {
+    "Path": "ess",
+    "Name": "E.S.S. European Space Simulator"
+  },
+  {
+    "Path": "eswatjy",
+    "Name": "ESWAT JY"
+  },
+  {
+    "Path": "eternia",
+    "Name": "Eternia"
+  },
+  {
+    "Path": "eurmatho",
+    "Name": "Eureka Maths"
+  },
+  {
+    "Path": "eurmaths",
+    "Name": "Eureka Maths"
+  },
+  {
+    "Path": "eurocham",
+    "Name": "European Championship 1992"
+  },
+  {
+    "Path": "evader",
+    "Name": "Evader"
+  },
+  {
+    "Path": "eviluton",
+    "Name": "Evilution"
+  },
+  {
+    "Path": "exile",
+    "Name": "Exile"
+  },
+  {
+    "Path": "exodrom",
+    "Name": "Exodrom"
+  },
+  {
+    "Path": "exodus",
+    "Name": "Exodus"
+  },
+  {
+    "Path": "exolon",
+    "Name": "Exolon"
+  },
+  {
+    "Path": "explora3",
+    "Name": "Explora 3"
+  },
+  {
+    "Path": "extase",
+    "Name": "Extase"
+  },
+  {
+    "Path": "exterm2",
+    "Name": "Exterminate"
+  },
+  {
+    "Path": "exterm",
+    "Name": "Exterminator"
+  },
+  {
+    "Path": "eyefhor",
+    "Name": "Eye of Horus"
+  },
+  {
+    "Path": "f15semp",
+    "Name": "F15 Strike Eagle"
+  },
+  {
+    "Path": "f15se2",
+    "Name": "F15 Strike Eagle 2"
+  },
+  {
+    "Path": "f16cp",
+    "Name": "F-16 Combat Pilot"
+  },
+  {
+    "Path": "f16_falc",
+    "Name": "F-16 Falcon"
+  },
+  {
+    "Path": "f19sf",
+    "Name": "F19 Stealth Fighter"
+  },
+  {
+    "Path": "f1_ch",
+    "Name": "F1 Championship"
+  },
+  {
+    "Path": "f1gp_gx",
+    "Name": "Formula 1 GP Microprose"
+  },
+  {
+    "Path": "f1gprd",
+    "Name": "Formula 1 GP Microprose RD"
+  },
+  {
+    "Path": "f1gpu",
+    "Name": "Formula 1 GP Microprose with videos"
+  },
+  {
+    "Path": "f1tornad",
+    "Name": "F1 Tornado"
+  },
+  {
+    "Path": "f29r",
+    "Name": "F29 Retaliator"
+  },
+  {
+    "Path": "fahr451",
+    "Name": "Fahrenheit 451"
+  },
+  {
+    "Path": "falcon",
+    "Name": "Falcon  with both Mission Disks"
+  },
+  {
+    "Path": "famous5",
+    "Name": "Famous 5"
+  },
+  {
+    "Path": "fantwd",
+    "Name": "Fantasy World Dizzy"
+  },
+  {
+    "Path": "fanwor",
+    "Name": "Fanwor GEMDA"
+  },
+  {
+    "Path": "fascin",
+    "Name": "Fascination"
+  },
+  {
+    "Path": "fastfood",
+    "Name": "Fast Food"
+  },
+  {
+    "Path": "fastlane",
+    "Name": "Fast Lane"
+  },
+  {
+    "Path": "fgates",
+    "Name": "Fate Gates of Down"
+  },
+  {
+    "Path": "fategodh",
+    "Name": "Fate Gates of Down HAG2"
+  },
+  {
+    "Path": "fatemast",
+    "Name": "Fate Master"
+  },
+  {
+    "Path": "fcmanage",
+    "Name": "FC Manager"
+  },
+  {
+    "Path": "fedqbsjs",
+    "Name": "Federation Quest 1"
+  },
+  {
+    "Path": "fernanmd",
+    "Name": "Fernando Must Die"
+  },
+  {
+    "Path": "ferrari",
+    "Name": "Ferrari F1"
+  },
+  {
+    "Path": "feudall",
+    "Name": "Feudal Lords"
+  },
+  {
+    "Path": "fiendish",
+    "Name": "Fiendish Freddy's Big Top Fun"
+  },
+  {
+    "Path": "fighterb",
+    "Name": "Fighter Bomber"
+  },
+  {
+    "Path": "fightcom",
+    "Name": "Fighter Command"
+  },
+  {
+    "Path": "fightpil",
+    "Name": "Fighting Pilot"
+  },
+  {
+    "Path": "fightsoc",
+    "Name": "Fighting Soccer"
+  },
+  {
+    "Path": "finalast",
+    "Name": "Final Assault"
+  },
+  {
+    "Path": "finalcnf",
+    "Name": "Final Conflict"
+  },
+  {
+    "Path": "finalcom",
+    "Name": "Final Commander"
+  },
+  {
+    "Path": "finalfig",
+    "Name": "Final Fight"
+  },
+  {
+    "Path": "finalleg",
+    "Name": "Final Legacy"
+  },
+  {
+    "Path": "fireball",
+    "Name": "Fireball"
+  },
+  {
+    "Path": "fireblas",
+    "Name": "Fireblaster"
+  },
+  {
+    "Path": "firebrim",
+    "Name": "Fire and Brimstone"
+  },
+  {
+    "Path": "fire",
+    "Name": "Fire"
+  },
+  {
+    "Path": "fiforget",
+    "Name": "Fire and Forget"
+  },
+  {
+    "Path": "fireforg",
+    "Name": "Fire and Forget 2"
+  },
+  {
+    "Path": "firebrbk",
+    "Name": "Fire Brigade TBFK"
+  },
+  {
+    "Path": "firehawk",
+    "Name": "Firehawk"
+  },
+  {
+    "Path": "fireresc",
+    "Name": "Fire Rescue"
+  },
+  {
+    "Path": "fireice",
+    "Name": "Fire and Ice"
+  },
+  {
+    "Path": "firestar",
+    "Name": "Firestar"
+  },
+  {
+    "Path": "firestrm",
+    "Name": "Firestorm"
+  },
+  {
+    "Path": "firstcon",
+    "Name": "First Contact"
+  },
+  {
+    "Path": "firstlet",
+    "Name": "First Letters"
+  },
+  {
+    "Path": "firstpp",
+    "Name": "First Person Pinball"
+  },
+  {
+    "Path": "firstsam",
+    "Name": "First Samurai"
+  },
+  {
+    "Path": "firstshs",
+    "Name": "First Shapes"
+  },
+  {
+    "Path": "fish",
+    "Name": "Fish"
+  },
+  {
+    "Path": "fs2",
+    "Name": "Flight Simulator II with all scenarios"
+  },
+  {
+    "Path": "foti",
+    "Name": "Flight of the Intruder"
+  },
+  {
+    "Path": "flimbosq",
+    "Name": "Flimbo's Quest"
+  },
+  {
+    "Path": "flimbqjy",
+    "Name": "Flimbo's Quest HAGA"
+  },
+  {
+    "Path": "flintst",
+    "Name": "Flintstones"
+  },
+  {
+    "Path": "flipm",
+    "Name": "Flip-it & Magnose"
+  },
+  {
+    "Path": "fliptlid",
+    "Name": "Flipping the Lead"
+  },
+  {
+    "Path": "flipside",
+    "Name": "Flipside"
+  },
+  {
+    "Path": "flood",
+    "Name": "Flood"
+  },
+  {
+    "Path": "floyd",
+    "Name": "Floyd  Missing One Droid"
+  },
+  {
+    "Path": "fluffies",
+    "Name": "Fluffies"
+  },
+  {
+    "Path": "flyrobin",
+    "Name": "Fly Robin Fly"
+  },
+  {
+    "Path": "flyingsh",
+    "Name": "Flying Shark"
+  },
+  {
+    "Path": "foft",
+    "Name": "Federation of Free Traders"
+  },
+  {
+    "Path": "foodfajt",
+    "Name": "Food Fight"
+  },
+  {
+    "Path": "foolserr",
+    "Name": "Fools Errand"
+  },
+  {
+    "Path": "footbcry",
+    "Name": "Football Crazy"
+  },
+  {
+    "Path": "footoy2",
+    "Name": "Footballer of the Year 2"
+  },
+  {
+    "Path": "forball",
+    "Name": "For Ball"
+  },
+  {
+    "Path": "forgotws",
+    "Name": "Forgotten Worlds NHAGA"
+  },
+  {
+    "Path": "forgowjy",
+    "Name": "Forgotten Worlds HAGA JY"
+  },
+  {
+    "Path": "forgotw",
+    "Name": "Forgotten Worlds"
+  },
+  {
+    "Path": "forogpmv",
+    "Name": "Formula 1 GP MV"
+  },
+  {
+    "Path": "fortapac",
+    "Name": "Fort Apache"
+  },
+  {
+    "Path": "foundw",
+    "Name": "Foundation's Waste"
+  },
+  {
+    "Path": "fourf",
+    "Name": "Four-F"
+  },
+  {
+    "Path": "fourmis",
+    "Name": "Fourmi Story"
+  },
+  {
+    "Path": "foxbros",
+    "Name": "Fox Brothers"
+  },
+  {
+    "Path": "fractact",
+    "Name": "Fractal Action"
+  },
+  {
+    "Path": "frankens",
+    "Name": "Frankenstein"
+  },
+  {
+    "Path": "frankejy",
+    "Name": "Frankenstein HAGA"
+  },
+  {
+    "Path": "frankla",
+    "Name": "Frank and the Lost Aubergine"
+  },
+  {
+    "Path": "frantick",
+    "Name": "Frantick"
+  },
+  {
+    "Path": "fred",
+    "Name": "Fred"
+  },
+  {
+    "Path": "fredsfnd",
+    "Name": "Fred's Find"
+  },
+  {
+    "Path": "fredflea",
+    "Name": "Fred The Frisky Flea"
+  },
+  {
+    "Path": "guarda",
+    "Name": "Freddy Hardest"
+  },
+  {
+    "Path": "frenetic",
+    "Name": "Frenetic"
+  },
+  {
+    "Path": "frenetjy",
+    "Name": "Frenetic HAGA"
+  },
+  {
+    "Path": "frontier",
+    "Name": "Frontier"
+  },
+  {
+    "Path": "frostb",
+    "Name": "Frost Byte"
+  },
+  {
+    "Path": "fruitmch",
+    "Name": "Fruit Machine"
+  },
+  {
+    "Path": "fullmetp",
+    "Name": "Full Metal Planet"
+  },
+  {
+    "Path": "funsch2",
+    "Name": "Fun School 2"
+  },
+  {
+    "Path": "funsc2o8",
+    "Name": "Fun School 2 over 8 y"
+  },
+  {
+    "Path": "funsch3",
+    "Name": "Fun School 3"
+  },
+  {
+    "Path": "funs3y57",
+    "Name": "Fun School 3 5-7y"
+  },
+  {
+    "Path": "funsch4",
+    "Name": "Fun School 4"
+  },
+  {
+    "Path": "fs45t7y",
+    "Name": "Fun School 4 5-7y Europress"
+  },
+  {
+    "Path": "fs47t11",
+    "Name": "Fun School 4 7-11y Europress"
+  },
+  {
+    "Path": "fusion",
+    "Name": "Fusion"
+  },
+  {
+    "Path": "futureb",
+    "Name": "Future Basketball"
+  },
+  {
+    "Path": "futurgar",
+    "Name": "Future Garden"
+  },
+  {
+    "Path": "futuresp",
+    "Name": "Future Sports"
+  },
+  {
+    "Path": "futurew",
+    "Name": "Future Wars"
+  },
+  {
+    "Path": "fuzzball",
+    "Name": "Fuzzball"
+  },
+  {
+    "Path": "galaxyf",
+    "Name": "Galaxy Force"
+  },
+  {
+    "Path": "galconq",
+    "Name": "Galactic Conqueror"
+  },
+  {
+    "Path": "galempir",
+    "Name": "Galactic Empire"
+  },
+  {
+    "Path": "galemps",
+    "Name": "Galactic Empires"
+  },
+  {
+    "Path": "rivnoret",
+    "Name": "Galactic Inferno"
+  },
+  {
+    "Path": "galactpg",
+    "Name": "Galactic Playground"
+  },
+  {
+    "Path": "galactic",
+    "Name": "Galactica"
+  },
+  {
+    "Path": "galdregd",
+    "Name": "Galdregons Domain"
+  },
+  {
+    "Path": "galileo",
+    "Name": "Galileo"
+  },
+  {
+    "Path": "gameboy",
+    "Name": "Game Boy"
+  },
+  {
+    "Path": "gameconc",
+    "Name": "Game Concept"
+  },
+  {
+    "Path": "emotion",
+    "Name": "Game of Harmony, The"
+  },
+  {
+    "Path": "gameov2",
+    "Name": "Game Over 2"
+  },
+  {
+    "Path": "gamesesp",
+    "Name": "Games Espana"
+  },
+  {
+    "Path": "games_se",
+    "Name": "Games Summer Edition"
+  },
+  {
+    "Path": "garfield",
+    "Name": "Garfield"
+  },
+  {
+    "Path": "garfiewt",
+    "Name": "Garfield Winter's Tail"
+  },
+  {
+    "Path": "garylinh",
+    "Name": "Gary Lineker's Hot-Shot!"
+  },
+  {
+    "Path": "garylss",
+    "Name": "Gary Linekers Super Skills"
+  },
+  {
+    "Path": "gauntlet",
+    "Name": "Gauntlet"
+  },
+  {
+    "Path": "gauntl2",
+    "Name": "Gauntlet 2"
+  },
+  {
+    "Path": "gauntl21",
+    "Name": "Gauntlet 2 1M"
+  },
+  {
+    "Path": "gauntl3",
+    "Name": "Gauntlet 3"
+  },
+  {
+    "Path": "gazzass",
+    "Name": "Gazza Super Soccer 2"
+  },
+  {
+    "Path": "gbabask",
+    "Name": "GBA Basketball"
+  },
+  {
+    "Path": "geisha",
+    "Name": "Geisha"
+  },
+  {
+    "Path": "geminiw",
+    "Name": "Gemini Wing"
+  },
+  {
+    "Path": "geminwjy",
+    "Name": "Gemini Wing HAGA"
+  },
+  {
+    "Path": "gemstonl",
+    "Name": "Gemstone Legend"
+  },
+  {
+    "Path": "gemx",
+    "Name": "Gem'X"
+  },
+  {
+    "Path": "genstor",
+    "Name": "General Store"
+  },
+  {
+    "Path": "geofran",
+    "Name": "Geofran"
+  },
+  {
+    "Path": "germcraz",
+    "Name": "Germ Crazy"
+  },
+  {
+    "Path": "getaway",
+    "Name": "Getaway"
+  },
+  {
+    "Path": "getgems",
+    "Name": "Get Gems"
+  },
+  {
+    "Path": "getslide",
+    "Name": "Get Slide"
+  },
+  {
+    "Path": "gflchsf",
+    "Name": "GFL Championship Football"
+  },
+  {
+    "Path": "ghostb2",
+    "Name": "Ghostbusters II"
+  },
+  {
+    "Path": "ghostbtl",
+    "Name": "Ghost Battle"
+  },
+  {
+    "Path": "ghostcha",
+    "Name": "Ghost Chaser"
+  },
+  {
+    "Path": "ghostsgb",
+    "Name": "Ghosts 'n' Goblins"
+  },
+  {
+    "Path": "ghostmin",
+    "Name": "Ghost Mine"
+  },
+  {
+    "Path": "ghoulsag",
+    "Name": "Ghouls 'n' Ghosts"
+  },
+  {
+    "Path": "gilbert",
+    "Name": "Gilbert Escape From Drill"
+  },
+  {
+    "Path": "gilgalad",
+    "Name": "Gilgalad"
+  },
+  {
+    "Path": "gladkiim",
+    "Name": "Glad Killing Impact"
+  },
+  {
+    "Path": "gladiats",
+    "Name": "Gladiators"
+  },
+  {
+    "Path": "glasboft",
+    "Name": "Glass Buttock of Thurg"
+  },
+  {
+    "Path": "glob",
+    "Name": "Glob"
+  },
+  {
+    "Path": "gloc",
+    "Name": "G-loc"
+  },
+  {
+    "Path": "gnius",
+    "Name": "G.Nius"
+  },
+  {
+    "Path": "gnomer",
+    "Name": "Gnome Ranger"
+  },
+  {
+    "Path": "goup",
+    "Name": "Go-Up mchr"
+  },
+  {
+    "Path": "goal",
+    "Name": "GOAL !"
+  },
+  {
+    "Path": "goalh",
+    "Name": "GOAL ! HAGA"
+  },
+  {
+    "Path": "gobblin",
+    "Name": "Gobblin 5 STOS games"
+  },
+  {
+    "Path": "goblins2",
+    "Name": "Goblins 2"
+  },
+  {
+    "Path": "goblins",
+    "Name": "Goblins"
+  },
+  {
+    "Path": "gods",
+    "Name": "Gods"
+  },
+  {
+    "Path": "godsjy",
+    "Name": "Gods HAGA"
+  },
+  {
+    "Path": "goapovpu",
+    "Name": "Going Apes Over Puzzles"
+  },
+  {
+    "Path": "goldofam",
+    "Name": "Gold of the Americas"
+  },
+  {
+    "Path": "goldazt",
+    "Name": "Gold of the Aztecs, The"
+  },
+  {
+    "Path": "goldenax",
+    "Name": "Golden Axe"
+  },
+  {
+    "Path": "goldenp",
+    "Name": "Golden Path"
+  },
+  {
+    "Path": "goldotr",
+    "Name": "Gold of the Realm"
+  },
+  {
+    "Path": "goldr2s1",
+    "Name": "Goldrunner II  Scenery Disk 1"
+  },
+  {
+    "Path": "goldr2s2",
+    "Name": "Goldrunner II  Scenery Disk 2"
+  },
+  {
+    "Path": "goldrun2",
+    "Name": "Goldrunner II"
+  },
+  {
+    "Path": "goldrunr",
+    "Name": "Goldrunner"
+  },
+  {
+    "Path": "goldrngx",
+    "Name": "Goldrunner GX"
+  },
+  {
+    "Path": "goldrush",
+    "Name": "Gold Rush !"
+  },
+  {
+    "Path": "goldrusb",
+    "Name": "Gold Rush Budgie"
+  },
+  {
+    "Path": "gonefish",
+    "Name": "Gone Fishi'n"
+  },
+  {
+    "Path": "goofyre",
+    "Name": "Goofys Railway Express"
+  },
+  {
+    "Path": "graduman",
+    "Name": "Graduate Manager"
+  },
+  {
+    "Path": "graeme",
+    "Name": "Graeme S. V. Soccer"
+  },
+  {
+    "Path": "graffiti",
+    "Name": "Graffiti"
+  },
+  {
+    "Path": "grahgwcc",
+    "Name": "Graham Gooch World Class Cricket"
+  },
+  {
+    "Path": "grail",
+    "Name": "Grail"
+  },
+  {
+    "Path": "grandad2",
+    "Name": "Grandad 2"
+  },
+  {
+    "Path": "grandad",
+    "Name": "Grandad"
+  },
+  {
+    "Path": "grandms",
+    "Name": "Grand Monster Slam"
+  },
+  {
+    "Path": "grangard",
+    "Name": "Grannies Garden"
+  },
+  {
+    "Path": "grap",
+    "Name": "Grap"
+  },
+  {
+    "Path": "grav",
+    "Name": "GRAV"
+  },
+  {
+    "Path": "gravyard",
+    "Name": "Graveyard"
+  },
+  {
+    "Path": "gravity",
+    "Name": "Gravity"
+  },
+  {
+    "Path": "protent",
+    "Name": "Great Courts"
+  },
+  {
+    "Path": "protn2",
+    "Name": "Great Courts II"
+  },
+  {
+    "Path": "proten2",
+    "Name": "Great Courts II"
+  },
+  {
+    "Path": "greatgia",
+    "Name": "Great Giana Sisters"
+  },
+  {
+    "Path": "ggsblitt",
+    "Name": "Great Giana Sisters blitter scroll"
+  },
+  {
+    "Path": "ggs",
+    "Name": "Great Giana Sisters"
+  },
+  {
+    "Path": "ggsblfa",
+    "Name": "Great Giana Sisters Falcon"
+  },
+  {
+    "Path": "ggsctt",
+    "Name": "Great Giana Sisters TT"
+  },
+  {
+    "Path": "gia1ma",
+    "Name": "Great Giana Sisters w audio"
+  },
+  {
+    "Path": "gianaa",
+    "Name": "Great Giana Sisters w audio HAGA"
+  },
+  {
+    "Path": "gianas",
+    "Name": "Great Giana Sisters by Zamuel"
+  },
+  {
+    "Path": "gregnug",
+    "Name": "Greg Normans Ultimate Golf"
+  },
+  {
+    "Path": "gridrun",
+    "Name": "Grid Runner"
+  },
+  {
+    "Path": "gridwars",
+    "Name": "Grid Wars"
+  },
+  {
+    "Path": "gridwpl3",
+    "Name": "Grid Wars +3 games"
+  },
+  {
+    "Path": "gridiron",
+    "Name": "Gridiron!"
+  },
+  {
+    "Path": "grimblod",
+    "Name": "Grimblood"
+  },
+  {
+    "Path": "grimoire",
+    "Name": "Grimoire +3g"
+  },
+  {
+    "Path": "growth",
+    "Name": "Growth"
+  },
+  {
+    "Path": "guardian",
+    "Name": "Guardian"
+  },
+  {
+    "Path": "guarda",
+    "Name": "Guardian Angel"
+  },
+  {
+    "Path": "guildt",
+    "Name": "Guild of Thieves"
+  },
+  {
+    "Path": "gunship",
+    "Name": "Gunship"
+  },
+  {
+    "Path": "guyfawk",
+    "Name": "Guy Fawk"
+  },
+  {
+    "Path": "guyrmplf",
+    "Name": "Guy Roux Manager Planete Foot"
+  },
+  {
+    "Path": "hacker",
+    "Name": "Hacker"
+  },
+  {
+    "Path": "hacker2",
+    "Name": "Hacker 2"
+  },
+  {
+    "Path": "hacman2",
+    "Name": "HacMan II"
+  },
+  {
+    "Path": "hadesneb",
+    "Name": "Hades Nebula"
+  },
+  {
+    "Path": "hangmans",
+    "Name": "Hang Man"
+  },
+  {
+    "Path": "hamlet",
+    "Name": "Hamlet"
+  },
+  {
+    "Path": "hamboy",
+    "Name": "Hammer Boy"
+  },
+  {
+    "Path": "hammerf",
+    "Name": "Hammerfist"
+  },
+  {
+    "Path": "hanksq",
+    "Name": "Hanks Quest"
+  },
+  {
+    "Path": "harddriv",
+    "Name": "Hard Drivin"
+  },
+  {
+    "Path": "harddrv2",
+    "Name": "Hard Drivin 2"
+  },
+  {
+    "Path": "hardnhea",
+    "Name": "Hard 'n' Heavy"
+  },
+  {
+    "Path": "hardnhvy",
+    "Name": "Hard 'n' Heavy Blit"
+  },
+  {
+    "Path": "hardball",
+    "Name": "Hardball"
+  },
+  {
+    "Path": "hardnova",
+    "Name": "Hard Nova"
+  },
+  {
+    "Path": "harleqin",
+    "Name": "Harlequin"
+  },
+  {
+    "Path": "harleyd",
+    "Name": "Harley Davidson"
+  },
+  {
+    "Path": "harryup",
+    "Name": "Harry Up"
+  },
+  {
+    "Path": "hate",
+    "Name": "H.A.T.E."
+  },
+  {
+    "Path": "hawkeye",
+    "Name": "Hawkeye"
+  },
+  {
+    "Path": "headoh",
+    "Name": "Head Over Heels"
+  },
+  {
+    "Path": "heavymh",
+    "Name": "Heavy Metal Heroes"
+  },
+  {
+    "Path": "hectorvt",
+    "Name": "Hector vs the Mutant Vampire Tomatoes from Hell"
+  },
+  {
+    "Path": "heimdall",
+    "Name": "Heimdall"
+  },
+  {
+    "Path": "hellbent",
+    "Name": "Hell Bent"
+  },
+  {
+    "Path": "hellbjy",
+    "Name": "Hell Bent HAGA"
+  },
+  {
+    "Path": "hellraid",
+    "Name": "Hellraider"
+  },
+  {
+    "Path": "hellrais",
+    "Name": "Hell Raiser"
+  },
+  {
+    "Path": "hellsbal",
+    "Name": "Hells Balls"
+  },
+  {
+    "Path": "heltersk",
+    "Name": "Helter Skelter"
+  },
+  {
+    "Path": "herl2000",
+    "Name": "Heartland 2000"
+  },
+  {
+    "Path": "herman",
+    "Name": "Herman"
+  },
+  {
+    "Path": "heroesol",
+    "Name": "Heroes of Lance"
+  },
+  {
+    "Path": "heropd",
+    "Name": "H.E.R.O. PD"
+  },
+  {
+    "Path": "heroques",
+    "Name": "Hero Quest"
+  },
+  {
+    "Path": "herosq",
+    "Name": "Hero's Quest"
+  },
+  {
+    "Path": "hex",
+    "Name": "HEX"
+  },
+  {
+    "Path": "hextris",
+    "Name": "Hextris C-M"
+  },
+  {
+    "Path": "strikefh",
+    "Name": "High Roller"
+  },
+  {
+    "Path": "highwaye",
+    "Name": "Highway Encounter"
+  },
+  {
+    "Path": "highwp2",
+    "Name": "Highway Patrol II"
+  },
+  {
+    "Path": "hillsb",
+    "Name": "Hill Street Blues"
+  },
+  {
+    "Path": "hillsfar",
+    "Name": "Hillsfar"
+  },
+  {
+    "Path": "hisconr",
+    "Name": "Hiscon Rescue"
+  },
+  {
+    "Path": "hlipa",
+    "Name": "Hlipa"
+  },
+  {
+    "Path": "hhustler",
+    "Name": "Hollywood Hustler"
+  },
+  {
+    "Path": "hollyppr",
+    "Name": "Hollywood Poker Pro HAG2"
+  },
+  {
+    "Path": "hollyppd",
+    "Name": "Hollywood Poker Pro DIR"
+  },
+  {
+    "Path": "hollyppv",
+    "Name": "Hollywood Poker Pro vV."
+  },
+  {
+    "Path": "hoofhenr",
+    "Name": "Hooray for Henrietta"
+  },
+  {
+    "Path": "hoybog1",
+    "Name": "Hoyle Book of Games"
+  },
+  {
+    "Path": "hoybog2",
+    "Name": "Hoyle Book of Games 2"
+  },
+  {
+    "Path": "holocaus",
+    "Name": "Holocaust"
+  },
+  {
+    "Path": "hondarvf",
+    "Name": "Honda RVF"
+  },
+  {
+    "Path": "hondarjy",
+    "Name": "Honda RVF HAGA"
+  },
+  {
+    "Path": "hongkp",
+    "Name": "Hong Kong Phooey"
+  },
+  {
+    "Path": "hoog",
+    "Name": "Hoog"
+  },
+  {
+    "Path": "hook",
+    "Name": "Hook"
+  },
+  {
+    "Path": "hostages",
+    "Name": "Hostages"
+  },
+  {
+    "Path": "hotball",
+    "Name": "Hotball"
+  },
+  {
+    "Path": "hotwheel",
+    "Name": "Hot Wheels"
+  },
+  {
+    "Path": "houndos",
+    "Name": "Hound of Shadow"
+  },
+  {
+    "Path": "houseors",
+    "Name": "House of the Rising Sun"
+  },
+  {
+    "Path": "hoverspr",
+    "Name": "Hover Sprint"
+  },
+  {
+    "Path": "hucklebh",
+    "Name": "Huckleberry Hound"
+  },
+  {
+    "Path": "hudsonh",
+    "Name": "Hudson Hawk"
+  },
+  {
+    "Path": "hunter",
+    "Name": "Hunter"
+  },
+  {
+    "Path": "huntfro",
+    "Name": "Hunt for Red october"
+  },
+  {
+    "Path": "rivnoret",
+    "Name": "Hunting Season"
+  },
+  {
+    "Path": "hustler",
+    "Name": "Hustler"
+  },
+  {
+    "Path": "hut",
+    "Name": "Hut"
+  },
+  {
+    "Path": "hydra",
+    "Name": "Hydra"
+  },
+  {
+    "Path": "hyperbwl",
+    "Name": "Hyperbowl"
+  },
+  {
+    "Path": "hyperdom",
+    "Name": "Hyperdome"
+  },
+  {
+    "Path": "hyperfrc",
+    "Name": "Hyperforce"
+  },
+  {
+    "Path": "iball",
+    "Name": "I, Ball"
+  },
+  {
+    "Path": "iludi",
+    "Name": "I Ludicrus"
+  },
+  {
+    "Path": "ikariwar",
+    "Name": "Ikari Warriors"
+  },
+  {
+    "Path": "ik",
+    "Name": "International Karate"
+  },
+  {
+    "Path": "ikplus",
+    "Name": "IK Plus"
+  },
+  {
+    "Path": "onceupat",
+    "Name": "Il Eatait Une Fois"
+  },
+  {
+    "Path": "impact",
+    "Name": "Impact"
+  },
+  {
+    "Path": "im2",
+    "Name": "Impossible Mission 2"
+  },
+  {
+    "Path": "immortal",
+    "Name": "Immortal"
+  },
+  {
+    "Path": "impossam",
+    "Name": "Impossamole"
+  },
+  {
+    "Path": "impulse",
+    "Name": "Impulse"
+  },
+  {
+    "Path": "in80days",
+    "Name": "In 80 Days Around the World"
+  },
+  {
+    "Path": "incantat",
+    "Name": "Incantation"
+  },
+  {
+    "Path": "indimiss",
+    "Name": "Indian Mission De,Fr"
+  },
+  {
+    "Path": "indigo",
+    "Name": "Indigo"
+  },
+  {
+    "Path": "indigojy",
+    "Name": "Indigo HAGA"
+  },
+  {
+    "Path": "indijfoa",
+    "Name": "Indiana Jones and the Fate of Atlantis"
+  },
+  {
+    "Path": "indijlca",
+    "Name": "Indiana Jones and the Last Crusade Act"
+  },
+  {
+    "Path": "indijlcg",
+    "Name": "Indiana Jones and the Last Crus Gr Adv"
+  },
+  {
+    "Path": "indijtod",
+    "Name": "Indiana Jones and the Temple of Doom"
+  },
+  {
+    "Path": "indy3",
+    "Name": "Indy3"
+  },
+  {
+    "Path": "indy4",
+    "Name": "Indy4"
+  },
+  {
+    "Path": "indoors",
+    "Name": "Indoor Sports"
+  },
+  {
+    "Path": "indyheat",
+    "Name": "Indy Heat"
+  },
+  {
+    "Path": "infest",
+    "Name": "Infestation"
+  },
+  {
+    "Path": "infinitp",
+    "Name": "Infinity preview"
+  },
+  {
+    "Path": "ingridsb",
+    "Name": "Ingrid Is Back"
+  },
+  {
+    "Path": "insecide",
+    "Name": "Insecticide"
+  },
+  {
+    "Path": "insects",
+    "Name": "Insects in Space"
+  },
+  {
+    "Path": "insetrd",
+    "Name": "Insectroid"
+  },
+  {
+    "Path": "inspgrif",
+    "Name": "Inspektor Griffu"
+  },
+  {
+    "Path": "interchg",
+    "Name": "Interchange"
+  },
+  {
+    "Path": "int3dten",
+    "Name": "International 3-D Tennis"
+  },
+  {
+    "Path": "intchatl",
+    "Name": "International Challenge Athletics"
+  },
+  {
+    "Path": "intcr2",
+    "Name": "International Cricket 2"
+  },
+  {
+    "Path": "inticeh",
+    "Name": "International Ice Hockey"
+  },
+  {
+    "Path": "intninjr",
+    "Name": "International Ninja Rabbits"
+  },
+  {
+    "Path": "intsocch",
+    "Name": "International Soccer Challenge"
+  },
+  {
+    "Path": "internsc",
+    "Name": "International Sports Challenge"
+  },
+  {
+    "Path": "inttrrac",
+    "Name": "International Truck Racing"
+  },
+  {
+    "Path": "interph",
+    "Name": "Interphase"
+  },
+  {
+    "Path": "intoeagl",
+    "Name": "Into the Eagles Nest"
+  },
+  {
+    "Path": "intruder",
+    "Name": "Intruder"
+  },
+  {
+    "Path": "invaders",
+    "Name": "Invaders, Space"
+  },
+  {
+    "Path": "invadm",
+    "Name": "Invaders monochrome"
+  },
+  {
+    "Path": "invadmhe",
+    "Name": "Invaders mchr. HAGE"
+  },
+  {
+    "Path": "invest",
+    "Name": "Invest"
+  },
+  {
+    "Path": "inv_org",
+    "Name": "Invaders Org"
+  },
+  {
+    "Path": "invsfrsp",
+    "Name": "Invaders from Space"
+  },
+  {
+    "Path": "invasion",
+    "Name": "Invasion"
+  },
+  {
+    "Path": "invastac",
+    "Name": "Invasion STAC"
+  },
+  {
+    "Path": "iplay3ds",
+    "Name": "I Play 3D Soccer"
+  },
+  {
+    "Path": "ironlord",
+    "Name": "Iron Lord"
+  },
+  {
+    "Path": "ironlorf",
+    "Name": "Iron Lord Fr."
+  },
+  {
+    "Path": "ishar2",
+    "Name": "Ishar 2"
+  },
+  {
+    "Path": "ishar3",
+    "Name": "Ishar 3"
+  },
+  {
+    "Path": "ishar",
+    "Name": "Ishar"
+  },
+  {
+    "Path": "islandh",
+    "Name": "Island Hopping"
+  },
+  {
+    "Path": "iss",
+    "Name": "ISS Incredible Shrinking Sphere"
+  },
+  {
+    "Path": "ital90wc",
+    "Name": "Italia '90 World Cup Soccer"
+  },
+  {
+    "Path": "ital1990",
+    "Name": "Italy 1990"
+  },
+  {
+    "Path": "ivanhoe",
+    "Name": "Ivanhoe"
+  },
+  {
+    "Path": "iisor",
+    "Name": "Ivan Ironman Super Off Road"
+  },
+  {
+    "Path": "iznogoud",
+    "Name": "Iznogoud"
+  },
+  {
+    "Path": "jabato",
+    "Name": "Jabato"
+  },
+  {
+    "Path": "jackng",
+    "Name": "Jack Nicklaus Golf"
+  },
+  {
+    "Path": "jahsqua",
+    "Name": "Jahangir Khan Squash"
+  },
+  {
+    "Path": "jpond",
+    "Name": "James Pond"
+  },
+  {
+    "Path": "jaws",
+    "Name": "Jaws"
+  },
+  {
+    "Path": "jet",
+    "Name": "JET"
+  },
+  {
+    "Path": "jetpac",
+    "Name": "JetPac"
+  },
+  {
+    "Path": "jetsetw",
+    "Name": "JetSet Willy"
+  },
+  {
+    "Path": "jetsons",
+    "Name": "Jetsons"
+  },
+  {
+    "Path": "jewelsod",
+    "Name": "Jewels of Darkness"
+  },
+  {
+    "Path": "jigsawpm",
+    "Name": "Jigsaw Puzzlemania"
+  },
+  {
+    "Path": "jimmywws",
+    "Name": "Jimmy White Whirlwind Snooker"
+  },
+  {
+    "Path": "jimpower",
+    "Name": "Jim Power"
+  },
+  {
+    "Path": "jimpowjy",
+    "Name": "Jim Power HAGA"
+  },
+  {
+    "Path": "jinks",
+    "Name": "Jinks"
+  },
+  {
+    "Path": "joanarc",
+    "Name": "Joan of Arc"
+  },
+  {
+    "Path": "jwdarts",
+    "Name": "Jocky Wilsons Darts"
+  },
+  {
+    "Path": "joeblade",
+    "Name": "Joe Blade"
+  },
+  {
+    "Path": "jolimie",
+    "Name": "Jolimie le Village Maudit"
+  },
+  {
+    "Path": "journeyt",
+    "Name": "Journey to the Centre of the Earth"
+  },
+  {
+    "Path": "joust",
+    "Name": "Joust"
+  },
+  {
+    "Path": "jug",
+    "Name": "JUG"
+  },
+  {
+    "Path": "jumpgho",
+    "Name": "Jumping Ghost"
+  },
+  {
+    "Path": "jumpinjs",
+    "Name": "Jumping JackSon"
+  },
+  {
+    "Path": "jungleb",
+    "Name": "Jungle Book"
+  },
+  {
+    "Path": "junglboy",
+    "Name": "Jungle Boy"
+  },
+  {
+    "Path": "jungljim",
+    "Name": "Jungle Jim"
+  },
+  {
+    "Path": "jupiterm",
+    "Name": "Jupiter's Masterdrive"
+  },
+  {
+    "Path": "jupiterp",
+    "Name": "Jupiter Probe"
+  },
+  {
+    "Path": "justanos",
+    "Name": "Just Another Silly Sport Sim"
+  },
+  {
+    "Path": "justawis",
+    "Name": "Just Another War in Space"
+  },
+  {
+    "Path": "kaiser",
+    "Name": "Kaiser"
+  },
+  {
+    "Path": "kamikaze",
+    "Name": "Kamikaze"
+  },
+  {
+    "Path": "kamikajy",
+    "Name": "Kamikaze HAGA"
+  },
+  {
+    "Path": "karekid2",
+    "Name": "Karate Kid II"
+  },
+  {
+    "Path": "karaking",
+    "Name": "Karate King"
+  },
+  {
+    "Path": "karateka",
+    "Name": "Karateka"
+  },
+  {
+    "Path": "kartingp",
+    "Name": "Karting GP"
+  },
+  {
+    "Path": "kasskong",
+    "Name": "Kasskong"
+  },
+  {
+    "Path": "kaydeng",
+    "Name": "Kayden Garth"
+  },
+  {
+    "Path": "mpsoccer",
+    "Name": "Keith Van Erons Pro Soccer"
+  },
+  {
+    "Path": "kellyx",
+    "Name": "Kelly X"
+  },
+  {
+    "Path": "kennedya",
+    "Name": "Kennedy Approach"
+  },
+  {
+    "Path": "kendalsm",
+    "Name": "Kenny Dalglish Soccer Manager"
+  },
+  {
+    "Path": "kensing",
+    "Name": "Kensington"
+  },
+  {
+    "Path": "kevsw",
+    "Name": "Kev's World"
+  },
+  {
+    "Path": "keytoatl",
+    "Name": "Key to Atlantis +2"
+  },
+  {
+    "Path": "khalaan",
+    "Name": "Khalaan"
+  },
+  {
+    "Path": "khan",
+    "Name": "Khan"
+  },
+  {
+    "Path": "kickoff2",
+    "Name": "Kick Off 2"
+  },
+  {
+    "Path": "kickoff",
+    "Name": "Kick Off"
+  },
+  {
+    "Path": "kidglovs",
+    "Name": "Kid Gloves"
+  },
+  {
+    "Path": "kidglov2",
+    "Name": "Kid Gloves 2"
+  },
+  {
+    "Path": "kidgl2jy",
+    "Name": "Kid Gloves 2 HAGA"
+  },
+  {
+    "Path": "kidgp",
+    "Name": "Kid GP"
+  },
+  {
+    "Path": "kidkong",
+    "Name": "Kid Kong"
+  },
+  {
+    "Path": "kidnotes",
+    "Name": "Kidnotes"
+  },
+  {
+    "Path": "kiktris",
+    "Name": "Kiktris"
+  },
+  {
+    "Path": "killclou",
+    "Name": "Killing Cloud"
+  },
+  {
+    "Path": "killdozs",
+    "Name": "Killdozers"
+  },
+  {
+    "Path": "killerbl",
+    "Name": "Killerball"
+  },
+  {
+    "Path": "killingg",
+    "Name": "Killing Game Show, The"
+  },
+  {
+    "Path": "killmach",
+    "Name": "Killing Machine"
+  },
+  {
+    "Path": "kingmak",
+    "Name": "Kingmaker"
+  },
+  {
+    "Path": "kingofch",
+    "Name": "King of Chicago"
+  },
+  {
+    "Path": "klax",
+    "Name": "Klax"
+  },
+  {
+    "Path": "kq1",
+    "Name": "King's Quest"
+  },
+  {
+    "Path": "kingsq2",
+    "Name": "King's Quest II"
+  },
+  {
+    "Path": "kq2",
+    "Name": "King's Quest II"
+  },
+  {
+    "Path": "kq3",
+    "Name": "King's Quest III"
+  },
+  {
+    "Path": "kq4",
+    "Name": "King's Quest IV"
+  },
+  {
+    "Path": "knickerb",
+    "Name": "Knicker-Bockers"
+  },
+  {
+    "Path": "knightma",
+    "Name": "Knightmare"
+  },
+  {
+    "Path": "knighmjy",
+    "Name": "Knightmare HAGA"
+  },
+  {
+    "Path": "knighorc",
+    "Name": "Knight Orc"
+  },
+  {
+    "Path": "knightor",
+    "Name": "Knight Orc old v."
+  },
+  {
+    "Path": "knights",
+    "Name": "Knights of the Sky"
+  },
+  {
+    "Path": "kosmickr",
+    "Name": "Kosmic Krieg"
+  },
+  {
+    "Path": "kristal",
+    "Name": "Kristal"
+  },
+  {
+    "Path": "kryptegg",
+    "Name": "Krypton Egg"
+  },
+  {
+    "Path": "kubes",
+    "Name": "Kubes"
+  },
+  {
+    "Path": "kult",
+    "Name": "Kult"
+  },
+  {
+    "Path": "kwiksnax",
+    "Name": "Kwik Snax"
+  },
+  {
+    "Path": "lablexic",
+    "Name": "Labyrinthe De Lexicos"
+  },
+  {
+    "Path": "laborth",
+    "Name": "Labyrinthe d'Orthophus"
+  },
+  {
+    "Path": "lancast",
+    "Name": "Lancaster"
+  },
+  {
+    "Path": "lancelot",
+    "Name": "Lancelot"
+  },
+  {
+    "Path": "lanceltg",
+    "Name": "Lancelot TG"
+  },
+  {
+    "Path": "lasersq",
+    "Name": "Laser Squad"
+  },
+  {
+    "Path": "lastarca",
+    "Name": "Last Arcadian"
+  },
+  {
+    "Path": "lastduel",
+    "Name": "Last Duel"
+  },
+  {
+    "Path": "lastnja2",
+    "Name": "Last Ninja 2"
+  },
+  {
+    "Path": "lastnin3",
+    "Name": "Last Ninja 3"
+  },
+  {
+    "Path": "lastshoe",
+    "Name": "Last Shoot Em Up"
+  },
+  {
+    "Path": "lasttrpr",
+    "Name": "Last Trooper, The"
+  },
+  {
+    "Path": "leaderb",
+    "Name": "LeaderBoard Golf Pro, Tournament"
+  },
+  {
+    "Path": "leander",
+    "Name": "Leander"
+  },
+  {
+    "Path": "leatherg",
+    "Name": "Leather Goddesses of Phobos"
+  },
+  {
+    "Path": "leavint",
+    "Name": "Leavin' Teramis"
+  },
+  {
+    "Path": "leeensa",
+    "Name": "Lee Enfield in Space Ace"
+  },
+  {
+    "Path": "ledstorm",
+    "Name": "LED Storm"
+  },
+  {
+    "Path": "legend",
+    "Name": "Legend"
+  },
+  {
+    "Path": "legendod",
+    "Name": "Legend of Djel"
+  },
+  {
+    "Path": "legendsw",
+    "Name": "Legend of the Sword"
+  },
+  {
+    "Path": "legfaerg",
+    "Name": "Legend of Faerghail"
+  },
+  {
+    "Path": "leglost",
+    "Name": "Legend of the Lost"
+  },
+  {
+    "Path": "legofval",
+    "Name": "Legends of Valour"
+  },
+  {
+    "Path": "leisure2",
+    "Name": "Leisure Suit Larry II"
+  },
+  {
+    "Path": "leisure3",
+    "Name": "Leisure Suit Larry III"
+  },
+  {
+    "Path": "leisure",
+    "Name": "Leisure Suit Larry"
+  },
+  {
+    "Path": "lektvar",
+    "Name": "Lektvar"
+  },
+  {
+    "Path": "lemming2",
+    "Name": "Lemmings 2"
+  },
+  {
+    "Path": "lemmings",
+    "Name": "Lemmings"
+  },
+  {
+    "Path": "lemmsrd",
+    "Name": "Lemmings RD"
+  },
+  {
+    "Path": "leonardo",
+    "Name": "Leonardo"
+  },
+  {
+    "Path": "lethalha",
+    "Name": "Lethal Xcess HAGA"
+  },
+  {
+    "Path": "lethalwe",
+    "Name": "Lethal Weapon"
+  },
+  {
+    "Path": "lethalxc",
+    "Name": "Lethal Xcess"
+  },
+  {
+    "Path": "letspath",
+    "Name": "Let's Spell at Home"
+  },
+  {
+    "Path": "leviath",
+    "Name": "Leviathan"
+  },
+  {
+    "Path": "lberator",
+    "Name": "Liberator"
+  },
+  {
+    "Path": "lictk",
+    "Name": "Licence to Kill"
+  },
+  {
+    "Path": "lifeandd",
+    "Name": "Life and Death"
+  },
+  {
+    "Path": "lightcor",
+    "Name": "Light Corridor"
+  },
+  {
+    "Path": "linwuch",
+    "Name": "Lin Wu's Challenge"
+  },
+  {
+    "Path": "lineoff",
+    "Name": "Line of Fire"
+  },
+  {
+    "Path": "littlecp",
+    "Name": "Little Computer People"
+  },
+  {
+    "Path": "littlepd",
+    "Name": "Little Puff in Dragonland"
+  },
+  {
+    "Path": "liveald",
+    "Name": "Live and let Die"
+  },
+  {
+    "Path": "liverp",
+    "Name": "Liverpool"
+  },
+  {
+    "Path": "livingst",
+    "Name": "Livingstone"
+  },
+  {
+    "Path": "living2",
+    "Name": "Livingstone II"
+  },
+  {
+    "Path": "livingjs",
+    "Name": "Living Jigsaw"
+  },
+  {
+    "Path": "llamatr",
+    "Name": "Llamatron"
+  },
+  {
+    "Path": "loccrf",
+    "Name": "Location Crisslefridge"
+  },
+  {
+    "Path": "lockon",
+    "Name": "Lock-On"
+  },
+  {
+    "Path": "locobb",
+    "Name": "Locomotion (Byte Back)"
+  },
+  {
+    "Path": "locom",
+    "Name": "Locomotion"
+  },
+  {
+    "Path": "loderunn",
+    "Name": "Lode Runner"
+  },
+  {
+    "Path": "logic",
+    "Name": "Logic"
+  },
+  {
+    "Path": "lofhavoc",
+    "Name": "Lands of Havoc"
+  },
+  {
+    "Path": "logical",
+    "Name": "Logical"
+  },
+  {
+    "Path": "lombardr",
+    "Name": "Lombard Rally"
+  },
+  {
+    "Path": "loom",
+    "Name": "LOOM"
+  },
+  {
+    "Path": "loopz",
+    "Name": "Loopz"
+  },
+  {
+    "Path": "lordsofc",
+    "Name": "Lords od Chaos"
+  },
+  {
+    "Path": "lordscon",
+    "Name": "Lords of Conquest"
+  },
+  {
+    "Path": "lordsode",
+    "Name": "Lords of Doom En"
+  },
+  {
+    "Path": "lordsodd",
+    "Name": "Lords of Doom De"
+  },
+  {
+    "Path": "lorna",
+    "Name": "Lorna"
+  },
+  {
+    "Path": "lostdm",
+    "Name": "Lost Dutchman Mine"
+  },
+  {
+    "Path": "lotus",
+    "Name": "Lotus Esprit Turbo Challenge"
+  },
+  {
+    "Path": "lotus2",
+    "Name": "Lotus 2"
+  },
+  {
+    "Path": "lotus3",
+    "Name": "Lotus 3"
+  },
+  {
+    "Path": "lotusste",
+    "Name": "Lotus STE"
+  },
+  {
+    "Path": "luckyl",
+    "Name": "Lucky Luke"
+  },
+  {
+    "Path": "lumiere",
+    "Name": "Lumiere"
+  },
+  {
+    "Path": "lupoalb",
+    "Name": "Lupo Alberto"
+  },
+  {
+    "Path": "lureoft",
+    "Name": "Lure of Tempress"
+  },
+  {
+    "Path": "luxor",
+    "Name": "Luxor"
+  },
+  {
+    "Path": "m1tankpl",
+    "Name": "M1 Tank Platoon"
+  },
+  {
+    "Path": "macadamb",
+    "Name": "Macadam Bumper"
+  },
+  {
+    "Path": "mach3",
+    "Name": "Mach 3"
+  },
+  {
+    "Path": "madball",
+    "Name": "Mad Ball"
+  },
+  {
+    "Path": "maddoghd",
+    "Name": "Mad Dog Williams"
+  },
+  {
+    "Path": "madflunk",
+    "Name": "Mad Flunky"
+  },
+  {
+    "Path": "madmix",
+    "Name": "Mad Mix Game The Pepsi Challenge"
+  },
+  {
+    "Path": "madpm",
+    "Name": "Mad Professor Mariarti"
+  },
+  {
+    "Path": "mafdet",
+    "Name": "Mafdet"
+  },
+  {
+    "Path": "magicbgx",
+    "Name": "Magic Boy GX"
+  },
+  {
+    "Path": "magicbrd",
+    "Name": "Magic Boy RD"
+  },
+  {
+    "Path": "magicb1m",
+    "Name": "Magic Boy 1M"
+  },
+  {
+    "Path": "magicfly",
+    "Name": "Magic Fly"
+  },
+  {
+    "Path": "magiclin",
+    "Name": "Magic Lines"
+  },
+  {
+    "Path": "magicp",
+    "Name": "Magic Pockets"
+  },
+  {
+    "Path": "magicpjy",
+    "Name": "Magic Pockets HAGA"
+  },
+  {
+    "Path": "magicq",
+    "Name": "Magic Quest"
+  },
+  {
+    "Path": "magicshp",
+    "Name": "Magic Shop, The"
+  },
+  {
+    "Path": "mstones",
+    "Name": "Magic Stones"
+  },
+  {
+    "Path": "magicsb",
+    "Name": "Magic Story Book"
+  },
+  {
+    "Path": "magadvhm",
+    "Name": "Magical Adv. in a Haunted M."
+  },
+  {
+    "Path": "maganagr",
+    "Name": "Magical Anagrams"
+  },
+  {
+    "Path": "magmath1",
+    "Name": "Magical Math 1"
+  },
+  {
+    "Path": "magmath3",
+    "Name": "Magical Math 3"
+  },
+  {
+    "Path": "magld",
+    "Name": "Magicland Dizzy"
+  },
+  {
+    "Path": "magldzjy",
+    "Name": "Magicland Dizzy HAGA"
+  },
+  {
+    "Path": "magnetik",
+    "Name": "Magnetik"
+  },
+  {
+    "Path": "magnscr3",
+    "Name": "Magnetic Scrolls Compilation"
+  },
+  {
+    "Path": "majormot",
+    "Name": "Major Motion"
+  },
+  {
+    "Path": "makinwh",
+    "Name": "Makin Whoopee"
+  },
+  {
+    "Path": "mftc",
+    "Name": "Man from the Council, The"
+  },
+  {
+    "Path": "manchuni",
+    "Name": "Manchester United Europe"
+  },
+  {
+    "Path": "mangemot",
+    "Name": "Mangemot"
+  },
+  {
+    "Path": "manhatad",
+    "Name": "Manhattan Dealers"
+  },
+  {
+    "Path": "manhunt2",
+    "Name": "Manhunter 2"
+  },
+  {
+    "Path": "manhunt",
+    "Name": "Manhunter"
+  },
+  {
+    "Path": "maniacm",
+    "Name": "Maniac Mansion"
+  },
+  {
+    "Path": "maniax",
+    "Name": "Maniax"
+  },
+  {
+    "Path": "manix",
+    "Name": "Manix"
+  },
+  {
+    "Path": "manoircf",
+    "Name": "Manoir du Comte Frozarda"
+  },
+  {
+    "Path": "marblem",
+    "Name": "Marble Madness"
+  },
+  {
+    "Path": "marepols",
+    "Name": "Marepolis"
+  },
+  {
+    "Path": "margoul",
+    "Name": "Margoulin, Le"
+  },
+  {
+    "Path": "mariasxb",
+    "Name": "Maria's Christmas Box"
+  },
+  {
+    "Path": "mariosq",
+    "Name": "Mario's Quest"
+  },
+  {
+    "Path": "marquej",
+    "Name": "Marque Jaune"
+  },
+  {
+    "Path": "mascotte",
+    "Name": "Mascotte"
+  },
+  {
+    "Path": "masque",
+    "Name": "Masque"
+  },
+  {
+    "Path": "masterbk",
+    "Name": "MasterBreak"
+  },
+  {
+    "Path": "masterbl",
+    "Name": "Masterblazer"
+  },
+  {
+    "Path": "mastersc",
+    "Name": "Masters of Chaos"
+  },
+  {
+    "Path": "mastersu",
+    "Name": "Masters of the Universe"
+  },
+  {
+    "Path": "matahari",
+    "Name": "Mata Hari"
+  },
+  {
+    "Path": "matchotd",
+    "Name": "Match of the Day"
+  },
+  {
+    "Path": "mathsdra",
+    "Name": "Maths Dragons"
+  },
+  {
+    "Path": "matrixma",
+    "Name": "Matrix Marauders"
+  },
+  {
+    "Path": "maupiti",
+    "Name": "Maupiti Island"
+  },
+  {
+    "Path": "maya",
+    "Name": "Maya"
+  },
+  {
+    "Path": "mayafr",
+    "Name": "Maya FR"
+  },
+  {
+    "Path": "mcdonald",
+    "Name": "McDonaldland"
+  },
+  {
+    "Path": "mean18",
+    "Name": "Mean 18"
+  },
+  {
+    "Path": "meanmach",
+    "Name": "Mean Machine"
+  },
+  {
+    "Path": "meanstrt",
+    "Name": "Mean Streets"
+  },
+  {
+    "Path": "mediechs",
+    "Name": "Medieval Chess"
+  },
+  {
+    "Path": "megaloma",
+    "Name": "Mega lo Mania"
+  },
+  {
+    "Path": "megaphoe",
+    "Name": "Mega Phoenix"
+  },
+  {
+    "Path": "megapede",
+    "Name": "Megapede"
+  },
+  {
+    "Path": "megaroid",
+    "Name": "Megaroid"
+  },
+  {
+    "Path": "megatrav",
+    "Name": "Megatraveller"
+  },
+  {
+    "Path": "megatw",
+    "Name": "Mega Twins"
+  },
+  {
+    "Path": "megatwjy",
+    "Name": "Mega Twins HAGA"
+  },
+  {
+    "Path": "melodik",
+    "Name": "Melodik"
+  },
+  {
+    "Path": "memorise",
+    "Name": "Memorise"
+  },
+  {
+    "Path": "memorym",
+    "Name": "Memory Master"
+  },
+  {
+    "Path": "menace",
+    "Name": "Menace"
+  },
+  {
+    "Path": "mercen3",
+    "Name": "Mercenary 3"
+  },
+  {
+    "Path": "mercesse",
+    "Name": "Mercenary Escape from Targ & Second C."
+  },
+  {
+    "Path": "mercs",
+    "Name": "Mercs"
+  },
+  {
+    "Path": "merchcol",
+    "Name": "Merchant Colony"
+  },
+  {
+    "Path": "metalmh",
+    "Name": "Metal Masters"
+  },
+  {
+    "Path": "metalmut",
+    "Name": "Metal Mutants"
+  },
+  {
+    "Path": "metrocrs",
+    "Name": "MetroCross"
+  },
+  {
+    "Path": "metropol",
+    "Name": "Metropolis"
+  },
+  {
+    "Path": "meurtser",
+    "Name": "Meurtres en Serie"
+  },
+  {
+    "Path": "mewilo",
+    "Name": "Mewilo De,Fr"
+  },
+  {
+    "Path": "miamivic",
+    "Name": "Miami Vice"
+  },
+  {
+    "Path": "michmike",
+    "Name": "Michigen Mike"
+  },
+  {
+    "Path": "mickeym",
+    "Name": "Mickey Mouse"
+  },
+  {
+    "Path": "mickeyrz",
+    "Name": "Mickey's Runaway Zoo"
+  },
+  {
+    "Path": "midimaze",
+    "Name": "Midi Maze"
+  },
+  {
+    "Path": "midnigr",
+    "Name": "Midnight Resistance"
+  },
+  {
+    "Path": "midwint",
+    "Name": "Midwinter"
+  },
+  {
+    "Path": "midwnt2",
+    "Name": "Midwinter 2"
+  },
+  {
+    "Path": "mig29",
+    "Name": "Mig 29"
+  },
+  {
+    "Path": "mig29ii",
+    "Name": "Mig 29M Super Fulcrum"
+  },
+  {
+    "Path": "mightybj",
+    "Name": "Mighty Bombjack"
+  },
+  {
+    "Path": "mikeread",
+    "Name": "Mike Reads CP Quiz"
+  },
+  {
+    "Path": "mill22",
+    "Name": "Millennium 2.2"
+  },
+  {
+    "Path": "mill22g",
+    "Name": "Millennium 2.2 GX"
+  },
+  {
+    "Path": "milliped",
+    "Name": "Millipede"
+  },
+  {
+    "Path": "mindfvoy",
+    "Name": "Mind Forever Voyaging"
+  },
+  {
+    "Path": "mindbend",
+    "Name": "Mindbender"
+  },
+  {
+    "Path": "mindshad",
+    "Name": "Mindshadow"
+  },
+  {
+    "Path": "mjeusjeu",
+    "Name": "Mini Jeu S Jeu"
+  },
+  {
+    "Path": "minigolf",
+    "Name": "Minigolf"
+  },
+  {
+    "Path": "minigexm",
+    "Name": "Mini Golf Extended"
+  },
+  {
+    "Path": "miprgolf",
+    "Name": "Microprose Golf"
+  },
+  {
+    "Path": "missc86",
+    "Name": "Missile Command 1986"
+  },
+  {
+    "Path": "misselev",
+    "Name": "Mission Elevator"
+  },
+  {
+    "Path": "missilec",
+    "Name": "Missile Command"
+  },
+  {
+    "Path": "mission",
+    "Name": "Mission"
+  },
+  {
+    "Path": "missionm",
+    "Name": "Mission Mouse"
+  },
+  {
+    "Path": "missndz",
+    "Name": "Mission Deadzone"
+  },
+  {
+    "Path": "mixmatch",
+    "Name": "Mix and Match"
+  },
+  {
+    "Path": "mixedumg",
+    "Name": "Mixed Up Mother Goose"
+  },
+  {
+    "Path": "moebius",
+    "Name": "Moebius"
+  },
+  {
+    "Path": "monkbal",
+    "Name": "Monkeys & Balloons"
+  },
+  {
+    "Path": "monsterb",
+    "Name": "Monster Business"
+  },
+  {
+    "Path": "moonbase",
+    "Name": "Moonbase"
+  },
+  {
+    "Path": "moonfall",
+    "Name": "MoonFall"
+  },
+  {
+    "Path": "moonblas",
+    "Name": "Moon Blaster"
+  },
+  {
+    "Path": "moonbla1",
+    "Name": "Moon Blaster wo. TS"
+  },
+  {
+    "Path": "moonpatr",
+    "Name": "Moon Patrol"
+  },
+  {
+    "Path": "moonwalk",
+    "Name": "Moon Walk"
+  },
+  {
+    "Path": "moonshr",
+    "Name": "Moonshine Racers"
+  },
+  {
+    "Path": "mortvill",
+    "Name": "Mortville Manor"
+  },
+  {
+    "Path": "mortvmfr",
+    "Name": "Mortville Manor FR"
+  },
+  {
+    "Path": "mot",
+    "Name": "MOT"
+  },
+  {
+    "Path": "motobmad",
+    "Name": "Motorbike Madness"
+  },
+  {
+    "Path": "motrhead",
+    "Name": "Motorhead"
+  },
+  {
+    "Path": "mousetr",
+    "Name": "Mouse Trap"
+  },
+  {
+    "Path": "mouthtrp",
+    "Name": "Mouth Trap"
+  },
+  {
+    "Path": "mp_golf",
+    "Name": "Microprose Golf GX"
+  },
+  {
+    "Path": "mpsoccer",
+    "Name": "Microprose Soccer"
+  },
+  {
+    "Path": "mobsterc",
+    "Name": "Mobster City"
+  },
+  {
+    "Path": "moneyspn",
+    "Name": "Money Spinner"
+  },
+  {
+    "Path": "mrdig",
+    "Name": "Mr Dig"
+  },
+  {
+    "Path": "mrdorr",
+    "Name": "Mr Do Run Run"
+  },
+  {
+    "Path": "mrheli",
+    "Name": "Mr Heli"
+  },
+  {
+    "Path": "mrdash",
+    "Name": "Mr.Dash"
+  },
+  {
+    "Path": "mrsmunch",
+    "Name": "Mrs Munchie"
+  },
+  {
+    "Path": "mspac",
+    "Name": "Ms.Pac"
+  },
+  {
+    "Path": "mudpies",
+    "Name": "Mudpies"
+  },
+  {
+    "Path": "multipm",
+    "Name": "Multi Pakman"
+  },
+  {
+    "Path": "multpsm",
+    "Name": "Multi Plater Soccer Man."
+  },
+  {
+    "Path": "munsters",
+    "Name": "Munsters"
+  },
+  {
+    "Path": "murder",
+    "Name": "Murder"
+  },
+  {
+    "Path": "murdven",
+    "Name": "Murder in Venice"
+  },
+  {
+    "Path": "muzzy",
+    "Name": "Muzzy"
+  },
+  {
+    "Path": "mystical",
+    "Name": "Mystical"
+  },
+  {
+    "Path": "mystmum",
+    "Name": "Mystery of Mummy"
+  },
+  {
+    "Path": "mysticr",
+    "Name": "Mystic Realm"
+  },
+  {
+    "Path": "narcpol",
+    "Name": "Narco Police"
+  },
+  {
+    "Path": "navymvs",
+    "Name": "Navy Moves"
+  },
+  {
+    "Path": "navysels",
+    "Name": "Navy Seals"
+  },
+  {
+    "Path": "nautilus",
+    "Name": "Nautilus"
+  },
+  {
+    "Path": "nebulus",
+    "Name": "Nebulus"
+  },
+  {
+    "Path": "nebuljy",
+    "Name": "Nebulus HAGA"
+  },
+  {
+    "Path": "necron",
+    "Name": "Necron"
+  },
+  {
+    "Path": "neighb",
+    "Name": "Neighbours"
+  },
+  {
+    "Path": "netherw",
+    "Name": "Netherworld"
+  },
+  {
+    "Path": "netherjy",
+    "Name": "Netherworld HAGA"
+  },
+  {
+    "Path": "nevermin",
+    "Name": "Nevermind"
+  },
+  {
+    "Path": "newzs",
+    "Name": "New Zealand Story"
+  },
+  {
+    "Path": "nickyb",
+    "Name": "Nicky Boom"
+  },
+  {
+    "Path": "nicky2",
+    "Name": "Nicky Boom 2"
+  },
+  {
+    "Path": "nigelmw",
+    "Name": "Nigel Mansell's World Championship"
+  },
+  {
+    "Path": "nightdwn",
+    "Name": "Nightdown"
+  },
+  {
+    "Path": "nighthun",
+    "Name": "Night Hunter"
+  },
+  {
+    "Path": "nightsh",
+    "Name": "Night Shift"
+  },
+  {
+    "Path": "ninepria",
+    "Name": "Nine Princes in Amber"
+  },
+  {
+    "Path": "ninjam",
+    "Name": "Ninja Mission"
+  },
+  {
+    "Path": "ninjarab",
+    "Name": "Ninja Rabbits"
+  },
+  {
+    "Path": "ninjarmx",
+    "Name": "Ninja Remix"
+  },
+  {
+    "Path": "ninjaspi",
+    "Name": "Ninja Spirit"
+  },
+  {
+    "Path": "ninjawrs",
+    "Name": "Ninja Warriors"
+  },
+  {
+    "Path": "nishiran",
+    "Name": "Nishiran"
+  },
+  {
+    "Path": "nitro",
+    "Name": "Nitro"
+  },
+  {
+    "Path": "superstm",
+    "Name": "Nitro Boost Challenge"
+  },
+  {
+    "Path": "nobuddl",
+    "Name": "No Buddies Land"
+  },
+  {
+    "Path": "noddyspt",
+    "Name": "Noddy's Playtime"
+  },
+  {
+    "Path": "noexcuse",
+    "Name": "No Excuse"
+  },
+  {
+    "Path": "noexit",
+    "Name": "No Exit"
+  },
+  {
+    "Path": "nolimit2",
+    "Name": "No Limit 2"
+  },
+  {
+    "Path": "nomherm",
+    "Name": "Nom de l'Hermine"
+  },
+  {
+    "Path": "nortsout",
+    "Name": "North and South"
+  },
+  {
+    "Path": "northsta",
+    "Name": "Northstar"
+  },
+  {
+    "Path": "nosecp",
+    "Name": "No Second Prize"
+  },
+  {
+    "Path": "nostram",
+    "Name": "Nostram"
+  },
+  {
+    "Path": "nova",
+    "Name": "Nova"
+  },
+  {
+    "Path": "nowprzgi",
+    "Name": "Nowe Przygody Gilberta"
+  },
+  {
+    "Path": "numero10",
+    "Name": "Numero 10"
+  },
+  {
+    "Path": "obitus",
+    "Name": "Obitus"
+  },
+  {
+    "Path": "obliter",
+    "Name": "Obliterator"
+  },
+  {
+    "Path": "obscure",
+    "Name": "Obscure Naturalist"
+  },
+  {
+    "Path": "obsess",
+    "Name": "Obsession"
+  },
+  {
+    "Path": "offshw",
+    "Name": "Offshore Warrior"
+  },
+  {
+    "Path": "ogre",
+    "Name": "OGRE"
+  },
+  {
+    "Path": "ohnomorl",
+    "Name": "Oh-no! more Lemmings"
+  },
+  {
+    "Path": "oids",
+    "Name": "OIDS HAGA"
+  },
+  {
+    "Path": "oidshd",
+    "Name": "OIDS"
+  },
+  {
+    "Path": "oidsmhd",
+    "Name": "OIDS modded"
+  },
+  {
+    "Path": "oilimphe",
+    "Name": "Oil Imperium HAGE"
+  },
+  {
+    "Path": "oilmania",
+    "Name": "Oilmania"
+  },
+  {
+    "Path": "oldtowrs",
+    "Name": "Old Towers"
+  },
+  {
+    "Path": "oliver",
+    "Name": "Oliver and Company"
+  },
+  {
+    "Path": "omarshab",
+    "Name": "Omar Sharif's Bridge"
+  },
+  {
+    "Path": "omega",
+    "Name": "Omega"
+  },
+  {
+    "Path": "omnicron",
+    "Name": "Omnicron Conspiracy"
+  },
+  {
+    "Path": "onceupat",
+    "Name": "Once Upon a Time"
+  },
+  {
+    "Path": "onceabra",
+    "Name": "Once Upon a Time  Abracadabra"
+  },
+  {
+    "Path": "onemorbr",
+    "Name": "One More Breakout"
+  },
+  {
+    "Path": "onestepb",
+    "Name": "One Step Beyond"
+  },
+  {
+    "Path": "onslaug",
+    "Name": "Onslaught"
+  },
+  {
+    "Path": "onthroad",
+    "Name": "On the Road"
+  },
+  {
+    "Path": "onyx",
+    "Name": "Onyx"
+  },
+  {
+    "Path": "ootopos",
+    "Name": "Oo-Topos"
+  },
+  {
+    "Path": "operharr",
+    "Name": "Operation Harrier"
+  },
+  {
+    "Path": "opgarf",
+    "Name": "Operation Garfield"
+  },
+  {
+    "Path": "ophormuz",
+    "Name": "Operation Hormuz"
+  },
+  {
+    "Path": "opneptun",
+    "Name": "Operation Neptune"
+  },
+  {
+    "Path": "opsteale",
+    "Name": "Operation Stealth"
+  },
+  {
+    "Path": "opstealf",
+    "Name": "Operation Stealth Fr."
+  },
+  {
+    "Path": "operthun",
+    "Name": "Operation Thunderbolt"
+  },
+  {
+    "Path": "opwolf",
+    "Name": "Operation Wolf"
+  },
+  {
+    "Path": "orbit2k",
+    "Name": "Orbit 2000"
+  },
+  {
+    "Path": "orbit",
+    "Name": "Orbit"
+  },
+  {
+    "Path": "orbiter",
+    "Name": "Orbiter"
+  },
+  {
+    "Path": "orionsr",
+    "Name": "Orion's Run"
+  },
+  {
+    "Path": "ork",
+    "Name": "Ork"
+  },
+  {
+    "Path": "otherplc",
+    "Name": "Other Place"
+  },
+  {
+    "Path": "outboard",
+    "Name": "Out Board"
+  },
+  {
+    "Path": "anotherw",
+    "Name": "Out of this World"
+  },
+  {
+    "Path": "outcast",
+    "Name": "Outcast"
+  },
+  {
+    "Path": "outerl",
+    "Name": "Outer Limits"
+  },
+  {
+    "Path": "outrune",
+    "Name": "Outrun Europe"
+  },
+  {
+    "Path": "outruejy",
+    "Name": "Outrun Europe HAGA"
+  },
+  {
+    "Path": "outrun",
+    "Name": "Outrun"
+  },
+  {
+    "Path": "outzone",
+    "Name": "Outzone"
+  },
+  {
+    "Path": "overland",
+    "Name": "Overlander"
+  },
+  {
+    "Path": "overlnd",
+    "Name": "Overlander"
+  },
+  {
+    "Path": "overlord",
+    "Name": "Overlord"
+  },
+  {
+    "Path": "oversci",
+    "Name": "Overscan Invaders"
+  },
+  {
+    "Path": "oxxonian",
+    "Name": "Oxxonian"
+  },
+  {
+    "Path": "oxyd2",
+    "Name": "Oxyd 2"
+  },
+  {
+    "Path": "oxydcol",
+    "Name": "Oxyd Color"
+  },
+  {
+    "Path": "oxydf",
+    "Name": "Oxyd for Falcon, TT"
+  },
+  {
+    "Path": "oxydh",
+    "Name": "Oxyd high res"
+  },
+  {
+    "Path": "oxydmgnm",
+    "Name": "Oxyd Magnum"
+  },
+  {
+    "Path": "ozone",
+    "Name": "Ozone"
+  },
+  {
+    "Path": "p47",
+    "Name": "P47 Thunderbolt"
+  },
+  {
+    "Path": "pacatack",
+    "Name": "Pac Attack"
+  },
+  {
+    "Path": "pacland",
+    "Name": "Pac-Land"
+  },
+  {
+    "Path": "pacman",
+    "Name": "Pacman"
+  },
+  {
+    "Path": "pacmania",
+    "Name": "Pacmania"
+  },
+  {
+    "Path": "pacmanoe",
+    "Name": "Pacman on E"
+  },
+  {
+    "Path": "pacmanst",
+    "Name": "Pacman ST"
+  },
+  {
+    "Path": "pmtymg",
+    "Name": "Pacman Type Maze Game"
+  },
+  {
+    "Path": "painter",
+    "Name": "Painter"
+  },
+  {
+    "Path": "painterf",
+    "Name": "Painter"
+  },
+  {
+    "Path": "pakiman",
+    "Name": "Pakiman"
+  },
+  {
+    "Path": "pandora",
+    "Name": "Pandora"
+  },
+  {
+    "Path": "pang",
+    "Name": "Pang"
+  },
+  {
+    "Path": "panzab",
+    "Name": "Panza Kick Boxing"
+  },
+  {
+    "Path": "paperboy",
+    "Name": "Paperboy"
+  },
+  {
+    "Path": "paradr90",
+    "Name": "Paradroid 90"
+  },
+  {
+    "Path": "parpaint",
+    "Name": "Parallax Painter"
+  },
+  {
+    "Path": "parasols",
+    "Name": "Parasol Stars"
+  },
+  {
+    "Path": "paraglid",
+    "Name": "Paragliding"
+  },
+  {
+    "Path": "passw2",
+    "Name": "Passagers du Vent En,Fr"
+  },
+  {
+    "Path": "passwind",
+    "Name": "Passengers on the Wind En,Fr"
+  },
+  {
+    "Path": "passings",
+    "Name": "Passing Shot"
+  },
+  {
+    "Path": "patrican",
+    "Name": "Patrician"
+  },
+  {
+    "Path": "pegasus",
+    "Name": "Pegasus"
+  },
+  {
+    "Path": "peggamon",
+    "Name": "Peggammon"
+  },
+  {
+    "Path": "penguin",
+    "Name": "Penguin"
+  },
+  {
+    "Path": "pengy",
+    "Name": "Pengy"
+  },
+  {
+    "Path": "perils",
+    "Name": "Perils of Penfold"
+  },
+  {
+    "Path": "perplex",
+    "Name": "Perplexia"
+  },
+  {
+    "Path": "permcomm",
+    "Name": "Perry Mason TCOTMM"
+  },
+  {
+    "Path": "perseea",
+    "Name": "Persee et Andromede"
+  },
+  {
+    "Path": "persguin",
+    "Name": "Persian Gulf Inferno"
+  },
+  {
+    "Path": "persifal",
+    "Name": "Persifal"
+  },
+  {
+    "Path": "persnm",
+    "Name": "Personal Nightmare"
+  },
+  {
+    "Path": "petbintf",
+    "Name": "Peter Beardsley's IF"
+  },
+  {
+    "Path": "peterpan",
+    "Name": "Peter Pan"
+  },
+  {
+    "Path": "petitlec",
+    "Name": "Petit Lecteur"
+  },
+  {
+    "Path": "pexeso",
+    "Name": "Pexeso"
+  },
+  {
+    "Path": "phantas2",
+    "Name": "Phantasie 2"
+  },
+  {
+    "Path": "phantas3",
+    "Name": "Phantasie 3"
+  },
+  {
+    "Path": "phantasi",
+    "Name": "Phantasie"
+  },
+  {
+    "Path": "phantasm",
+    "Name": "Phantasm"
+  },
+  {
+    "Path": "phanslay",
+    "Name": "Phantom Slayer"
+  },
+  {
+    "Path": "pharaoh3",
+    "Name": "Pharaoh 3"
+  },
+  {
+    "Path": "phobia",
+    "Name": "Phobia"
+  },
+  {
+    "Path": "phoenix",
+    "Name": "Phoenix"
+  },
+  {
+    "Path": "photons",
+    "Name": "Photon Storm"
+  },
+  {
+    "Path": "physv2",
+    "Name": "Physics Vol 2"
+  },
+  {
+    "Path": "picknpil",
+    "Name": "Pick'n Pile"
+  },
+  {
+    "Path": "picsou",
+    "Name": "Picsou"
+  },
+  {
+    "Path": "pictime",
+    "Name": "Picture Time"
+  },
+  {
+    "Path": "piebillg",
+    "Name": "Pie Bill Gates"
+  },
+  {
+    "Path": "pinballf",
+    "Name": "Pinball Factory"
+  },
+  {
+    "Path": "pinballm",
+    "Name": "Pinball Magic"
+  },
+  {
+    "Path": "pinkp",
+    "Name": "Pink Panther"
+  },
+  {
+    "Path": "pipeman",
+    "Name": "Pipe Dream"
+  },
+  {
+    "Path": "pipdrejy",
+    "Name": "Pipe Dream HAGA"
+  },
+  {
+    "Path": "pipeman",
+    "Name": "Pipe Mania"
+  },
+  {
+    "Path": "pirates",
+    "Name": "Pirates"
+  },
+  {
+    "Path": "pirobarb",
+    "Name": "Pirates of Barbary Coast"
+  },
+  {
+    "Path": "pitfig",
+    "Name": "Pit Fighter"
+  },
+  {
+    "Path": "pixied",
+    "Name": "Pixie & Dixie"
+  },
+  {
+    "Path": "plan9fos",
+    "Name": "Plan 9 From Outer Space"
+  },
+  {
+    "Path": "platfcap",
+    "Name": "Platform Capers"
+  },
+  {
+    "Path": "platoon",
+    "Name": "Platoon"
+  },
+  {
+    "Path": "playerma",
+    "Name": "Player Manager"
+  },
+  {
+    "Path": "playerme",
+    "Name": "Player Manager E"
+  },
+  {
+    "Path": "plotting",
+    "Name": "Plotting"
+  },
+  {
+    "Path": "plutos",
+    "Name": "Plutos"
+  },
+  {
+    "Path": "polepos",
+    "Name": "Pole Position"
+  },
+  {
+    "Path": "polques1",
+    "Name": "Police Quest"
+  },
+  {
+    "Path": "pq2",
+    "Name": "Police Quest II"
+  },
+  {
+    "Path": "pool",
+    "Name": "Pool"
+  },
+  {
+    "Path": "popup",
+    "Name": "Pop up"
+  },
+  {
+    "Path": "popeye2",
+    "Name": "Popeye 2"
+  },
+  {
+    "Path": "popul2",
+    "Name": "Populous 2"
+  },
+  {
+    "Path": "popul2h",
+    "Name": "Populous 2"
+  },
+  {
+    "Path": "populous",
+    "Name": "Populous"
+  },
+  {
+    "Path": "postmanp",
+    "Name": "Postman Pat"
+  },
+  {
+    "Path": "postmp3",
+    "Name": "Postman Pat 3"
+  },
+  {
+    "Path": "pothole2",
+    "Name": "Pothole 2"
+  },
+  {
+    "Path": "pothp",
+    "Name": "Pothole Pete"
+  },
+  {
+    "Path": "potswco",
+    "Name": "Potsworth & Co"
+  },
+  {
+    "Path": "powerbu",
+    "Name": "Powerboat USA"
+  },
+  {
+    "Path": "powerdrf",
+    "Name": "Power Drift"
+  },
+  {
+    "Path": "powerdrm",
+    "Name": "Powerdrome"
+  },
+  {
+    "Path": "powplay",
+    "Name": "Power Play"
+  },
+  {
+    "Path": "powerstr",
+    "Name": "Power Struggle"
+  },
+  {
+    "Path": "predator",
+    "Name": "Predator"
+  },
+  {
+    "Path": "predatr2",
+    "Name": "Predator 2"
+  },
+  {
+    "Path": "prehist",
+    "Name": "Prehistorik"
+  },
+  {
+    "Path": "prehistt",
+    "Name": "Prehistorik Tale, A"
+  },
+  {
+    "Path": "prensorm",
+    "Name": "Prensorium"
+  },
+  {
+    "Path": "presel",
+    "Name": "President Elect"
+  },
+  {
+    "Path": "presmiss",
+    "Name": "President is Missing"
+  },
+  {
+    "Path": "primtime",
+    "Name": "Prime Time"
+  },
+  {
+    "Path": "prince",
+    "Name": "Prince"
+  },
+  {
+    "Path": "popdmaa",
+    "Name": "Princ of Persia DMAA"
+  },
+  {
+    "Path": "pop",
+    "Name": "Princ of Persia"
+  },
+  {
+    "Path": "prinydiz",
+    "Name": "Prince of the YolkFolk Dizzy"
+  },
+  {
+    "Path": "prdizjy",
+    "Name": "Prince of the Y HAGA"
+  },
+  {
+    "Path": "prison",
+    "Name": "Prison"
+  },
+  {
+    "Path": "proboxs",
+    "Name": "Pro Box Simulator"
+  },
+  {
+    "Path": "prodarts",
+    "Name": "Pro Darts"
+  },
+  {
+    "Path": "profligh",
+    "Name": "ProFlight"
+  },
+  {
+    "Path": "prohibit",
+    "Name": "Prohibition"
+  },
+  {
+    "Path": "projecty",
+    "Name": "Projectyle"
+  },
+  {
+    "Path": "projterr",
+    "Name": "Project Terra"
+  },
+  {
+    "Path": "prophecy",
+    "Name": "Prophecy"
+  },
+  {
+    "Path": "propwbs",
+    "Name": "Pro PowerBoat Simulator"
+  },
+  {
+    "Path": "protectr",
+    "Name": "Protector"
+  },
+  {
+    "Path": "protent",
+    "Name": "Pro Tennis Tour"
+  },
+  {
+    "Path": "protn2",
+    "Name": "Pro Tennis Tour 2"
+  },
+  {
+    "Path": "proten2",
+    "Name": "Pro Tennis Tour 2"
+  },
+  {
+    "Path": "psionchs",
+    "Name": "Psion Chess"
+  },
+  {
+    "Path": "psyborg",
+    "Name": "Psyborg"
+  },
+  {
+    "Path": "psycho",
+    "Name": "Psycho"
+  },
+  {
+    "Path": "psychobl",
+    "Name": "Psychoblast"
+  },
+  {
+    "Path": "pubtriv",
+    "Name": "Pub Trivia Sim"
+  },
+  {
+    "Path": "pucnix",
+    "Name": "Pucnix"
+  },
+  {
+    "Path": "puffyss",
+    "Name": "Puffy's Saga"
+  },
+  {
+    "Path": "pung",
+    "Name": "PUNG"
+  },
+  {
+    "Path": "punisher",
+    "Name": "Punisher"
+  },
+  {
+    "Path": "purplesd",
+    "Name": "Purple Saturn Day"
+  },
+  {
+    "Path": "pursutoe",
+    "Name": "Pursuit to Earth"
+  },
+  {
+    "Path": "pushover",
+    "Name": "Push Over"
+  },
+  {
+    "Path": "puzznic",
+    "Name": "Puzznic"
+  },
+  {
+    "Path": "pyramax",
+    "Name": "Pyramax"
+  },
+  {
+    "Path": "qball",
+    "Name": "QBall"
+  },
+  {
+    "Path": "qbert",
+    "Name": "QBert"
+  },
+  {
+    "Path": "quadrali",
+    "Name": "Quadralien"
+  },
+  {
+    "Path": "quadron",
+    "Name": "Quadron"
+  },
+  {
+    "Path": "quartz",
+    "Name": "Quartz"
+  },
+  {
+    "Path": "quartz",
+    "Name": "Quartz HAGA"
+  },
+  {
+    "Path": "quasar",
+    "Name": "Quasar"
+  },
+  {
+    "Path": "quatris",
+    "Name": "Quatris"
+  },
+  {
+    "Path": "quest",
+    "Name": "Quest"
+  },
+  {
+    "Path": "questgal",
+    "Name": "Quest for Galaxia"
+  },
+  {
+    "Path": "questfk",
+    "Name": "Quest For Knowledge"
+  },
+  {
+    "Path": "quesport",
+    "Name": "Question of Sport"
+  },
+  {
+    "Path": "quespr2",
+    "Name": "Questprobe 2 Spiderman"
+  },
+  {
+    "Path": "questr2",
+    "Name": "Questron II"
+  },
+  {
+    "Path": "questtb",
+    "Name": "Quest for the Time Bird"
+  },
+  {
+    "Path": "quizwiz",
+    "Name": "Quiz Wizard"
+  },
+  {
+    "Path": "race",
+    "Name": "Race"
+  },
+  {
+    "Path": "racedriv",
+    "Name": "Race Drivin'"
+  },
+  {
+    "Path": "raffles",
+    "Name": "Raffles"
+  },
+  {
+    "Path": "railrt",
+    "Name": "Railroad Tycoon"
+  },
+  {
+    "Path": "rainbisl",
+    "Name": "Rainbow Islands"
+  },
+  {
+    "Path": "rainbowi",
+    "Name": "Rainbow Islands"
+  },
+  {
+    "Path": "rainboww",
+    "Name": "Rainbow Warrior"
+  },
+  {
+    "Path": "rallycrs",
+    "Name": "Rally Cross"
+  },
+  {
+    "Path": "rambo3",
+    "Name": "Rambo III"
+  },
+  {
+    "Path": "rampage",
+    "Name": "Rampage"
+  },
+  {
+    "Path": "rampart",
+    "Name": "Rampart"
+  },
+  {
+    "Path": "ranarama",
+    "Name": "Ranarama"
+  },
+  {
+    "Path": "ranarajy",
+    "Name": "Ranarama HAGA"
+  },
+  {
+    "Path": "ranx_gx",
+    "Name": "Ranx"
+  },
+  {
+    "Path": "rbibasb",
+    "Name": "RBI Baseball 2"
+  },
+  {
+    "Path": "reachfts",
+    "Name": "Reach for the Skies"
+  },
+  {
+    "Path": "realghb",
+    "Name": "Real Ghostbusters"
+  },
+  {
+    "Path": "realvidp",
+    "Name": "Realistic Video Poker"
+  },
+  {
+    "Path": "realmtr",
+    "Name": "Realm of the Trolls"
+  },
+  {
+    "Path": "realms",
+    "Name": "Realms"
+  },
+  {
+    "Path": "realmsor",
+    "Name": "Realms of Reality"
+  },
+  {
+    "Path": "reasonwt",
+    "Name": "Reasoning with Trolls"
+  },
+  {
+    "Path": "rebelion",
+    "Name": "Rebellion"
+  },
+  {
+    "Path": "recoil",
+    "Name": "Recoil"
+  },
+  {
+    "Path": "recovery",
+    "Name": "Recovery"
+  },
+  {
+    "Path": "redace",
+    "Name": "Red Ace"
+  },
+  {
+    "Path": "redalert",
+    "Name": "Red Alert"
+  },
+  {
+    "Path": "redlight",
+    "Name": "Red Lightning"
+  },
+  {
+    "Path": "redstorm",
+    "Name": "Red Storm Rising"
+  },
+  {
+    "Path": "renegade",
+    "Name": "Renegade"
+  },
+  {
+    "Path": "res101",
+    "Name": "Resolution 101"
+  },
+  {
+    "Path": "retjusse",
+    "Name": "Return of Jusse"
+  },
+  {
+    "Path": "retmedus",
+    "Name": "Return of Medusa"
+  },
+  {
+    "Path": "returntg",
+    "Name": "Return to Genesis"
+  },
+  {
+    "Path": "revelat",
+    "Name": "Revelation"
+  },
+  {
+    "Path": "revengom",
+    "Name": "Revenge of Mutant Camels"
+  },
+  {
+    "Path": "revenmc2",
+    "Name": "Revenge of Mutant Camels II"
+  },
+  {
+    "Path": "revenste",
+    "Name": "Revenge of Mutant Camels STE"
+  },
+  {
+    "Path": "rickdang",
+    "Name": "Rick Dangerous"
+  },
+  {
+    "Path": "rickdajy",
+    "Name": "Rick Dangerous HAGA"
+  },
+  {
+    "Path": "rickda2",
+    "Name": "Rick Dangerous 2"
+  },
+  {
+    "Path": "rickd2jy",
+    "Name": "Rick Dangerous 2 HAGA"
+  },
+  {
+    "Path": "ringsofm",
+    "Name": "Rings of Medusa"
+  },
+  {
+    "Path": "ringzilf",
+    "Name": "Rings of Zilfin"
+  },
+  {
+    "Path": "risk",
+    "Name": "RISK"
+  },
+  {
+    "Path": "riskyw",
+    "Name": "Risky Woods"
+  },
+  {
+    "Path": "riskywjy",
+    "Name": "Risky Woods HAGA"
+  },
+  {
+    "Path": "ritter",
+    "Name": "Ritter"
+  },
+  {
+    "Path": "rivnoret",
+    "Name": "River of no Return"
+  },
+  {
+    "Path": "roadblst",
+    "Name": "Road Blasters"
+  },
+  {
+    "Path": "roadraid",
+    "Name": "Road Raid"
+  },
+  {
+    "Path": "roadrunr",
+    "Name": "Road Runner"
+  },
+  {
+    "Path": "roadw2k",
+    "Name": "Roadwar 2000"
+  },
+  {
+    "Path": "roadwars",
+    "Name": "Road Wars"
+  },
+  {
+    "Path": "roadwe",
+    "Name": "Roadwar Europa"
+  },
+  {
+    "Path": "robbo",
+    "Name": "Robbo"
+  },
+  {
+    "Path": "robinhol",
+    "Name": "Robin Hood Legend Quest"
+  },
+  {
+    "Path": "robinson",
+    "Name": "Robinson Requiem"
+  },
+  {
+    "Path": "robocod",
+    "Name": "Robocod James Pond 2"
+  },
+  {
+    "Path": "robocop",
+    "Name": "Robocop"
+  },
+  {
+    "Path": "robocop2",
+    "Name": "Robocop 2"
+  },
+  {
+    "Path": "robocop3",
+    "Name": "Robocop 3"
+  },
+  {
+    "Path": "robotron",
+    "Name": "Robotron 2084"
+  },
+  {
+    "Path": "robotz",
+    "Name": "Robotz"
+  },
+  {
+    "Path": "robozone",
+    "Name": "Robozone"
+  },
+  {
+    "Path": "rochell",
+    "Name": "Roc' Hell"
+  },
+  {
+    "Path": "rockclam",
+    "Name": "Rock 'n' Roll Clams"
+  },
+  {
+    "Path": "rocketrc",
+    "Name": "Rocket Racer"
+  },
+  {
+    "Path": "rocketr",
+    "Name": "Rocket Ranger"
+  },
+  {
+    "Path": "rockfal2",
+    "Name": "Rockfall 2"
+  },
+  {
+    "Path": "rockfall",
+    "Name": "Rockfall"
+  },
+  {
+    "Path": "rocfalse",
+    "Name": "Rockfall Special Edition"
+  },
+  {
+    "Path": "rockford",
+    "Name": "Rockford"
+  },
+  {
+    "Path": "rocknr",
+    "Name": "Rock'N Roll"
+  },
+  {
+    "Path": "rockstar",
+    "Name": "Rock Star"
+  },
+  {
+    "Path": "rockstae",
+    "Name": "Rock Star Ate My Hamster"
+  },
+  {
+    "Path": "rodland",
+    "Name": "Rodland"
+  },
+  {
+    "Path": "rodvsk",
+    "Name": "Rodney vs KFC"
+  },
+  {
+    "Path": "rodyam1",
+    "Name": "Rody & Mastico 1 En."
+  },
+  {
+    "Path": "rodym2",
+    "Name": "Rody & Mastico 2"
+  },
+  {
+    "Path": "rodyam3",
+    "Name": "Rody & Mastico 3"
+  },
+  {
+    "Path": "rodym4",
+    "Name": "Rody & Mastico 4"
+  },
+  {
+    "Path": "rodym5",
+    "Name": "Rody & Mastico 5"
+  },
+  {
+    "Path": "rodyam6",
+    "Name": "Rody & Mastico 6"
+  },
+  {
+    "Path": "roger",
+    "Name": "Roger"
+  },
+  {
+    "Path": "rogue",
+    "Name": "Rogue"
+  },
+  {
+    "Path": "rollercr",
+    "Name": "Roller Coster Rumble"
+  },
+  {
+    "Path": "rollingt",
+    "Name": "Rolling Thunder"
+  },
+  {
+    "Path": "rollingr",
+    "Name": "Rolling Ronny"
+  },
+  {
+    "Path": "rollout",
+    "Name": "Rollout"
+  },
+  {
+    "Path": "rorkesd",
+    "Name": "Rorke's Drift"
+  },
+  {
+    "Path": "rotor",
+    "Name": "Rotor"
+  },
+  {
+    "Path": "rotox",
+    "Name": "Rotox"
+  },
+  {
+    "Path": "roundtb",
+    "Name": "Round the Bend"
+  },
+  {
+    "Path": "royotr",
+    "Name": "Roy of the Rovers"
+  },
+  {
+    "Path": "rtype2",
+    "Name": "R-Type II"
+  },
+  {
+    "Path": "rtype",
+    "Name": "R-Type"
+  },
+  {
+    "Path": "rubicon",
+    "Name": "Rubicon"
+  },
+  {
+    "Path": "ruffaris",
+    "Name": "Ruff and Reddy"
+  },
+  {
+    "Path": "rugbyleb",
+    "Name": "Rugby League Boss"
+  },
+  {
+    "Path": "rugbylc",
+    "Name": "Rugby League Coach"
+  },
+  {
+    "Path": "rugbytwc",
+    "Name": "Rugby the World Cup"
+  },
+  {
+    "Path": "rune",
+    "Name": "Rune"
+  },
+  {
+    "Path": "safarig",
+    "Name": "Safari Guns"
+  },
+  {
+    "Path": "sagacast",
+    "Name": "Saga Castle"
+  },
+  {
+    "Path": "saintag",
+    "Name": "Saint and Greavsie"
+  },
+  {
+    "Path": "saintdr",
+    "Name": "Saint Dragon"
+  },
+  {
+    "Path": "saintdjy",
+    "Name": "Saint Dragon HAGA"
+  },
+  {
+    "Path": "salmo",
+    "Name": "Salmo"
+  },
+  {
+    "Path": "saminmol",
+    "Name": "Sam in Monsters Land"
+  },
+  {
+    "Path": "sanprafu",
+    "Name": "Santa Paravia and Fiumaccio"
+  },
+  {
+    "Path": "sapiengx",
+    "Name": "Sapiens"
+  },
+  {
+    "Path": "sarakon",
+    "Name": "Sarakon"
+  },
+  {
+    "Path": "sardonic",
+    "Name": "Sardonic"
+  },
+  {
+    "Path": "sascs",
+    "Name": "SAS Combat Simulator"
+  },
+  {
+    "Path": "savage",
+    "Name": "Savage"
+  },
+  {
+    "Path": "sc2",
+    "Name": "SuperCars II"
+  },
+  {
+    "Path": "scapegh",
+    "Name": "Scapeghost"
+  },
+  {
+    "Path": "scavengp",
+    "Name": "Scavenger preview"
+  },
+  {
+    "Path": "scoobys",
+    "Name": "Scooby and Scrappy Doo"
+  },
+  {
+    "Path": "scoolnsh",
+    "Name": "Scool not School"
+  },
+  {
+    "Path": "scramble",
+    "Name": "Scramble Spirits"
+  },
+  {
+    "Path": "screamw",
+    "Name": "Screaming Wings"
+  },
+  {
+    "Path": "scruples",
+    "Name": "Scruples"
+  },
+  {
+    "Path": "sdiactiv",
+    "Name": "SDI Activision"
+  },
+  {
+    "Path": "sdicinew",
+    "Name": "SDI Cinemaware"
+  },
+  {
+    "Path": "secworld",
+    "Name": "Second World"
+  },
+  {
+    "Path": "secretcv",
+    "Name": "Secret Cave"
+  },
+  {
+    "Path": "secretmi",
+    "Name": "Secret of Monkey Island"
+  },
+  {
+    "Path": "sensible",
+    "Name": "Sensible Soccer"
+  },
+  {
+    "Path": "sentinel",
+    "Name": "Sentinel"
+  },
+  {
+    "Path": "sentinel",
+    "Name": "Sentry"
+  },
+  {
+    "Path": "setzab",
+    "Name": "Setz_Ab"
+  },
+  {
+    "Path": "sevengal",
+    "Name": "Seven Galaxies"
+  },
+  {
+    "Path": "seventhh",
+    "Name": "Seventh Heaven"
+  },
+  {
+    "Path": "seymgth",
+    "Name": "Seymour Goes to Hollywood"
+  },
+  {
+    "Path": "sg1_cm",
+    "Name": "Starglider_CM"
+  },
+  {
+    "Path": "sg2_cm",
+    "Name": "Starglider 2_CM"
+  },
+  {
+    "Path": "shackled",
+    "Name": "Shackled"
+  },
+  {
+    "Path": "shadbe2",
+    "Name": "Shadow of the Beast II"
+  },
+  {
+    "Path": "shadowb",
+    "Name": "Shadow of the Beast"
+  },
+  {
+    "Path": "shadowg",
+    "Name": "Shadowgate"
+  },
+  {
+    "Path": "shadowl",
+    "Name": "Shadowlands"
+  },
+  {
+    "Path": "shadowso",
+    "Name": "Shadow Sorcerer"
+  },
+  {
+    "Path": "shadowwa",
+    "Name": "Shadow Warriors"
+  },
+  {
+    "Path": "sharkeys",
+    "Name": "Sharkey's Moll"
+  },
+  {
+    "Path": "shefox",
+    "Name": "She-Fox"
+  },
+  {
+    "Path": "sherm4an",
+    "Name": "Sherman M4"
+  },
+  {
+    "Path": "shiftrix",
+    "Name": "Shiftrix"
+  },
+  {
+    "Path": "shinobi",
+    "Name": "Shinoby"
+  },
+  {
+    "Path": "shinobjy",
+    "Name": "Shinoby HAGA"
+  },
+  {
+    "Path": "shocwave",
+    "Name": "Shock Wave"
+  },
+  {
+    "Path": "shoepeop",
+    "Name": "Shoe People"
+  },
+  {
+    "Path": "shotmoon",
+    "Name": "Shoot the Moon"
+  },
+  {
+    "Path": "shufflb",
+    "Name": "Shuffleboard"
+  },
+  {
+    "Path": "shufflep",
+    "Name": "Shufflepuck Cafe"
+  },
+  {
+    "Path": "shutdown",
+    "Name": "Shutdown"
+  },
+  {
+    "Path": "sidearms",
+    "Name": "Side Arms"
+  },
+  {
+    "Path": "sidew2",
+    "Name": "Sidewinder 2"
+  },
+  {
+    "Path": "sidewalk",
+    "Name": "Sidewalk"
+  },
+  {
+    "Path": "sideways",
+    "Name": "Sideways"
+  },
+  {
+    "Path": "sidewind",
+    "Name": "Sidewinder"
+  },
+  {
+    "Path": "silents",
+    "Name": "Silent Service"
+  },
+  {
+    "Path": "silents2",
+    "Name": "Silent Service 2"
+  },
+  {
+    "Path": "sildream",
+    "Name": "Silicon Dreams"
+  },
+  {
+    "Path": "silkworm",
+    "Name": "Silkworm"
+  },
+  {
+    "Path": "simcity",
+    "Name": "Sim City"
+  },
+  {
+    "Path": "simcityh",
+    "Name": "Sim City HAGE"
+  },
+  {
+    "Path": "simpbvs",
+    "Name": "Simpsons, Bart vs. the Space Mutants"
+  },
+  {
+    "Path": "simulcra",
+    "Name": "Simulcra"
+  },
+  {
+    "Path": "sinbad",
+    "Name": "Sinbad and the Throne of the Falcon"
+  },
+  {
+    "Path": "skatewar",
+    "Name": "Skate Wars"
+  },
+  {
+    "Path": "skatewar",
+    "Name": "Skateball"
+  },
+  {
+    "Path": "skidoo",
+    "Name": "Skidoo"
+  },
+  {
+    "Path": "skidz",
+    "Name": "Skidz"
+  },
+  {
+    "Path": "skrull",
+    "Name": "Skrull"
+  },
+  {
+    "Path": "skullacb",
+    "Name": "Skull and Crossbones"
+  },
+  {
+    "Path": "skulldig",
+    "Name": "Skull Diggery"
+  },
+  {
+    "Path": "skychase",
+    "Name": "Skychase"
+  },
+  {
+    "Path": "skyblast",
+    "Name": "Sky Blaster"
+  },
+  {
+    "Path": "skyfight",
+    "Name": "Sky Fighter"
+  },
+  {
+    "Path": "skyfox2",
+    "Name": "Skyfox 2"
+  },
+  {
+    "Path": "skyfox",
+    "Name": "Skyfox"
+  },
+  {
+    "Path": "skyhigh",
+    "Name": "Sky High Stuntman"
+  },
+  {
+    "Path": "skyrider",
+    "Name": "Skyrider"
+  },
+  {
+    "Path": "slacksaf",
+    "Name": "Slackskin and Flint"
+  },
+  {
+    "Path": "slapfigh",
+    "Name": "Slap Fight"
+  },
+  {
+    "Path": "slayer",
+    "Name": "Slayer"
+  },
+  {
+    "Path": "slaygong",
+    "Name": "Slaygon + surprise"
+  },
+  {
+    "Path": "sleepgl",
+    "Name": "Sleeping Gods Lie"
+  },
+  {
+    "Path": "sleepwh",
+    "Name": "Sleepwalker"
+  },
+  {
+    "Path": "sleuth",
+    "Name": "Sleuth"
+  },
+  {
+    "Path": "sliders",
+    "Name": "Sliders"
+  },
+  {
+    "Path": "slightm",
+    "Name": "Slightly Magic"
+  },
+  {
+    "Path": "slither",
+    "Name": "Slither"
+  },
+  {
+    "Path": "slyspy",
+    "Name": "Sly Spy"
+  },
+  {
+    "Path": "smashtv",
+    "Name": "Smash TV"
+  },
+  {
+    "Path": "smiley",
+    "Name": "Smiley"
+  },
+  {
+    "Path": "smoothtd",
+    "Name": "Smoothtalker Demo"
+  },
+  {
+    "Path": "snacman",
+    "Name": "Snacman"
+  },
+  {
+    "Path": "snoball",
+    "Name": "Snoball in Hell"
+  },
+  {
+    "Path": "snoofy",
+    "Name": "Snoofy"
+  },
+  {
+    "Path": "snoopy",
+    "Name": "Snoopy"
+  },
+  {
+    "Path": "snoopyjy",
+    "Name": "Snoopy HAGA"
+  },
+  {
+    "Path": "snowstrk",
+    "Name": "Snowstrike"
+  },
+  {
+    "Path": "sokobang",
+    "Name": "Sokoban GEM"
+  },
+  {
+    "Path": "soldieol",
+    "Name": "Soldier of Light"
+  },
+  {
+    "Path": "solomkey",
+    "Name": "Solomon's Key"
+  },
+  {
+    "Path": "solnegro",
+    "Name": "Sol Negro"
+  },
+  {
+    "Path": "sonshu",
+    "Name": "Son Shu Shi"
+  },
+  {
+    "Path": "sonicb",
+    "Name": "Sonic Boom"
+  },
+  {
+    "Path": "sophelie",
+    "Name": "Sophelie"
+  },
+  {
+    "Path": "sorceryp",
+    "Name": "Sorcery+"
+  },
+  {
+    "Path": "sorclord",
+    "Name": "Sorcery Lord"
+  },
+  {
+    "Path": "spac1889",
+    "Name": "Space 1889"
+  },
+  {
+    "Path": "spacball",
+    "Name": "Space Ball"
+  },
+  {
+    "Path": "spacblob",
+    "Name": "Space Blob"
+  },
+  {
+    "Path": "spaceac2",
+    "Name": "Space Ace 2"
+  },
+  {
+    "Path": "spacconq",
+    "Name": "Space Conquest 1M"
+  },
+  {
+    "Path": "spaccogo",
+    "Name": "Space Conquest a Galactic Odyssey 2M"
+  },
+  {
+    "Path": "spaceace",
+    "Name": "Space Ace"
+  },
+  {
+    "Path": "spacecru",
+    "Name": "Space Crusade"
+  },
+  {
+    "Path": "spballer",
+    "Name": "Space Baller"
+  },
+  {
+    "Path": "spacebal",
+    "Name": "Spaceball"
+  },
+  {
+    "Path": "spacedou",
+    "Name": "Spaced Out"
+  },
+  {
+    "Path": "spacefig",
+    "Name": "Space Fighter"
+  },
+  {
+    "Path": "spacegun",
+    "Name": "Space Gun"
+  },
+  {
+    "Path": "spacehar",
+    "Name": "Space Harrier"
+  },
+  {
+    "Path": "spaceh2",
+    "Name": "Space Harrier 2"
+  },
+  {
+    "Path": "spach20l",
+    "Name": "Space Harrier - 20 Levels Edition"
+  },
+  {
+    "Path": "spaceklr",
+    "Name": "Space Killer"
+  },
+  {
+    "Path": "spacemon",
+    "Name": "Space Monsters"
+  },
+  {
+    "Path": "spacepil",
+    "Name": "Space Pilot"
+  },
+  {
+    "Path": "spacport",
+    "Name": "Space Port"
+  },
+  {
+    "Path": "spaceq3",
+    "Name": "Space Quest 3"
+  },
+  {
+    "Path": "spacerac",
+    "Name": "Space Racer"
+  },
+  {
+    "Path": "spacrac",
+    "Name": "Space Racer"
+  },
+  {
+    "Path": "spacerog",
+    "Name": "Space Rogue"
+  },
+  {
+    "Path": "driller",
+    "Name": "Space Station Oblivion"
+  },
+  {
+    "Path": "spacezot",
+    "Name": "Space Zot"
+  },
+  {
+    "Path": "spacola",
+    "Name": "Spacola"
+  },
+  {
+    "Path": "specialf",
+    "Name": "Special Forces"
+  },
+  {
+    "Path": "speedb2",
+    "Name": "Speedball 2"
+  },
+  {
+    "Path": "speedbal",
+    "Name": "Speedball"
+  },
+  {
+    "Path": "speemast",
+    "Name": "Speed Master"
+  },
+  {
+    "Path": "speedjoe",
+    "Name": "Speedy Joe"
+  },
+  {
+    "Path": "buggybgx",
+    "Name": "Speed Buggy"
+  },
+  {
+    "Path": "spelbdiz",
+    "Name": "Spellbound Dizzy"
+  },
+  {
+    "Path": "spelbdjy",
+    "Name": "Spellbound Dizzy HAGA"
+  },
+  {
+    "Path": "spellbnd",
+    "Name": "Spellbound"
+  },
+  {
+    "Path": "spellfir",
+    "Name": "Spellfire"
+  },
+  {
+    "Path": "spellbee",
+    "Name": "Spelling Bee"
+  },
+  {
+    "Path": "spheric",
+    "Name": "Spherical"
+  },
+  {
+    "Path": "sphericf",
+    "Name": "Spherical (Fusion Design)"
+  },
+  {
+    "Path": "spidertr",
+    "Name": "Spidertronic"
+  },
+  {
+    "Path": "spikey",
+    "Name": "Spikey In Transylvania"
+  },
+  {
+    "Path": "spindizw",
+    "Name": "Spindizzy Worlds"
+  },
+  {
+    "Path": "spirita",
+    "Name": "Spirit of Adventure"
+  },
+  {
+    "Path": "spirite",
+    "Name": "Spirit of Excalibur"
+  },
+  {
+    "Path": "spiritex",
+    "Name": "Spirit of Exc. HAGA"
+  },
+  {
+    "Path": "spitfi40",
+    "Name": "Spitfire 40"
+  },
+  {
+    "Path": "spitting",
+    "Name": "Spitting Images"
+  },
+  {
+    "Path": "spook",
+    "Name": "Spook"
+  },
+  {
+    "Path": "sportria",
+    "Name": "Sporting Triangles"
+  },
+  {
+    "Path": "spot",
+    "Name": "Spot"
+  },
+  {
+    "Path": "spyvsspy",
+    "Name": "Spy vs Spy"
+  },
+  {
+    "Path": "spy2",
+    "Name": "Spy vs Spy 2"
+  },
+  {
+    "Path": "spy3",
+    "Name": "Spy vs Spy 3"
+  },
+  {
+    "Path": "spywholm",
+    "Name": "Spy who Loved me"
+  },
+  {
+    "Path": "sq1",
+    "Name": "Space Quest"
+  },
+  {
+    "Path": "sq2",
+    "Name": "Space Quest 2"
+  },
+  {
+    "Path": "sq3",
+    "Name": "Space Quest 3"
+  },
+  {
+    "Path": "squareof",
+    "Name": "Square Off"
+  },
+  {
+    "Path": "squidge",
+    "Name": "Squidge"
+  },
+  {
+    "Path": "st_krak",
+    "Name": "ST Krak"
+  },
+  {
+    "Path": "stablems",
+    "Name": "Stable Masters"
+  },
+  {
+    "Path": "stackem",
+    "Name": "Stack Em Up"
+  },
+  {
+    "Path": "stackup",
+    "Name": "Stack Up"
+  },
+  {
+    "Path": "staffx29",
+    "Name": "Staff X-29"
+  },
+  {
+    "Path": "starball",
+    "Name": "Starball"
+  },
+  {
+    "Path": "starblad",
+    "Name": "Starblade"
+  },
+  {
+    "Path": "starblaz",
+    "Name": "StarBlaze"
+  },
+  {
+    "Path": "starbrkr",
+    "Name": "Star Breaker"
+  },
+  {
+    "Path": "starcomd",
+    "Name": "Star Commander"
+  },
+  {
+    "Path": "stardust",
+    "Name": "Stardust"
+  },
+  {
+    "Path": "starflgh",
+    "Name": "Star Flight"
+  },
+  {
+    "Path": "starflet",
+    "Name": "Star Fleet"
+  },
+  {
+    "Path": "sg1_cm",
+    "Name": "Starglider"
+  },
+  {
+    "Path": "sg2_cm",
+    "Name": "Starglider 2"
+  },
+  {
+    "Path": "stargoos",
+    "Name": "Star Goose"
+  },
+  {
+    "Path": "starhwk2",
+    "Name": "Starhawk II"
+  },
+  {
+    "Path": "stariocm",
+    "Name": "Stario's Cristmas"
+  },
+  {
+    "Path": "starquak",
+    "Name": "Starquake"
+  },
+  {
+    "Path": "starqejy",
+    "Name": "Starquake HAGA"
+  },
+  {
+    "Path": "starraid",
+    "Name": "Star Raiders"
+  },
+  {
+    "Path": "starray",
+    "Name": "StarRay"
+  },
+  {
+    "Path": "startrap",
+    "Name": "Star Trap"
+  },
+  {
+    "Path": "startrek",
+    "Name": "Star Trek the Rebel Universe"
+  },
+  {
+    "Path": "startrer",
+    "Name": "Star Treek  by Erictronics"
+  },
+  {
+    "Path": "startrsh",
+    "Name": "Star Trash"
+  },
+  {
+    "Path": "starwars",
+    "Name": "Star Wars"
+  },
+  {
+    "Path": "sw2",
+    "Name": "Star Wars 2 Empire Strikes Back"
+  },
+  {
+    "Path": "sw3",
+    "Name": "Star Wars 3 Return of the Jedi"
+  },
+  {
+    "Path": "steel",
+    "Name": "Steel"
+  },
+  {
+    "Path": "steelemp",
+    "Name": "Steel Empire"
+  },
+  {
+    "Path": "stegslug",
+    "Name": "Steg the Slug"
+  },
+  {
+    "Path": "steigar",
+    "Name": "Steigar"
+  },
+  {
+    "Path": "stevedws",
+    "Name": "Steve Davis World Snooker"
+  },
+  {
+    "Path": "stkarate",
+    "Name": "ST Karate"
+  },
+  {
+    "Path": "st_krak",
+    "Name": "ST_KRAK"
+  },
+  {
+    "Path": "stoneage",
+    "Name": "Stone Age"
+  },
+  {
+    "Path": "stonebrk",
+    "Name": "Stone Breaker"
+  },
+  {
+    "Path": "stormbal",
+    "Name": "Stormball"
+  },
+  {
+    "Path": "stormbrg",
+    "Name": "Stormbringer"
+  },
+  {
+    "Path": "stormlrd",
+    "Name": "Stormlord"
+  },
+  {
+    "Path": "stormmas",
+    "Name": "Storm Master"
+  },
+  {
+    "Path": "stormtrp",
+    "Name": "Stormtrooper"
+  },
+  {
+    "Path": "stratego",
+    "Name": "Stratego"
+  },
+  {
+    "Path": "streetf",
+    "Name": "Street Fighter"
+  },
+  {
+    "Path": "streetf2",
+    "Name": "Street Fighter 2"
+  },
+  {
+    "Path": "stref2jy",
+    "Name": "Street Fighter 2 HAGA"
+  },
+  {
+    "Path": "stretdan",
+    "Name": "Streets of 1000 Danger"
+  },
+  {
+    "Path": "strewinv",
+    "Name": "ST Review Invaders"
+  },
+  {
+    "Path": "stsoccer",
+    "Name": "ST Soccer"
+  },
+  {
+    "Path": "streeth",
+    "Name": "Street Hockey"
+  },
+  {
+    "Path": "strider",
+    "Name": "Strider"
+  },
+  {
+    "Path": "stridrjy",
+    "Name": "Strider HAGA"
+  },
+  {
+    "Path": "strider2",
+    "Name": "Strider 2"
+  },
+  {
+    "Path": "strid2jy",
+    "Name": "Strider 2 HAGA"
+  },
+  {
+    "Path": "strike",
+    "Name": "Strike"
+  },
+  {
+    "Path": "strikefh",
+    "Name": "Strike Force Harrier"
+  },
+  {
+    "Path": "striker",
+    "Name": "Striker"
+  },
+  {
+    "Path": "stripbre",
+    "Name": "Strip Breakout"
+  },
+  {
+    "Path": "strptetr",
+    "Name": "Strip Tetris"
+  },
+  {
+    "Path": "strongl",
+    "Name": "Strong Lines"
+  },
+  {
+    "Path": "stryx",
+    "Name": "Stryx"
+  },
+  {
+    "Path": "stuntcr",
+    "Name": "Stunt Car Racer"
+  },
+  {
+    "Path": "stuntcar",
+    "Name": "Stunt Car Racer"
+  },
+  {
+    "Path": "stuntcjy",
+    "Name": "Stunt Car Racer HAGA"
+  },
+  {
+    "Path": "stunrunr",
+    "Name": "S.T.U.N. Runner"
+  },
+  {
+    "Path": "stwars",
+    "Name": "ST Wars"
+  },
+  {
+    "Path": "subbatls",
+    "Name": "Sub Battle Simulator"
+  },
+  {
+    "Path": "subbuteo",
+    "Name": "Subbuteo"
+  },
+  {
+    "Path": "substat",
+    "Name": "Substation"
+  },
+  {
+    "Path": "summerol",
+    "Name": "Summer Challenge"
+  },
+  {
+    "Path": "summergs",
+    "Name": "Summer Games 1 and 2"
+  },
+  {
+    "Path": "summerol",
+    "Name": "Summer Olympiad"
+  },
+  {
+    "Path": "sundog",
+    "Name": "Sundog"
+  },
+  {
+    "Path": "sunnysh",
+    "Name": "Sunny Shine"
+  },
+  {
+    "Path": "supazaza",
+    "Name": "Supa Zazai"
+  },
+  {
+    "Path": "supbrkoc",
+    "Name": "Super Breakout color"
+  },
+  {
+    "Path": "supbrkou",
+    "Name": "Super Breakout monochrome"
+  },
+  {
+    "Path": "supbrkom",
+    "Name": "Super Breakout"
+  },
+  {
+    "Path": "superc2",
+    "Name": "Super Cars 2"
+  },
+  {
+    "Path": "supercar",
+    "Name": "Super Cars"
+  },
+  {
+    "Path": "supercau",
+    "Name": "Super Cauldron"
+  },
+  {
+    "Path": "supercyc",
+    "Name": "Super Cycle"
+  },
+  {
+    "Path": "supdarkp",
+    "Name": "Super Dark Pearl"
+  },
+  {
+    "Path": "supergp",
+    "Name": "Super Grand Prix"
+  },
+  {
+    "Path": "superhng",
+    "Name": "Super Hang On"
+  },
+  {
+    "Path": "suphuey",
+    "Name": "Super Huey"
+  },
+  {
+    "Path": "superhuk",
+    "Name": "Superhighway UK"
+  },
+  {
+    "Path": "superlis",
+    "Name": "Super League Soccer"
+  },
+  {
+    "Path": "superman",
+    "Name": "Superman"
+  },
+  {
+    "Path": "superm",
+    "Name": "Super Monaco GP"
+  },
+  {
+    "Path": "supseym",
+    "Name": "Super Seymour"
+  },
+  {
+    "Path": "supersi",
+    "Name": "Super Space Invaders"
+  },
+  {
+    "Path": "superspt",
+    "Name": "Super Sprint"
+  },
+  {
+    "Path": "superstm",
+    "Name": "Super Stuntman"
+  },
+  {
+    "Path": "superski",
+    "Name": "Super Ski"
+  },
+  {
+    "Path": "suprski2",
+    "Name": "Super Ski 2"
+  },
+  {
+    "Path": "supskwe",
+    "Name": "Super Skweek"
+  },
+  {
+    "Path": "supstarl",
+    "Name": "Super Stario Land"
+  },
+  {
+    "Path": "supremt",
+    "Name": "Supremacy"
+  },
+  {
+    "Path": "swap",
+    "Name": "Swap"
+  },
+  {
+    "Path": "swaptils",
+    "Name": "Swaping Tiles"
+  },
+  {
+    "Path": "swiftar",
+    "Name": "Swiftar"
+  },
+  {
+    "Path": "swiftari",
+    "Name": "Swiftar i."
+  },
+  {
+    "Path": "switchbl",
+    "Name": "Switchblade"
+  },
+  {
+    "Path": "switchb2",
+    "Name": "Switchblade 2"
+  },
+  {
+    "Path": "swiv",
+    "Name": "SWIV"
+  },
+  {
+    "Path": "swiv1ms",
+    "Name": "SWIV"
+  },
+  {
+    "Path": "swkadash",
+    "Name": "Sword of Kadash"
+  },
+  {
+    "Path": "swordatr",
+    "Name": "Sword & the Rose, The"
+  },
+  {
+    "Path": "taipan",
+    "Name": "Tai Pan"
+  },
+  {
+    "Path": "tanglew",
+    "Name": "Tanglewood"
+  },
+  {
+    "Path": "tangram",
+    "Name": "Tangram"
+  },
+  {
+    "Path": "tankatck",
+    "Name": "Tank Attack"
+  },
+  {
+    "Path": "targhan",
+    "Name": "Targhan"
+  },
+  {
+    "Path": "tasst",
+    "Name": "Tass Times in Tonetown"
+  },
+  {
+    "Path": "tauceti",
+    "Name": "Tau Ceti"
+  },
+  {
+    "Path": "tbird",
+    "Name": "T-Bird"
+  },
+  {
+    "Path": "team",
+    "Name": "Team"
+  },
+  {
+    "Path": "teamf",
+    "Name": "Team"
+  },
+  {
+    "Path": "tech",
+    "Name": "Tech"
+  },
+  {
+    "Path": "techmchs",
+    "Name": "Techmate Chess"
+  },
+  {
+    "Path": "technoc",
+    "Name": "Technocop"
+  },
+  {
+    "Path": "tecnob",
+    "Name": "Tecnoball.Z"
+  },
+  {
+    "Path": "teenqeen",
+    "Name": "Teenage Queen"
+  },
+  {
+    "Path": "tmht",
+    "Name": "Teenage Mutant Hero Turtles"
+  },
+  {
+    "Path": "tmhtjy",
+    "Name": "Teenage Mutant Hero Turtles H."
+  },
+  {
+    "Path": "tmht2",
+    "Name": "Teenage Mutant Hero Turtles 2"
+  },
+  {
+    "Path": "tmht2jy",
+    "Name": "Teenage Mutant Hero Turtles 2 H."
+  },
+  {
+    "Path": "teeoff",
+    "Name": "Tee Off"
+  },
+  {
+    "Path": "telemwar",
+    "Name": "Telemark Warriors"
+  },
+  {
+    "Path": "teller",
+    "Name": "Teller"
+  },
+  {
+    "Path": "tempest",
+    "Name": "Tempest"
+  },
+  {
+    "Path": "templea3",
+    "Name": "Temple ApshaiTeam"
+  },
+  {
+    "Path": "tennis",
+    "Name": "Tennis  aka Match Point"
+  },
+  {
+    "Path": "tenncup",
+    "Name": "Tennis Cup"
+  },
+  {
+    "Path": "termdroi",
+    "Name": "Termodroid"
+  },
+  {
+    "Path": "termin2",
+    "Name": "Terminator 2"
+  },
+  {
+    "Path": "terranov",
+    "Name": "Terra Nova"
+  },
+  {
+    "Path": "terramex",
+    "Name": "Terramex"
+  },
+  {
+    "Path": "terrenc",
+    "Name": "Terrestrial Encounter"
+  },
+  {
+    "Path": "terrorp",
+    "Name": "Terrorpods"
+  },
+  {
+    "Path": "terrysba",
+    "Name": "Terry's Big Adventure"
+  },
+  {
+    "Path": "testdriv",
+    "Name": "Test Drive"
+  },
+  {
+    "Path": "testdrv2",
+    "Name": "Test Drive 2"
+  },
+  {
+    "Path": "tetraq",
+    "Name": "Tetra Quest"
+  },
+  {
+    "Path": "tetrmhd",
+    "Name": "Tetris Mirrorsoft"
+  },
+  {
+    "Path": "tetrshhd",
+    "Name": "Tetris Abersoft"
+  },
+  {
+    "Path": "tetris2",
+    "Name": "Tetris 2"
+  },
+  {
+    "Path": "thaibox",
+    "Name": "Thai Box"
+  },
+  {
+    "Path": "themepm",
+    "Name": "Theme park Mystery"
+  },
+  {
+    "Path": "thinkcr",
+    "Name": "Think Cross"
+  },
+  {
+    "Path": "thinkst2",
+    "Name": "Think ST2"
+  },
+  {
+    "Path": "thirdcou",
+    "Name": "Third Courier, The"
+  },
+  {
+    "Path": "thomaste",
+    "Name": "Thomas the Tank Engine"
+  },
+  {
+    "Path": "thomte2",
+    "Name": "Thomas the Tank Engine 2"
+  },
+  {
+    "Path": "threemus",
+    "Name": "Three Musketeers"
+  },
+  {
+    "Path": "thrust",
+    "Name": "Thrust"
+  },
+  {
+    "Path": "thundbla",
+    "Name": "Thunder Blade"
+  },
+  {
+    "Path": "thundbrs",
+    "Name": "Thunderbirds"
+  },
+  {
+    "Path": "thundbrn",
+    "Name": "Thunder Burner"
+  },
+  {
+    "Path": "thunderc",
+    "Name": "Thundercats"
+  },
+  {
+    "Path": "thunderw",
+    "Name": "Thunderwing"
+  },
+  {
+    "Path": "thunhwk",
+    "Name": "Thunderhawk AH-73M"
+  },
+  {
+    "Path": "thundjws",
+    "Name": "Thunder Jaws"
+  },
+  {
+    "Path": "thustrk",
+    "Name": "Thunderstrike"
+  },
+  {
+    "Path": "thurgm",
+    "Name": "Thurg-N-Murg"
+  },
+  {
+    "Path": "tigerrd",
+    "Name": "Tiger Road"
+  },
+  {
+    "Path": "time",
+    "Name": "Time"
+  },
+  {
+    "Path": "timeamag",
+    "Name": "Time and Magik"
+  },
+  {
+    "Path": "timeb21",
+    "Name": "Time Bandit v2.1"
+  },
+  {
+    "Path": "timebgx",
+    "Name": "Time Bandit"
+  },
+  {
+    "Path": "timeblst",
+    "Name": "Time Blast"
+  },
+  {
+    "Path": "timemach",
+    "Name": "Time Machine"
+  },
+  {
+    "Path": "timerace",
+    "Name": "Time Race"
+  },
+  {
+    "Path": "timerunr",
+    "Name": "Time Runner"
+  },
+  {
+    "Path": "timescan",
+    "Name": "Time Scanner"
+  },
+  {
+    "Path": "timeslor",
+    "Name": "Times of Lore"
+  },
+  {
+    "Path": "timesold",
+    "Name": "Time Soldier"
+  },
+  {
+    "Path": "tintinm",
+    "Name": "Tintin on the Moon"
+  },
+  {
+    "Path": "tinyskws",
+    "Name": "Tiny Skweeks"
+  },
+  {
+    "Path": "tipoff",
+    "Name": "Tip Off"
+  },
+  {
+    "Path": "titan",
+    "Name": "Titan"
+  },
+  {
+    "Path": "titanicb",
+    "Name": "Titanic Blinky"
+  },
+  {
+    "Path": "titusfox",
+    "Name": "Titus the Fox"
+  },
+  {
+    "Path": "tnt",
+    "Name": "TNT"
+  },
+  {
+    "Path": "tobeont",
+    "Name": "To Be On Top"
+  },
+  {
+    "Path": "toki",
+    "Name": "Toki"
+  },
+  {
+    "Path": "tolteka",
+    "Name": "Tolteka"
+  },
+  {
+    "Path": "tomandg",
+    "Name": "Tom and Ghost"
+  },
+  {
+    "Path": "tomjerry",
+    "Name": "Tom and Jerry"
+  },
+  {
+    "Path": "taj2",
+    "Name": "Tom and Jerry 2"
+  },
+  {
+    "Path": "toobin",
+    "Name": "Toobin"
+  },
+  {
+    "Path": "topbanan",
+    "Name": "Top Banana"
+  },
+  {
+    "Path": "topcat",
+    "Name": "Top Cat"
+  },
+  {
+    "Path": "topcat",
+    "Name": "Top Cat HAGA"
+  },
+  {
+    "Path": "topsecr",
+    "Name": "Top Secret"
+  },
+  {
+    "Path": "tornadog",
+    "Name": "Tornado Ground Attack"
+  },
+  {
+    "Path": "torvak",
+    "Name": "Torvak"
+  },
+  {
+    "Path": "torvakjy",
+    "Name": "Torvak HAGA"
+  },
+  {
+    "Path": "totalecl",
+    "Name": "Total Eclipse"
+  },
+  {
+    "Path": "triheli2",
+    "Name": "Tri Heli 2"
+  },
+  {
+    "Path": "toutrun",
+    "Name": "Turbo Outrun"
+  },
+  {
+    "Path": "towerbgx",
+    "Name": "Tower of Babel"
+  },
+  {
+    "Path": "towerob",
+    "Name": "Tower of Babel old v."
+  },
+  {
+    "Path": "nebulus",
+    "Name": "Tower Toppler"
+  },
+  {
+    "Path": "toyotac",
+    "Name": "Toyota Celica"
+  },
+  {
+    "Path": "toyottes",
+    "Name": "Toyottes"
+  },
+  {
+    "Path": "tracker",
+    "Name": "Tracker"
+  },
+  {
+    "Path": "trackman",
+    "Name": "Track Suit Manager"
+  },
+  {
+    "Path": "traders",
+    "Name": "Traders"
+  },
+  {
+    "Path": "trafficf",
+    "Name": "Traffic Jam Ahead"
+  },
+  {
+    "Path": "trailblz",
+    "Name": "Traiblazer"
+  },
+  {
+    "Path": "trainset",
+    "Name": "Train-Set"
+  },
+  {
+    "Path": "transarc",
+    "Name": "Transarctica"
+  },
+  {
+    "Path": "transput",
+    "Name": "Transputor"
+  },
+  {
+    "Path": "transylv",
+    "Name": "Transylvania"
+  },
+  {
+    "Path": "trantor",
+    "Name": "Trantor"
+  },
+  {
+    "Path": "trap",
+    "Name": "Trap"
+  },
+  {
+    "Path": "trauma",
+    "Name": "Trauma"
+  },
+  {
+    "Path": "treasure",
+    "Name": "Treasure Trap"
+  },
+  {
+    "Path": "treisd",
+    "Name": "Treasure Island Dizzy"
+  },
+  {
+    "Path": "treisd",
+    "Name": "Treasure Island Dizzy H."
+  },
+  {
+    "Path": "treasear",
+    "Name": "Treasure Search"
+  },
+  {
+    "Path": "treblech",
+    "Name": "Treble Champions"
+  },
+  {
+    "Path": "trexwarr",
+    "Name": "Trex Warrior"
+  },
+  {
+    "Path": "trifide",
+    "Name": "Trifide"
+  },
+  {
+    "Path": "triton3",
+    "Name": "Triton 3"
+  },
+  {
+    "Path": "trivchal",
+    "Name": "Trivia Challenge"
+  },
+  {
+    "Path": "trivgmsh",
+    "Name": "Trivia Game Show"
+  },
+  {
+    "Path": "trivpen",
+    "Name": "Trivial Pursuit En"
+  },
+  {
+    "Path": "trivpfr",
+    "Name": "Trivial Pursuit Fr"
+  },
+  {
+    "Path": "truck",
+    "Name": "Truck"
+  },
+  {
+    "Path": "trucko",
+    "Name": "Truck old. v."
+  },
+  {
+    "Path": "tunnelv",
+    "Name": "Tunnel Vision"
+  },
+  {
+    "Path": "turbocup",
+    "Name": "Turbo Cup"
+  },
+  {
+    "Path": "turbogt",
+    "Name": "Turbo GT"
+  },
+  {
+    "Path": "turboour",
+    "Name": "Turbo Outrun"
+  },
+  {
+    "Path": "turnburn",
+    "Name": "Turn n Burn"
+  },
+  {
+    "Path": "turnit",
+    "Name": "Turn It"
+  },
+  {
+    "Path": "turric2",
+    "Name": "Turrican 2"
+  },
+  {
+    "Path": "turrican",
+    "Name": "Turrican"
+  },
+  {
+    "Path": "turtlets",
+    "Name": "Turtle Table TS"
+  },
+  {
+    "Path": "tusker",
+    "Name": "Tusker"
+  },
+  {
+    "Path": "tvsportf",
+    "Name": "TV Sports Football"
+  },
+  {
+    "Path": "twiligr",
+    "Name": "Twilight's Ransom"
+  },
+  {
+    "Path": "twinturb",
+    "Name": "Twin Turbos"
+  },
+  {
+    "Path": "twinwrld",
+    "Name": "Twin World"
+  },
+  {
+    "Path": "twottot",
+    "Name": "Twot Tot and the MOM"
+  },
+  {
+    "Path": "twylyte",
+    "Name": "Twylyte"
+  },
+  {
+    "Path": "typhoon",
+    "Name": "Typhoon"
+  },
+  {
+    "Path": "typhtoms",
+    "Name": "Typhoon Thompson"
+  },
+  {
+    "Path": "typintut",
+    "Name": "Typing Tutor"
+  },
+  {
+    "Path": "uberlebk",
+    "Name": "Uberlebenskampf"
+  },
+  {
+    "Path": "ultima2",
+    "Name": "Ultima II"
+  },
+  {
+    "Path": "ultima3",
+    "Name": "Ultima III"
+  },
+  {
+    "Path": "ultima4",
+    "Name": "Ultima IV"
+  },
+  {
+    "Path": "ultima6",
+    "Name": "Ultima VI"
+  },
+  {
+    "Path": "ultimav",
+    "Name": "Ultima V"
+  },
+  {
+    "Path": "ultimrd",
+    "Name": "Ultimate Ride"
+  },
+  {
+    "Path": "underpre",
+    "Name": "Under Pressure"
+  },
+  {
+    "Path": "uninv",
+    "Name": "Uninvited"
+  },
+  {
+    "Path": "unreal",
+    "Name": "Unreal"
+  },
+  {
+    "Path": "unsquad",
+    "Name": "U.N. Squadron"
+  },
+  {
+    "Path": "unheart",
+    "Name": "Unheart"
+  },
+  {
+    "Path": "univers3",
+    "Name": "Universe 3"
+  },
+  {
+    "Path": "untouch",
+    "Name": "Untouchables, The"
+  },
+  {
+    "Path": "upstart",
+    "Name": "Upstart"
+  },
+  {
+    "Path": "urida",
+    "Name": "Uridium Aud."
+  },
+  {
+    "Path": "uridium",
+    "Name": "Uridium"
+  },
+  {
+    "Path": "utopia",
+    "Name": "Utopia"
+  },
+  {
+    "Path": "utopos",
+    "Name": "Utopos"
+  },
+  {
+    "Path": "ussjohny",
+    "Name": "U.S.S. John Young"
+  },
+  {
+    "Path": "vampiree",
+    "Name": "Vampire's Empire"
+  },
+  {
+    "Path": "vaxine",
+    "Name": "Vaxine"
+  },
+  {
+    "Path": "vchampr",
+    "Name": "Vector Championship Run"
+  },
+  {
+    "Path": "vectoinv",
+    "Name": "Vector Invaders"
+  },
+  {
+    "Path": "vengexcr",
+    "Name": "Vengeance of Exc."
+  },
+  {
+    "Path": "venusft",
+    "Name": "Venus the Flytrap"
+  },
+  {
+    "Path": "verminat",
+    "Name": "Verminator"
+  },
+  {
+    "Path": "verstory",
+    "Name": "Versailles Story"
+  },
+  {
+    "Path": "veteran",
+    "Name": "Veteran"
+  },
+  {
+    "Path": "viaje",
+    "Name": "Viaje"
+  },
+  {
+    "Path": "victory",
+    "Name": "Victory"
+  },
+  {
+    "Path": "victoryr",
+    "Name": "Victory Road"
+  },
+  {
+    "Path": "videokid",
+    "Name": "Video Kid"
+  },
+  {
+    "Path": "videokjy",
+    "Name": "Video Kid HAGA"
+  },
+  {
+    "Path": "viedulac",
+    "Name": "Vie Du Lac"
+  },
+  {
+    "Path": "viemdino",
+    "Name": "Vie et Mort des Dinosaures"
+  },
+  {
+    "Path": "vigilant",
+    "Name": "Vigilante"
+  },
+  {
+    "Path": "vindics",
+    "Name": "Vindicators"
+  },
+  {
+    "Path": "violator",
+    "Name": "Violator"
+  },
+  {
+    "Path": "virgam",
+    "Name": "Virus"
+  },
+  {
+    "Path": "shefox",
+    "Name": "Vixen"
+  },
+  {
+    "Path": "viz",
+    "Name": "Viz"
+  },
+  {
+    "Path": "volfied",
+    "Name": "Volfied"
+  },
+  {
+    "Path": "volleybs",
+    "Name": "Volleyball Simulator"
+  },
+  {
+    "Path": "voodoonm",
+    "Name": "Voodoo Nightmare"
+  },
+  {
+    "Path": "voyager",
+    "Name": "Voyager"
+  },
+  {
+    "Path": "voyagdty",
+    "Name": "Voyageurs du Temps"
+  },
+  {
+    "Path": "voyagdut",
+    "Name": "Voyageurs du Temps"
+  },
+  {
+    "Path": "vroom",
+    "Name": "Vroom"
+  },
+  {
+    "Path": "vulcan",
+    "Name": "Vulcan"
+  },
+  {
+    "Path": "wackydrt",
+    "Name": "Wacky Darts"
+  },
+  {
+    "Path": "wackyr",
+    "Name": "Wacky Races"
+  },
+  {
+    "Path": "wallstrw",
+    "Name": "Wall Street Wizard"
+  },
+  {
+    "Path": "walz",
+    "Name": "Walz"
+  },
+  {
+    "Path": "wanderer",
+    "Name": "Wanderer"
+  },
+  {
+    "Path": "wanted",
+    "Name": "Wanted"
+  },
+  {
+    "Path": "warhawk",
+    "Name": "Warhawk"
+  },
+  {
+    "Path": "warhead",
+    "Name": "Warhead"
+  },
+  {
+    "Path": "warship",
+    "Name": "Warship"
+  },
+  {
+    "Path": "warheli",
+    "Name": "War Heli"
+  },
+  {
+    "Path": "warinme",
+    "Name": "War in Middle Earth"
+  },
+  {
+    "Path": "waritg",
+    "Name": "War in the Gulf"
+  },
+  {
+    "Path": "warjeep",
+    "Name": "War Jeep"
+  },
+  {
+    "Path": "warlock",
+    "Name": "Warlock"
+  },
+  {
+    "Path": "warlockq",
+    "Name": "Warlock's Quest"
+  },
+  {
+    "Path": "warlocka",
+    "Name": "Warlock the Avenger"
+  },
+  {
+    "Path": "warmach",
+    "Name": "War Machine"
+  },
+  {
+    "Path": "warp",
+    "Name": "Warp"
+  },
+  {
+    "Path": "war_zone",
+    "Name": "War_Zone"
+  },
+  {
+    "Path": "wareleyn",
+    "Name": "Warriors of Releyne"
+  },
+  {
+    "Path": "warzone",
+    "Name": "Warzone"
+  },
+  {
+    "Path": "waterloo",
+    "Name": "Waterloo"
+  },
+  {
+    "Path": "wayngrh",
+    "Name": "Wayne Gretzky Hockey"
+  },
+  {
+    "Path": "wcoltris",
+    "Name": "WColtris"
+  },
+  {
+    "Path": "webofter",
+    "Name": "Web of Terror"
+  },
+  {
+    "Path": "ween",
+    "Name": "Ween"
+  },
+  {
+    "Path": "wellard",
+    "Name": "Weird Dreams"
+  },
+  {
+    "Path": "weirddr",
+    "Name": "Well'Ard"
+  },
+  {
+    "Path": "welltris",
+    "Name": "Welltris"
+  },
+  {
+    "Path": "westngms",
+    "Name": "Western Games"
+  },
+  {
+    "Path": "wheretss",
+    "Name": "Where Time Stood Still"
+  },
+  {
+    "Path": "wsrace",
+    "Name": "Whipper Snapper's Race"
+  },
+  {
+    "Path": "whitewm",
+    "Name": "Whitewater Madness"
+  },
+  {
+    "Path": "whofrrr",
+    "Name": "Who Framed Roger Rabbit"
+  },
+  {
+    "Path": "wicked",
+    "Name": "Wicked"
+  },
+  {
+    "Path": "wildfire",
+    "Name": "Wild Fire"
+  },
+  {
+    "Path": "wildlife",
+    "Name": "Wild Life"
+  },
+  {
+    "Path": "wildstre",
+    "Name": "Wild Streets"
+  },
+  {
+    "Path": "wildwhee",
+    "Name": "Wild Wheels"
+  },
+  {
+    "Path": "willow",
+    "Name": "Willow"
+  },
+  {
+    "Path": "willyp2",
+    "Name": "Willys Brother and Willy 3"
+  },
+  {
+    "Path": "willykid",
+    "Name": "Willy the Kid"
+  },
+  {
+    "Path": "windowwz",
+    "Name": "Window Wizard"
+  },
+  {
+    "Path": "windsurf",
+    "Name": "Windsurf Willy"
+  },
+  {
+    "Path": "wingsofd",
+    "Name": "Wings of Death"
+  },
+  {
+    "Path": "wingsoff",
+    "Name": "Wings of Death"
+  },
+  {
+    "Path": "winglord",
+    "Name": "Winglord"
+  },
+  {
+    "Path": "winnietp",
+    "Name": "Winnie the Pooh"
+  },
+  {
+    "Path": "wintergs",
+    "Name": "Winter Games"
+  },
+  {
+    "Path": "winterol",
+    "Name": "Winter Challenge"
+  },
+  {
+    "Path": "winterol",
+    "Name": "Winter Olympiad"
+  },
+  {
+    "Path": "winterss",
+    "Name": "Winter Supersporte '92"
+  },
+  {
+    "Path": "wizardwz",
+    "Name": "Wizard Warz"
+  },
+  {
+    "Path": "wizball",
+    "Name": "Wizball"
+  },
+  {
+    "Path": "wizkid",
+    "Name": "Wizkid"
+  },
+  {
+    "Path": "wizmo",
+    "Name": "Wizmo"
+  },
+  {
+    "Path": "wizz",
+    "Name": "Wizz"
+  },
+  {
+    "Path": "wolf3d",
+    "Name": "Wolfenstein 3D"
+  },
+  {
+    "Path": "wolfchil",
+    "Name": "Wolfchild"
+  },
+  {
+    "Path": "wolfpack",
+    "Name": "Wolfpack"
+  },
+  {
+    "Path": "wondbm",
+    "Name": "Wonderboy in Monsterland"
+  },
+  {
+    "Path": "wonderl",
+    "Name": "Wonderland"
+  },
+  {
+    "Path": "wordmast",
+    "Name": "Word Master, The"
+  },
+  {
+    "Path": "workstr",
+    "Name": "Works Team Rally"
+  },
+  {
+    "Path": "wchsboxm",
+    "Name": "World Ch. Box Manager"
+  },
+  {
+    "Path": "wcsoccer",
+    "Name": "World Championship Soccer"
+  },
+  {
+    "Path": "wrugby",
+    "Name": "World Rugby"
+  },
+  {
+    "Path": "worldcr",
+    "Name": "World Class Rugby"
+  },
+  {
+    "Path": "worldcri",
+    "Name": "World Cricket"
+  },
+  {
+    "Path": "worldg",
+    "Name": "World Games"
+  },
+  {
+    "Path": "ik",
+    "Name": "World Karate Champ."
+  },
+  {
+    "Path": "worldofh",
+    "Name": "World of Henry"
+  },
+  {
+    "Path": "wsoccer",
+    "Name": "World Soccer"
+  },
+  {
+    "Path": "wormhole",
+    "Name": "Wormhole"
+  },
+  {
+    "Path": "wrangler",
+    "Name": "Wrangler"
+  },
+  {
+    "Path": "wrathod",
+    "Name": "Wrath of the Demon"
+  },
+  {
+    "Path": "wreckers",
+    "Name": "Wreckers"
+  },
+  {
+    "Path": "xchess",
+    "Name": "Xchess"
+  },
+  {
+    "Path": "xenomrph",
+    "Name": "Xenomorph"
+  },
+  {
+    "Path": "xenon",
+    "Name": "Xenon"
+  },
+  {
+    "Path": "xenonjy",
+    "Name": "Xenon HAGA"
+  },
+  {
+    "Path": "xenon2",
+    "Name": "Xenon 2"
+  },
+  {
+    "Path": "xenon2a",
+    "Name": "Xenon 2 w. audio tracks"
+  },
+  {
+    "Path": "xenophob",
+    "Name": "Xenophobe"
+  },
+  {
+    "Path": "xevious",
+    "Name": "Xevious"
+  },
+  {
+    "Path": "xiller",
+    "Name": "Xiller"
+  },
+  {
+    "Path": "xiphos",
+    "Name": "Xiphos"
+  },
+  {
+    "Path": "xor",
+    "Name": "XOR"
+  },
+  {
+    "Path": "xout",
+    "Name": "X-out"
+  },
+  {
+    "Path": "xtron",
+    "Name": "Xtron"
+  },
+  {
+    "Path": "xybots",
+    "Name": "Xybots"
+  },
+  {
+    "Path": "ynisw",
+    "Name": "Ynis Witrin"
+  },
+  {
+    "Path": "yogiatgm",
+    "Name": "Yogi Bear & Friends in the Greed Monster"
+  },
+  {
+    "Path": "yogibcu",
+    "Name": "Yogi's Big Clean Up"
+  },
+  {
+    "Path": "yogisge",
+    "Name": "Yogi's Great Escape"
+  },
+  {
+    "Path": "yolanda",
+    "Name": "Yolanda"
+  },
+  {
+    "Path": "yuppirev",
+    "Name": "Yupie's Revenge"
+  },
+  {
+    "Path": "zakmck",
+    "Name": "Zak McKracken and the Alien Mindbenders"
+  },
+  {
+    "Path": "zanygolf",
+    "Name": "Zany Golf"
+  },
+  {
+    "Path": "zap",
+    "Name": "Zap"
+  },
+  {
+    "Path": "zaptast",
+    "Name": "Zaptastic"
+  },
+  {
+    "Path": "zero_5",
+    "Name": "Zero 5"
+  },
+  {
+    "Path": "zerog",
+    "Name": "Zero Gravity"
+  },
+  {
+    "Path": "zoltar",
+    "Name": "Zoltar"
+  },
+  {
+    "Path": "zombi",
+    "Name": "Zombi"
+  },
+  {
+    "Path": "zonewar",
+    "Name": "Zone Warrior"
+  },
+  {
+    "Path": "zool",
+    "Name": "Zool"
+  },
+  {
+    "Path": "zoox",
+    "Name": "Zoox"
+  },
+  {
+    "Path": "zout",
+    "Name": "Z-Out"
+  },
+  {
+    "Path": "zynaps",
+    "Name": "Zynaps"
+  }
+]

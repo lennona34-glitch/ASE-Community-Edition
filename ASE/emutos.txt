@@ -1,0 +1,31 @@
+EmuTOS
+======
+
+emutos.rom is EmuTOS 1.4, the 256 KB image for the STe in English (PAL),
+distributed unmodified: it is etos256uk.img from emutos-256k-1.4.zip.
+
+EmuTOS is a free replacement for the Atari TOS, written by the EmuTOS
+development team. It is not Atari's TOS and it is not part of ASE: it is a
+separate program that ASE ships so the emulator works from the first run,
+without a ROM of your own.
+
+Copyright (C) The EmuTOS development team - https://emutos.sourceforge.io
+
+EmuTOS is free software, licensed under the GNU General Public License (GPL).
+The full text of the licence is in emutos-license.txt.
+
+Source code
+-----------
+The complete source code of this release, together with the other binary
+packages, is available at:
+
+    https://sourceforge.net/projects/emutos/files/emutos/1.4/
+
+Development repository:  https://github.com/emutos/emutos
+Online manual:           https://emutos.github.io/manual/
+
+Using another TOS
+-----------------
+For the best compatibility select an original TOS dumped from your own Atari
+in Emulation > Configuration > Setup. To run EmuTOS in another language,
+download the 256 KB EmuTOS images and select the one you want there.

@@ -377,11 +377,18 @@ namespace ASE
             if (dec > 0)
             {
                 timerDCounter -= dec;
+                int timeouts = 0;
                 while (timerDCounter <= 0)
                 {
                     timerDCounter += Reload(TDDR);
                     SetInterruptPending(RegB.TimerD, true);
+                    timeouts++;
                 }
+
+                // Timer D's output is the USART's transmit and receive clock on the ST: every
+                // timeout is a clock edge of the RS-232 line
+                if (timeouts > 0)
+                    MfpUsart.Clock(timeouts);
             }
         }
 
@@ -514,8 +521,11 @@ namespace ASE
 
             if (interruptTriggered)
             {
+                // Bit 1 = RS232 carrier detect, bit 2 = clear to send (RegB bits 1 and 2)
+                if (bit == 1) SetInterruptPending(RegB.GPIP1, true);
+                else if (bit == 2) SetInterruptPending(RegB.GPIP2, true);
                 // Bit 4 = ACIA (RegB Bit 6)
-                if (bit == 4) SetInterruptPending(RegB.ACIA, true);
+                else if (bit == 4) SetInterruptPending(RegB.ACIA, true);
                 // Bit 5 = FDC (RegB Bit 7)
                 else if (bit == 5) SetInterruptPending(RegB.FDC, true);
                 // Bit 6 = RS232 ring indicator (RegA Bit 6)

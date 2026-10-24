@@ -44,7 +44,22 @@ namespace ASE
         private const int CYCLES_PER_BYTE = 10240;
         private static int _cyclesUntilNextByte = 0;
 
-        public static byte JoystickState = 0;
+        // What the joystick in each port is doing, as the host drives it (HostInput routes the
+        // keyboard joystick and the gamepad to the ports the configuration names): directions in
+        // bits 0-3, trigger in bit 7. An empty port, or port 0 holding the mouse, reads 0.
+        public static byte Joystick0State = 0;
+        public static byte Joystick1State = 0;
+
+        // Whether the host mouse is plugged into port 0 (Config.Port0Device). Unplugged, its
+        // motion and button presses go nowhere. Not IKBD state, so no reset touches it.
+        public static bool MouseConnected { get; private set; } = true;
+
+        /// <summary>
+        /// The divisor the IKBD applies to host motion instead of <c>MouseSensitivity</c>, when
+        /// above zero. A shared game sets 1: every player's motion arrives already divided by
+        /// their own sensitivity (Netplay.MachineInput.MouseMotion), so each keeps theirs.
+        /// </summary>
+        public static float MouseDivisorOverride;
 
         private static List<byte> _commandBuffer = new List<byte>();
 
@@ -71,11 +86,21 @@ namespace ASE
 
         // for the mouse -> bit 0 = No button, 1 = right, 2 = left
         public static int _mouseButtons = 0;
-        // Physical host buttons, before ORing in the joystick-1 trigger. Keeping the
+        // Physical host buttons, before ORing in the joystick triggers. Keeping the
         // sources apart prevents releasing one from releasing the other held source.
         private static int _hostMouseButtons;
-        private static byte Joystick0Report => !MouseEnabled && (_hostMouseButtons & 2) != 0 ? JOY_FIRE : (byte)0;
-        private static byte Joystick1Report => (byte)(JoystickState | ((_hostMouseButtons & 1) != 0 ? JOY_FIRE : 0));
+
+        // The two button lines, in the bit layout of _mouseButtons. Each trigger shares its wire
+        // with a mouse button: port 0 pin 6 is both joystick 0's fire and the LEFT button, and
+        // the RIGHT button (port 0 pin 9) is wired to joystick 1's fire (port 1 pin 6).
+        private static int ButtonLines => _hostMouseButtons
+            | ((Joystick0State & JOY_FIRE) != 0 ? 2 : 0)
+            | ((Joystick1State & JOY_FIRE) != 0 ? 1 : 0);
+
+        // While port 0 is scanned as a mouse there is no joystick 0 for the IKBD to report.
+        private static byte Joystick0Report => MouseEnabled ? (byte)0
+            : (byte)((Joystick0State & 0x0F) | ((ButtonLines & 2) != 0 ? JOY_FIRE : 0));
+        private static byte Joystick1Report => (byte)((Joystick1State & 0x0F) | ((ButtonLines & 1) != 0 ? JOY_FIRE : 0));
 
         // *** Mouse reporting mode ***
         // The IKBD reports the mouse in one of three ways, and a program picks with $08/$09/$0A.
@@ -244,7 +269,7 @@ namespace ASE
                 _absYAxis = 1;
                 _prevAbsButtons = ABS_PREV_BUTTONS_RESET;
                 _mouseAction = 0;
-                JoystickState = 0;
+                Joystick0State = Joystick1State = 0;
                 _mouseAccumX = _mouseAccumY = 0;
                 _mouseSampleCountdown = MOUSE_PACKET_CYCLES;
 
@@ -275,7 +300,7 @@ namespace ASE
             {
                 w.U8(AciaKbdStatus);
                 w.U8(AciaKbdControl);
-                w.U8(JoystickState);
+                w.U8(Joystick1State);
                 w.Bool(JoystickEnabled);
                 w.Bool(MouseEnabled);
                 w.Bool(JoystickMonitoring);
@@ -303,6 +328,7 @@ namespace ASE
                 w.U8(_prevAbsButtons);
                 w.U8(_mouseAction);
                 w.U8((byte)_hostMouseButtons);
+                w.U8(Joystick0State);
             }
         }
 
@@ -312,7 +338,7 @@ namespace ASE
             {
                 AciaKbdStatus = r.U8();
                 AciaKbdControl = r.U8();
-                JoystickState = r.U8();
+                Joystick1State = r.U8();
                 JoystickEnabled = r.Bool();
                 MouseEnabled = r.Bool();
                 JoystickMonitoring = r.Bool();
@@ -371,7 +397,9 @@ namespace ASE
                 // Older snapshots only stored the merged buttons. Preserve the left
                 // button and attribute a shared right press to the saved joystick first.
                 _hostMouseButtons = r.Remaining > 0 ? r.U8() & 3
-                    : _mouseButtons & ((JoystickState & JOY_FIRE) != 0 ? 2 : 3);
+                    : _mouseButtons & ((Joystick1State & JOY_FIRE) != 0 ? 2 : 3);
+                // Joystick 0, appended with the port configuration: before it there was none.
+                Joystick0State = r.Remaining > 0 ? r.U8() : (byte)0;
                 UpdateKeyboardIrq();
             }
         }
@@ -698,7 +726,7 @@ namespace ASE
                         _absYAxis = 1;
                         _prevAbsButtons = ABS_PREV_BUTTONS_RESET;
                         _mouseAction = 0;
-                        _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
+                        _mouseButtons = ButtonLines;
                         _mouseAccumX = _mouseAccumY = 0;
 
                         _hasLatchedData = false;
@@ -893,11 +921,42 @@ namespace ASE
 
             lock (_syncLock)
             {
-                if (!MouseEnabled) return;
+                if (!MouseEnabled || !MouseConnected) return;
 
                 _mouseAccumX += dx;
                 _mouseAccumY += dy;
             }
+        }
+
+        /// <summary>
+        /// Plugs the host mouse into port 0 or takes it out (<c>Config.Port0Device</c>). Taking
+        /// it out releases its buttons through the ordinary edge path, so the program sees them
+        /// let go, and drops any motion not reported yet.
+        /// </summary>
+        public static void ConnectMouse(bool connected)
+        {
+            lock (_syncLock)
+            {
+                if (MouseConnected == connected) return;
+                MouseConnected = connected;
+                if (connected) return;
+
+                _mouseAccumX = _mouseAccumY = 0;
+                MouseButtonChanged(left: true, pressed: false);
+                MouseButtonChanged(left: false, pressed: false);
+            }
+        }
+
+        /// <summary>
+        /// Sets whether the mouse is plugged into port 0, with none of the side effects of plugging
+        /// or unplugging it. For the start of a recording or a playback (Netplay.MachineInput.Begin):
+        /// the value is not machine state, so no snapshot carries it, and every run of the session
+        /// has to start from the same one.
+        /// </summary>
+        internal static void RestoreMouseConnection(bool connected)
+        {
+            lock (_syncLock)
+                MouseConnected = connected;
         }
 
         /// <summary>
@@ -973,7 +1032,7 @@ namespace ASE
                 return;
             }
 
-            double sens = ConfigOptions.RunninConfig.MouseSensitivity;
+            double sens = MouseDivisorOverride > 0 ? MouseDivisorOverride : ConfigOptions.RunninConfig.MouseSensitivity;
             if (sens < 0.1) sens = 1.0;
 
             int dx = (int)(_mouseAccumX / sens);
@@ -1045,6 +1104,10 @@ namespace ASE
         {
             lock (_syncLock)
             {
+                // A mouse that is not plugged in has no buttons. Releases still pass, so one
+                // held while the mouse was being unplugged cannot stay down.
+                if (pressed && !MouseConnected) return;
+
                 int mask = left ? 0x02 : 0x01;
                 bool wasPressed = (_hostMouseButtons & mask) != 0;
                 if (wasPressed == pressed && !isDoubleClick) return;      // same edge through the other path
@@ -1052,7 +1115,7 @@ namespace ASE
                 byte oldJoy = left ? Joystick0Report : Joystick1Report;
                 int oldButtons = _mouseButtons;
                 if (pressed) _hostMouseButtons |= mask; else _hostMouseButtons &= ~mask;
-                _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
+                _mouseButtons = ButtonLines;
                 if (MouseEnabled)
                 {
                     if (((oldButtons ^ _mouseButtons) & mask) != 0 || isDoubleClick)
@@ -1080,7 +1143,7 @@ namespace ASE
         /// <summary>
         /// Reports one button edge the way the current mode owes it. _mouseButtons is already
         /// updated; the caller holds _syncLock. Shared by the host mouse buttons and the
-        /// joystick-1 trigger, which is the same electrical line as the right button.
+        /// joystick triggers, which are the same electrical lines as the buttons.
         /// </summary>
         private static void ReportButtonEdge(bool left, bool pressed)
         {
@@ -1125,48 +1188,60 @@ namespace ASE
             EmitMousePacket(force: true);
         }
 
-        public static void UpdateJoystick(byte mask, bool pressed)
+        /// <summary>
+        /// The joysticks in the two ports changed: directions in bits 0-3, trigger in bit 7,
+        /// each the whole state of its port (HostInput has already routed the host devices).
+        /// Reports the difference the way the IKBD's current mode owes it.
+        /// </summary>
+        public static void SetJoysticks(byte joy0, byte joy1)
         {
             lock (_syncLock)
             {
-                // Keep the full joystick-1 state at all times: directions in bits
-                // 0-3 and the trigger in bit 7. The interrogation reply (0x16)
-                // always reports this real state; the auto event packet may strip
-                // the trigger depending on the port-0 mode (see below).
-                byte oldState = JoystickState;
-                byte oldReport = Joystick1Report;
+                if (joy0 == Joystick0State && joy1 == Joystick1State) return;
+
+                // The interrogation reply (0x16) always reports the real state; the auto
+                // event packets may strip the trigger depending on the port-0 mode (below).
+                byte oldReport0 = Joystick0Report;
+                byte oldReport1 = Joystick1Report;
                 int oldButtons = _mouseButtons;
-                if (pressed) JoystickState |= mask; else JoystickState &= (byte)~mask;
-                if (JoystickState == oldState) return;
-                _mouseButtons = _hostMouseButtons | ((JoystickState & JOY_FIRE) != 0 ? 1 : 0);
+                Joystick0State = joy0;
+                Joystick1State = joy1;
+                _mouseButtons = ButtonLines;
 
                 // *** Fire button routing ***
                 // On real ST hardware the joystick-1 fire line (port 1, pin 6) is the
                 // SAME electrical signal as the RIGHT mouse button, while the
                 // joystick-0 fire line (port 0, pin 6) is the LEFT mouse button. So
-                // the IKBD reports the trigger on different channels depending on
+                // the IKBD reports the triggers on different channels depending on
                 // whether port 0 is currently scanned as a mouse:
                 //
-                //   - Mouse mode (MouseEnabled, the power-up default): the trigger is
+                //   - Mouse mode (MouseEnabled, the power-up default): the triggers are
                 //     "logically assigned to the mouse", so joystick-1 fire is sent as
-                //     the RIGHT mouse button (bit 0 of the 0xF8 packet) and is NOT
-                //     included in the joystick event packet.
+                //     the RIGHT mouse button (bit 0 of the 0xF8 packet) and joystick-0
+                //     fire as the LEFT one, and neither is in the joystick event packet.
                 //   - Joystick mode (mouse off, after a joystick command): fire is
-                //     sent as bit 7 of the 0xFF joystick event packet.
-                if (((oldButtons ^ _mouseButtons) & 1) != 0 && MouseEnabled)
+                //     sent as bit 7 of the 0xFE/0xFF joystick event packets.
+                if (MouseEnabled)
                 {
-                    // Same line, same rules: honoured as an absolute report or a $75
+                    // Same lines, same rules: honoured as an absolute report or a $74/$75
                     // scancode when $07 asked for those, not just as a relative packet.
-                    ReportButtonEdge(left: false, pressed: (_mouseButtons & 1) != 0);
+                    int changed = oldButtons ^ _mouseButtons;
+                    if ((changed & 2) != 0) ReportButtonEdge(left: true, pressed: (_mouseButtons & 2) != 0);
+                    if ((changed & 1) != 0) ReportButtonEdge(left: false, pressed: (_mouseButtons & 1) != 0);
                 }
 
-                // Auto joystick event packet: directions always, plus the trigger
-                // only when the mouse is off. While the mouse is on, bit 7 is masked
-                // out because the trigger is being reported through the mouse button.
                 if (JoystickEnabled)
                 {
+                    // Joystick 0 exists for the IKBD only once port 0 is scanned as a joystick:
+                    // in mouse mode its report reads 0 throughout, so nothing goes out.
+                    if (Joystick0Report != oldReport0)
+                        PushIkbdPacket(0xFE, Joystick0Report);
+
+                    // Auto joystick event packet: directions always, plus the trigger
+                    // only when the mouse is off. While the mouse is on, bit 7 is masked
+                    // out because the trigger is being reported through the mouse button.
                     byte report = MouseEnabled ? (byte)(Joystick1Report & ~JOY_FIRE) : Joystick1Report;
-                    byte previous = MouseEnabled ? (byte)(oldReport & ~JOY_FIRE) : oldReport;
+                    byte previous = MouseEnabled ? (byte)(oldReport1 & ~JOY_FIRE) : oldReport1;
                     if (report == previous) return;
                     if (ConfigOptions.RunninConfig.DebugMode >= ConfigOptions.DebugModes.Full)
                         ColoredConsole.WriteLine($"[[magenta]]HOST[[/magenta]] joy event -> packet [[yellow]]FF ${report:X2}[[/yellow]] (fireBit={((report & JOY_FIRE) != 0)})");

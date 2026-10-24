@@ -25,12 +25,15 @@
             <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                 <TextBlock Classes="windowTitle" Text="Configuration" />
                 <TextBlock Classes="description"
+                           x:Name="TextHeaderDescription"
+                           TextWrapping="Wrap"
                            Text="Configure the machine, display, input, storage and MIDI" />
             </StackPanel>
         </Grid>
 
         <!-- Main content -->
         <TabControl Grid.Row="1"
+                    x:Name="Tabs"
                     Classes="settingsNavigation"
                     TabStripPlacement="Left"
                     Margin="24,0,24,0">
@@ -512,7 +515,7 @@
             </TabItem>
 
             <!-- INPUT -->
-            <TabItem>
+            <TabItem x:Name="TabInput">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Svg Path="avares://ASE/Assets/Icons/joystick.svg" Width="18" Height="18" Margin="0,2,0,0" VerticalAlignment="Center" />
@@ -521,6 +524,43 @@
                 </TabItem.Header>
 
                     <StackPanel Classes="settingsContent" Spacing="12">
+                    
+                        <Border Classes="card">
+                            <StackPanel Spacing="12">
+                                <StackPanel Spacing="3">
+                                    <TextBlock Classes="section" Text="Atari ports" />
+                                    <TextBlock Classes="description" Text="Devices connected to the Atari ports." />
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" HorizontalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                                        <Svg Path="avares://ASE/Assets/Icons/mouse.svg" Margin="0,0,4,0"></Svg>
+                                        <Svg Path="avares://ASE/Assets/Icons/joystick.svg"></Svg>
+                                    </StackPanel>
+                                    <ComboBox Name="ComboPort0" Grid.Column="1" Width="200">
+                                        <ComboBoxItem>Disconnected</ComboBoxItem>
+                                        <ComboBoxItem>Mouse</ComboBoxItem>
+                                        <ComboBoxItem>Keys and Gamepad</ComboBoxItem>
+                                        <ComboBoxItem>Keys only</ComboBoxItem>
+                                        <ComboBoxItem>Gamepad only</ComboBoxItem>
+                                    </ComboBox>
+                                    <StackPanel Orientation="Horizontal" Grid.Column="3" VerticalAlignment="Center">
+                                        <Svg Path="avares://ASE/Assets/Icons/joystick.svg"></Svg>
+                                    </StackPanel>
+                                    <!-- The item stays so both combos share the PortDevices order:
+                                         the IKBD decodes a mouse on port 0 only. -->
+                                    <ComboBox Name="ComboPort1" Grid.Column="4" Width="200">
+                                        <ComboBoxItem>Disconnected</ComboBoxItem>
+                                        <ComboBoxItem IsEnabled="False" ToolTip.ShowOnDisabled="True"
+                                                      ToolTip.Tip="The ST reads a mouse on port 0 only.">Mouse</ComboBoxItem>
+                                        <ComboBoxItem>Keys and Gamepad</ComboBoxItem>
+                                        <ComboBoxItem>Keys only</ComboBoxItem>
+                                        <ComboBoxItem>Gamepad only</ComboBoxItem>
+                                    </ComboBox>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    
                         <Border Classes="card">
                             <StackPanel Spacing="12">
                                 <StackPanel Spacing="3">
@@ -608,7 +648,7 @@
                                 <StackPanel Spacing="14">
                                     <StackPanel Spacing="3">
                                         <TextBlock Classes="section" Text="Gamepad buttons" />
-                                        <TextBlock Classes="description" Text="Assign common Atari actions and keys to gamepad buttons." />
+                                        <TextBlock Classes="description" TextWrapping="Wrap" Text="Assign common Atari actions and keys to gamepad buttons. Back 5 s, Back 10 s and Time warp… go back in the game." />
                                     </StackPanel>
 
                                     <Grid ColumnDefinitions="Auto,*,18,Auto,*"
@@ -616,42 +656,42 @@
                                           ColumnSpacing="8" RowSpacing="9">
                                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" FontWeight="SemiBold" Text="Y" />
                                         <ComboBox Name="ComboY" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" Text="X" />
                                         <ComboBox Name="ComboX" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" FontWeight="SemiBold" Text="B" />
                                         <ComboBox Name="ComboB" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" FontWeight="SemiBold" Text="A" />
                                         <ComboBox Name="ComboA" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="3" Grid.Row="0" VerticalAlignment="Center" FontWeight="SemiBold" Text="LB" />
                                         <ComboBox Name="ComboLB" Grid.Column="4" Grid.Row="0" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="3" Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" Text="RB" />
                                         <ComboBox Name="ComboRB" Grid.Column="4" Grid.Row="1" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="3" Grid.Row="2" VerticalAlignment="Center" FontWeight="SemiBold" Text="LS" />
                                         <ComboBox Name="ComboLS" Grid.Column="4" Grid.Row="2" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
 
                                         <TextBlock Grid.Column="3" Grid.Row="3" VerticalAlignment="Center" FontWeight="SemiBold" Text="RS" />
                                         <ComboBox Name="ComboRS" Grid.Column="4" Grid.Row="3" HorizontalAlignment="Stretch">
-                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem>
+                                            <ComboBoxItem>None</ComboBoxItem><ComboBoxItem>Fire</ComboBoxItem><ComboBoxItem>Space</ComboBoxItem><ComboBoxItem>Up</ComboBoxItem><ComboBoxItem>Y</ComboBoxItem><ComboBoxItem>N</ComboBoxItem><ComboBoxItem>T</ComboBoxItem><ComboBoxItem>Back 5 s</ComboBoxItem><ComboBoxItem>Back 10 s</ComboBoxItem><ComboBoxItem>Time warp…</ComboBoxItem>
                                         </ComboBox>
                                     </Grid>
                                 </StackPanel>

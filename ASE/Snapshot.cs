@@ -29,13 +29,26 @@
  *   "MIDI"  MIDI ACIA 6850 registers and transmit state (the host-side receive
  *           queue and whatever the port is wired to belong to the session, not
  *           to the machine). Absent in older snapshots: the chip stays reset.
+ *   "UART"  The MFP's USART (the RS-232 port): registers, both buffers and the
+ *           characters on the line; the bytes still to arrive belong to whatever is
+ *           plugged into the port. Absent in older snapshots: the USART stays reset.
  *   "GHD "  GEMDOS hard drive hook bookkeeping: the saved RAM has $84 pointing
  *           into the synthetic cartridge, so the chained TOS vector (and act_pd)
  *           must travel too. Host-side file handles and directory scans do NOT
  *           survive a restore — like unplugging and replugging the drive.
+ *   "HDG "  Only while a library hard-disk game runs: its title and source, and its
+ *           whole disk, compressed. The image is temporary and the saved RAM points
+ *           into it, so the snapshot is what keeps the game (HardDiskGames). Read by
+ *           ASEMain.StartWithSnapshot before the power-on, not by Apply.
+ *   "RNG "  The machine's random generator (MachineRandom: STX fuzzy bits, the noise
+ *           of an unformatted track). Absent in older snapshots: the power-on seed stays.
+ *   "FLP "  Only in session snapshots (SaveToBytes with media): both drives' disks as
+ *           the drives hold them, writes included, compressed (FloppyImage.SaveMedia).
+ *           When present they replace the re-insertion by path.
  *
- * Not included: the floppy image contents themselves (only their paths) and
- * Moira-internal state not exposed by the wrapper (e.g. a pending STOP).
+ * Not included in an ordinary snapshot: the floppy image contents themselves (only
+ * their paths), the configured ACSI image (the user's own disk, attached from the
+ * settings), and Moira-internal state not exposed by the wrapper (e.g. a pending STOP).
  *
  * Official repository 👉 https://github.com/thebitculture/ase
  *
@@ -85,6 +98,7 @@ namespace ASE
             public Reader(byte[] payload) { _b = payload; }
 
             public byte U8() => _b[_pos++];
+            public byte PeekU8() => _b[_pos];
             public bool Bool() => U8() != 0;
             public ushort U16() => (ushort)((U8() << 8) | U8());
             public short I16() => (short)U16();
@@ -97,6 +111,11 @@ namespace ASE
 
             public byte[] Bytes(int count)
             {
+                // A length read from the payload itself: a corrupt or hostile one must fail as
+                // bad data, not as a gigantic allocation or an exception from the copy.
+                if (count < 0 || count > Remaining)
+                    throw new InvalidDataException("Corrupt data: a field runs past the end of its section.");
+
                 var r = new byte[count];
                 Array.Copy(_b, _pos, r, 0, count);
                 _pos += count;
@@ -127,21 +146,47 @@ namespace ASE
         /// </summary>
         public static void Save(string path)
         {
+            using var fs = File.Create(path);
+            Save(fs, includeMedia: false);
+        }
+
+        /// <summary>
+        /// The snapshot a deterministic session starts from, in memory: with
+        /// <paramref name="includeMedia"/> it carries the floppy disks themselves instead of
+        /// their paths ("FLP "), so the machine it restores is the same machine wherever it is
+        /// restored. A <paramref name="shareable"/> one goes to other computers (a shared online
+        /// game): the files it names are named without their folders, which say things about
+        /// this computer and its user that are nobody else's business. Same calling rules as
+        /// <see cref="Save(string)"/>.
+        /// </summary>
+        public static byte[] SaveToBytes(bool includeMedia, bool shareable = false)
+        {
+            using var ms = new MemoryStream();
+            Save(ms, includeMedia, shareable);
+            return ms.ToArray();
+        }
+
+        static void Save(Stream fs, bool includeMedia, bool shareable = false)
+        {
+            string Named(string path) => shareable ? Path.GetFileName(path ?? "") : path;
+
             // Complete any in-flight STX operation: its remaining bytes land in RAM and the
             // command finishes, so the snapshot never contains a half-delivered DMA transfer.
+            // That changes the machine, so a running recording has to log it to be replayed
+            // at the same point.
             WD1772.FlushPendingOp();
+            Netplay.MachineInput.NoteFdcFlush();
 
             var mem = ASEMain._mem;
 
-            using var fs = File.Create(path);
             fs.Write(Encoding.ASCII.GetBytes(Magic));
 
             WriteSection(fs, "CFG ", w =>
             {
                 w.U8((byte)ConfigOptions.RunninConfig.STModel);
                 w.U8((byte)ConfigOptions.RunninConfig.RAMConfiguration);
-                w.Str(ASEMain.driveA.ImagePath);
-                w.Str(ASEMain.driveB.ImagePath);
+                w.Str(Named(ASEMain.driveA.ImagePath));
+                w.Str(Named(ASEMain.driveB.ImagePath));
                 // Appended after the original fields so older readers (which stop here) still load.
                 w.U8((byte)(ConfigOptions.RunninConfig.MonochromeMonitor ? 1 : 0));
 
@@ -151,13 +196,33 @@ namespace ASE
                 w.U8((byte)(ConfigOptions.RunninConfig.DriveBEnabled ? 1 : 0));
             });
 
-            WriteSection(fs, "CPU ", WriteCpu);
-
             WriteSection(fs, "ROM ", w =>
             {
                 w.U32(mem.TosBase);
                 w.Bytes(mem.ROM);
             });
+
+            WriteMachine(fs);
+
+            // A library hard-disk game's disk is temporary: the snapshot has to carry it
+            byte[] disk = HardDiskGames.Active ? Acsi.ReadAttachedImage() : null;
+            if (disk != null)
+                WriteSection(fs, "HDG ", w => HardDiskGames.SaveState(w, disk, shareable));
+
+            if (includeMedia)
+            {
+                byte[] media = MediaSection(MediaRaw(shareable));
+                WriteSection(fs, "FLP ", w => w.Bytes(media));
+            }
+        }
+
+        // The machine itself — CPU, physical RAM with the port latches, every chip — as a
+        // snapshot and a time-warp moment both carry it
+        static void WriteMachine(Stream fs)
+        {
+            var mem = ASEMain._mem;
+
+            WriteSection(fs, "CPU ", WriteCpu);
 
             WriteSection(fs, "MEM ", w =>
             {
@@ -173,7 +238,112 @@ namespace ASE
             WriteSection(fs, "DMAS", STEDmaSound.SaveState);
             WriteSection(fs, "BLIT", Blitter.SaveState);
             WriteSection(fs, "MIDI", MidiAcia.SaveState);
+            WriteSection(fs, "UART", MfpUsart.SaveState);
             WriteSection(fs, "GHD ", GemdosHD.SaveState);
+            WriteSection(fs, "RNG ", MachineRandom.SaveState);
+        }
+
+        /// <summary>The disks exactly as the drives hold them (see <see cref="FloppyImage.SaveMedia"/>),
+        /// uncompressed: a copy taken quickly, at the moment that matters.</summary>
+        internal static byte[] MediaRaw(bool shareable = false)
+        {
+            using var ms = new MemoryStream();
+            var w = new Writer(ms);
+            ASEMain.driveA.SaveMedia(w, fileNameOnly: shareable);
+            ASEMain.driveB.SaveMedia(w, fileNameOnly: shareable);
+            return ms.ToArray();
+        }
+
+        /// <summary>What <see cref="MediaRaw"/> took, as an "FLP " payload: the format version,
+        /// then the disks packed. Any thread.</summary>
+        internal static byte[] MediaSection(byte[] raw)
+        {
+            using var ms = new MemoryStream();
+            var w = new Writer(ms);
+            w.U8(MediaVersion);
+            w.Bytes(Pack(inner => inner.Bytes(raw)));
+            return ms.ToArray();
+        }
+
+        const byte MediaVersion = 1;
+
+        // ==================== Time warp ====================
+
+        /// <summary>
+        /// The machine alone, for a time-warp moment (<see cref="TimeWarp"/>): CPU, memory and
+        /// every chip as a snapshot has them, without the configuration, the ROM or the disks —
+        /// the machine it goes back to is this same one, which keeps its own. Unlike a snapshot it
+        /// never completes an STX command in flight, which would change the machine it is taken
+        /// from (a protection timing its sectors would see the tail arrive at once): it gives null
+        /// while one is, and the time warp tries the next frame. Emulation thread, at a frame
+        /// boundary.
+        /// </summary>
+        internal static byte[] SaveMachine()
+        {
+            if (WD1772.TimedOpInFlight)
+                return null;
+
+            using var ms = new MemoryStream(ASEMain._mem.RamSize + 256 * 1024);
+            ms.Write(Encoding.ASCII.GetBytes(Magic));
+            WriteMachine(ms);
+            return ms.ToArray();
+        }
+
+        /// <summary>Puts back what <see cref="SaveMachine"/> wrote, on the running machine with
+        /// its CPU and chips just rebuilt (<see cref="CPU.ResetChips"/>). Throws on a payload that
+        /// is not one.</summary>
+        internal static void ApplyMachine(byte[] saved) => ApplyMachine(ReadSections(saved));
+
+        /// <summary>Puts both drives back from an "FLP " payload (<see cref="MediaSection(byte[])"/>),
+        /// with no disk change signalled.</summary>
+        internal static void RestoreMediaSection(byte[] section) => RestoreMedia(section);
+
+        /// <summary>
+        /// Writes <paramref name="body"/> into a buffer and deflates it: a uint32 with the
+        /// uncompressed length, then the zlib stream. For payloads that are mostly disk images
+        /// (the "FLP " section, a disk swap logged by a recording), where it saves a lot.
+        /// </summary>
+        public static byte[] Pack(Action<Writer> body)
+        {
+            using var raw = new MemoryStream();
+            body(new Writer(raw));
+
+            using var packed = new MemoryStream();
+            var header = new Writer(packed);
+            header.U32((uint)raw.Length);
+
+            using (var z = new System.IO.Compression.ZLibStream(packed, System.IO.Compression.CompressionLevel.Fastest, leaveOpen: true))
+                z.Write(raw.GetBuffer(), 0, (int)raw.Length);
+
+            return packed.ToArray();
+        }
+
+        /// <summary>Reverses <see cref="Pack"/>. Throws InvalidDataException on a payload that is
+        /// not one, or that inflates to anything but the length it declares.</summary>
+        public static Reader Unpack(byte[] packed)
+        {
+            var header = new Reader(packed);
+            uint length = header.U32();
+
+            // Generous for two disks (an HD STX is ~2 MB), and a cap on what a corrupt or
+            // hostile length can make us allocate.
+            if (length > 64u * 1024 * 1024)
+                throw new InvalidDataException("Corrupt data: packed payload too large.");
+
+            byte[] raw = new byte[length];
+
+            try
+            {
+                using var z = new System.IO.Compression.ZLibStream(
+                    new MemoryStream(packed, 4, packed.Length - 4), System.IO.Compression.CompressionMode.Decompress);
+                z.ReadExactly(raw);
+            }
+            catch (Exception ex) when (ex is not InvalidDataException)
+            {
+                throw new InvalidDataException($"Corrupt data: {ex.Message}");
+            }
+
+            return new Reader(raw);
         }
 
         static void WriteSection(Stream fs, string id, Action<Writer> body)
@@ -241,30 +411,13 @@ namespace ASE
         /// Reads and validates a snapshot file. Throws with a descriptive message when the file
         /// is not a valid ASESNAP2 snapshot. Does not touch the running machine.
         /// </summary>
-        public static SnapshotFile ReadFile(string path)
+        public static SnapshotFile ReadFile(string path) => Parse(File.ReadAllBytes(path));
+
+        /// <summary>Same as <see cref="ReadFile"/>, from a snapshot already in memory (a session
+        /// snapshot, or one embedded in an input recording).</summary>
+        public static SnapshotFile Parse(byte[] file)
         {
-            byte[] file = File.ReadAllBytes(path);
-
-            if (file.Length < 8 || Encoding.ASCII.GetString(file, 0, 8) != Magic)
-                throw new InvalidDataException($"Not an {Magic} snapshot file.");
-
-            var snap = new SnapshotFile();
-            int pos = 8;
-
-            while (pos + 8 <= file.Length)
-            {
-                string id = Encoding.ASCII.GetString(file, pos, 4);
-                int len = (file[pos + 4] << 24) | (file[pos + 5] << 16) | (file[pos + 6] << 8) | file[pos + 7];
-                pos += 8;
-
-                if (len < 0 || pos + len > file.Length)
-                    throw new InvalidDataException($"Corrupt snapshot: section '{id}' overruns the file.");
-
-                var payload = new byte[len];
-                Array.Copy(file, pos, payload, 0, len);
-                snap.Sections[id] = payload;    // unknown sections are simply carried and ignored
-                pos += len;
-            }
+            var snap = new SnapshotFile { Sections = ReadSections(file) };
 
             foreach (string required in new[] { "CFG ", "CPU ", "ROM ", "MEM " })
                 if (!snap.Sections.ContainsKey(required))
@@ -321,31 +474,14 @@ namespace ASE
             mem.TosSize = rom.Length;
             mem.TosBase = tosBase;
 
-            // RAM (physical) + hardware port latches, then re-derive the MMU banks from $FF8001
-            var memR = new Reader(snap.Sections["MEM "]);
-            uint ramSize = memR.U32();
-            if (ramSize != (uint)mem.RamSize)
-                throw new InvalidDataException("Snapshot RAM size does not match the machine configuration.");
+            ApplyMachine(snap.Sections);
 
-            Array.Copy(memR.Bytes((int)ramSize), mem.RAM, ramSize);
-            Array.Copy(memR.Bytes(mem.Ports.Length), mem.Ports, mem.Ports.Length);
-            mem.RestoreMMUFromPorts();
-
-            // CPU registers and clock
-            ReadCpu(new Reader(snap.Sections["CPU "]));
-
-            // Hardware chips (each section optional: older/newer snapshots still load)
-            if (snap.Sections.TryGetValue("MFP ", out var mfp)) ASEMain._mfp.LoadState(new Reader(mfp));
-            if (snap.Sections.TryGetValue("PSG ", out var psg)) ASEMain._ym.LoadState(new Reader(psg));
-            if (snap.Sections.TryGetValue("ACIA", out var acia)) ACIA.LoadState(new Reader(acia));
-            if (snap.Sections.TryGetValue("FDC ", out var fdc)) WD1772.LoadState(new Reader(fdc));
-            if (snap.Sections.TryGetValue("DMAS", out var dmas)) STEDmaSound.LoadState(new Reader(dmas));
-            if (snap.Sections.TryGetValue("BLIT", out var blit)) Blitter.LoadState(new Reader(blit));
-            if (snap.Sections.TryGetValue("MIDI", out var midi)) MidiAcia.LoadState(new Reader(midi));
-            if (snap.Sections.TryGetValue("GHD ", out var ghd)) GemdosHD.LoadState(new Reader(ghd));
-
-            // The GLUE sync/resolution latches mirror the restored port bytes
-            VideoTiming.RestoreFromPorts();
+            // A session snapshot brings the disks themselves, exactly as the drives held them
+            if (snap.Sections.TryGetValue("FLP ", out var flp))
+            {
+                RestoreMedia(flp);
+                return;
+            }
 
             // Best effort: put back the disks that were inserted when the snapshot was taken
             ReinsertDrive(ASEMain.driveA, snap.DriveAPath, 'A');
@@ -355,6 +491,90 @@ namespace ASE
             // that is not there is a state the UI has no way to show or clear.
             if (ConfigOptions.RunninConfig.DriveBEnabled)
                 ReinsertDrive(ASEMain.driveB, snap.DriveBPath, 'B');
+        }
+
+        // The machine sections onto chips that have just been reset: memory, CPU, every chip
+        static void ApplyMachine(Dictionary<string, byte[]> sections)
+        {
+            var mem = ASEMain._mem;
+
+            // RAM (physical) + hardware port latches, then re-derive the MMU banks from $FF8001
+            var memR = new Reader(sections["MEM "]);
+            uint ramSize = memR.U32();
+            if (ramSize != (uint)mem.RamSize)
+                throw new InvalidDataException("Snapshot RAM size does not match the machine configuration.");
+
+            Array.Copy(memR.Bytes((int)ramSize), mem.RAM, ramSize);
+            Array.Copy(memR.Bytes(mem.Ports.Length), mem.Ports, mem.Ports.Length);
+            mem.RestoreMMUFromPorts();
+
+            // CPU registers and clock
+            ReadCpu(new Reader(sections["CPU "]));
+
+            // Hardware chips (each section optional: older/newer snapshots still load)
+            if (sections.TryGetValue("MFP ", out var mfp)) ASEMain._mfp.LoadState(new Reader(mfp));
+            if (sections.TryGetValue("PSG ", out var psg)) ASEMain._ym.LoadState(new Reader(psg));
+            if (sections.TryGetValue("ACIA", out var acia)) ACIA.LoadState(new Reader(acia));
+            if (sections.TryGetValue("FDC ", out var fdc)) WD1772.LoadState(new Reader(fdc));
+            if (sections.TryGetValue("DMAS", out var dmas)) STEDmaSound.LoadState(new Reader(dmas));
+            if (sections.TryGetValue("BLIT", out var blit)) Blitter.LoadState(new Reader(blit));
+            if (sections.TryGetValue("MIDI", out var midi)) MidiAcia.LoadState(new Reader(midi));
+            if (sections.TryGetValue("UART", out var uart)) MfpUsart.LoadState(new Reader(uart));
+            if (sections.TryGetValue("GHD ", out var ghd)) GemdosHD.LoadState(new Reader(ghd));
+            if (sections.TryGetValue("RNG ", out var rng)) MachineRandom.LoadState(new Reader(rng));
+
+            // The GLUE sync/resolution latches mirror the restored port bytes
+            VideoTiming.RestoreFromPorts();
+        }
+
+        // The sections of an ASESNAP2 file, by id; unknown ones are simply carried and ignored
+        static Dictionary<string, byte[]> ReadSections(byte[] file)
+        {
+            if (file.Length < 8 || Encoding.ASCII.GetString(file, 0, 8) != Magic)
+                throw new InvalidDataException($"Not an {Magic} snapshot file.");
+
+            var sections = new Dictionary<string, byte[]>();
+            int pos = 8;
+
+            while (pos + 8 <= file.Length)
+            {
+                string id = Encoding.ASCII.GetString(file, pos, 4);
+                int len = (file[pos + 4] << 24) | (file[pos + 5] << 16) | (file[pos + 6] << 8) | file[pos + 7];
+                pos += 8;
+
+                if (len < 0 || pos + len > file.Length)
+                    throw new InvalidDataException($"Corrupt snapshot: section '{id}' overruns the file.");
+
+                var payload = new byte[len];
+                Array.Copy(file, pos, payload, 0, len);
+                sections[id] = payload;
+                pos += len;
+            }
+
+            if (!sections.ContainsKey("CPU ") || !sections.ContainsKey("MEM "))
+                throw new InvalidDataException("Corrupt snapshot: missing the CPU or memory section.");
+
+            return sections;
+        }
+
+        /// <summary>
+        /// Puts back both drives from an "FLP " section. No disk change is signalled: the disks
+        /// were already in the drives in the machine the snapshot describes, and a transition the
+        /// original machine never saw would make the restored one behave differently.
+        /// </summary>
+        static void RestoreMedia(byte[] section)
+        {
+            var r = new Reader(section);
+            byte version = r.U8();
+
+            if (version != MediaVersion)
+                throw new InvalidDataException($"Unsupported disk section version ({version}) in snapshot.");
+
+            byte[] packed = r.Bytes(r.Remaining);
+            var media = Unpack(packed);
+
+            ASEMain.driveA.RestoreMedia(media, signalTransition: false);
+            ASEMain.driveB.RestoreMedia(media, signalTransition: false);
         }
 
         static void ReadCpu(Reader r)

@@ -4,8 +4,16 @@ cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
 project(moira CXX)
 
+# Moira instantiates its instruction handlers where it builds the jump tables, and
+# doing all three cores in one translation unit is over 10,000 functions -- more peak
+# memory than some compilers have. Upstream therefore compiles that part once per core
+# (MoiraCore_cpp.h with MOIRA_CORE set), and these three files must be built alongside
+# Moira.cpp or the jump tables are left undefined at link time.
 add_library(moira SHARED
  Moira.cpp
+ MoiraCore68000.cpp
+ MoiraCore68010.cpp
+ MoiraCore68020.cpp
  MoiraDebugger.cpp
  Moira_dotnet.cpp
 )
@@ -37,6 +45,22 @@ endif()
 if(MINGW)
     target_compile_options(moira PUBLIC -Wa,-mbig-obj)
     target_link_options(moira PRIVATE -static)
+endif()
+
+# Linux: libstdc++ linked in, the same idea as /MT above. A dynamic libstdc++.so.6
+# ties moira.so to the libstdc++ of the build machine (GLIBCXX_3.4.31 or later when
+# built on a current distro), and a machine with an older one fails the P/Invoke with
+# a DllNotFoundException naming moira.so. Linked in, what is left is glibc and
+# libgcc_s (GCC_3.0, present everywhere).
+# This does NOT free moira.so from the build machine's glibc: the archive was itself
+# compiled against it and brings its symbols along (built on Ubuntu 26.04 it needs
+# arc4random@2.36 and __isoc23_strtoul@2.38, neither called by Moira). The oldest
+# distro it loads on is the one whose glibc it was built against -- to reach an older
+# one, build there.
+# --exclude-libs keeps the archive's symbols out of moira.so's exports, so they can
+# never interpose on a libstdc++ the host process has loaded itself.
+if(UNIX AND NOT APPLE)
+    target_link_options(moira PRIVATE -static-libstdc++ -Wl,--exclude-libs,ALL)
 endif()
 
 set_target_properties(moira PROPERTIES OUTPUT_NAME "moira")

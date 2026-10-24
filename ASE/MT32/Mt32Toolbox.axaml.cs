@@ -177,8 +177,8 @@ public partial class Mt32Toolbox : Window
 
     private void OnTitleBarPressed(object sender, PointerPressedEventArgs e)
     {
-        // Este método sólo existe para solucionar que linux no mueve la ventana al arrastrar del título
-        // Esto hay que revisarlo con nuevas versiones de Avalonia.
+        // This method exists only because on Linux dragging the title strip does not move the
+        // window. Check it again with new Avalonia versions.
 
         if (!OperatingSystem.IsLinux())
             return;
@@ -186,7 +186,7 @@ public partial class Mt32Toolbox : Window
         if (e.GetCurrentPoint(this).Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
             return;
 
-        // Ningún botón de la barra (cerrar, guardar perfil) se atrapa: la pulsación es suya.
+        // No button on the strip (close, save profile) is captured: the press is theirs.
         if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null)
             return;
 

@@ -1,1647 +1,4338 @@
 using Avalonia;
+
 using Avalonia.Controls;
+
 using Avalonia.Input;
+
 using Avalonia.Interactivity;
+
 using Avalonia.Media;
+
 using Avalonia.Media.Imaging;
+
 using Avalonia.Platform;
+
 using Avalonia.Platform.Storage;
+
 using Avalonia.Reactive;
+
 using Avalonia.Threading;
+
 using SDL2;
+
 using System;
+
 using TinyDialogsNet;
+
 using Tmds.DBus.Protocol;
+
 using ASE.Services;
+
 using static ASE.Config;
 
+
+
 namespace ASE
+
 {
+
     public partial class MainWindow : Window
+
     {
+
         // Aspect-ratio keeping: last client size we accepted as correct; used both to
+
         // ignore the echo of our own corrections and to know which dimension the user dragged.
+
         private Size _lastStableClientSize;
+
         private DispatcherTimer _resizeDebounce;
+
+
 
         public IntPtr _sdlWindowPtr;
 
+
+
         // The platform window handed to SDL_CreateWindowFrom. Kept to notice a backend that
+
         // recreates it behind our back when the window state changes (see VerifyNativeHandle).
+
         IntPtr _nativeWindowHandle;
 
+
+
         // Menu-bar state, split from how it is shown: ShowMenu records whether it should be
+
         // usable (i.e. the input is not captured) and ApplyMenuVisibility decides what that
+
         // means in the current window state.
+
         bool _menuEnabled = true;
 
+
+
         // Window state to give back when leaving full screen, and whether the full-screen side
+
         // effects (menu, screen saver, priority) are currently applied — the state change is
+
         // acted on in one place, OnWindowStateChanged, wherever it came from.
+
         WindowState _stateBeforeFullScreen = WindowState.Normal;
+
         bool _fullScreenApplied;
 
+
+
         // Raising the priority may be refused (Linux/macOS): say so once, not on every toggle.
+
         static bool _priorityWarned;
 
+
+
         // Full-screen setting as this session started (config file + command line), to tell on
+
         // closing whether the user changed it — see OnClosing.
+
         readonly bool _fullScreenAtStartup = Config.ConfigOptions.RunninConfig.FullScreen;
 
 
+
+
+
+        bool _closed = false;
         Bitmap BitmapLedDriveOn;
+
         Bitmap BitmapLedDriveOff;
 
+
+
         // One entry per floppy drive (0 = A, 1 = B): when the FDC last lit its light, and whether
+
         // the turn-off has already been posted for the idle stretch it is in. Without that second
+
         // flag the once-per-frame poll would queue dispatcher work forever for an idle drive.
+
         // MinValue = never accessed, so both drives start idle and paint their label on the
+
         // first poll instead of two seconds into the session.
+
         readonly DateTime[] TimeLastDriveOn = { DateTime.MinValue, DateTime.MinValue };
+
         readonly bool[] DriveLedOffPosted = { false, false };
 
+
+
         // The idle label names the disk in the drive, so a disk inserted, ejected or swapped while
+
         // the light is off has to repaint it even though the idle state itself never changed. This
+
         // is the disk part of the label last posted for each drive (empty = drive empty).
+
         readonly string[] DriveLedDiskPosted = { "", "" };
 
+
+
         // Marquee for the idle labels. A disk file name is usually wider than the strip, so after
+
         // MarqueeIdleDelay seconds without activity the label slides left to show the end of the
+
         // name and back again, slowly. The timer only lives while there is something to scroll:
+
         // DriveLed starts it and OnMarqueeTick stops it when every label fits.
+
         const double MarqueeSpeed = 15.0;      // pixels per second
+
         const double MarqueeIdleDelay = 3.0;   // seconds of inactivity before it starts
+
         const double MarqueeEndPause = 1.5;    // seconds held at each end of the travel
+
         DispatcherTimer MarqueeTimer;
+
         readonly bool[] DriveLabelIdle = { true, true };
+
         readonly DateTime[] DriveLabelSince = { DateTime.Now, DateTime.Now };
+
+
 
         DateTime TimeLastTimeTextBlock = DateTime.Now;
 
+
+
         // Hard disk light. The emulation only stamps ASEMain.SignalHardDiskActivity(); this
+
         // side polls it once per frame in RefreshDriveLed and touches the UI only when the
+
         // state actually flips, so a program hammering the disk costs nothing here.
+
         Bitmap BitmapLedHDOn;
+
         Bitmap BitmapLedHDOff;
+
         bool HDLedIsOn;
 
+
+
         // Zip each drive's disk came from, so "Change disk from ZIP" knows where to look again.
+
         // Empty when the drive holds a plain image, or nothing at all.
+
         readonly string[] ZipFile = { "", "" };
 
+
+
         // Drive B as this session started, to tell on closing whether the user changed it —
+
         // same reasoning as _fullScreenAtStartup.
+
         readonly bool _driveBAtStartup = Config.ConfigOptions.RunninConfig.DriveBEnabled;
 
+
+
         // The one MT-32 toolbox window, or null when it is closed (see OnMt32ToolboxClick).
+
         MT32.Mt32Toolbox _mt32Toolbox;
 
+
+
+        // The one Online play window, or null when it is closed (see OpenNetplayWindow).
+
+        NetplayWindow _netplayWindow;
+
+
+
         // Key this window's geometry is stored under in windows.json (see WindowLayouts).
+
         const string LayoutKey = "MainWindow";
 
+
+
         public MainWindow()
+
         {
+
             InitializeComponent();
 
+
+
             // Before the window is shown, so it comes up where it was left instead of
+
             // jumping there. A size that no longer matches the video mode is corrected by
+
             // the EnforceAspectRatio pass that runs after the first layout.
+
             WindowLayouts.Restore(this, LayoutKey, restoreSize: true);
 
+
+
             BitmapLedDriveOn = new Bitmap(AssetLoader.Open(new Uri("avares://ASE/Assets/drive_led_on.png")));
+
             BitmapLedDriveOff = new Bitmap(AssetLoader.Open(new Uri("avares://ASE/Assets/drive_led_off.png")));
+
             BitmapLedHDOn = new Bitmap(AssetLoader.Open(new Uri("avares://ASE/Assets/hd_led_on.png")));
+
             BitmapLedHDOff = new Bitmap(AssetLoader.Open(new Uri("avares://ASE/Assets/hd_led_off.png")));
 
+
+
             // Drive B is remembered in config.json: put the menu and its light in the state the
+
             // machine was left in before anything can be inserted into it.
+
             if (!Design.IsDesignMode)
+
             {
+
                 ApplyDriveBConnection(Config.ConfigOptions.RunninConfig.DriveBEnabled);
+
                 ItemMenuAutoReboot.Header = Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad
+
                     ? "Auto-reboot on game load: On"
+
                     : "Auto-reboot on game load: Off";
+
                 ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
+
                     ? "Auto-run desktop programs: On"
+
                     : "Auto-run desktop programs: Off";
+
                 ItemMenuAutoModelTos.Header = Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos
+
                     ? "Auto-select ST / STE & BIOS: On"
+
                     : "Auto-select ST / STE & BIOS: Off";
+
                 AddHandler(DragDrop.DropEvent, OnDrop);
+
+
+
+                Netplay.NetSession.EventReceived += OnNetEvent;
+
+                Netplay.NetSession.StateChanged += RefreshNetStatus;
+
+                Netplay.NetSession.Pumped += RefreshNetStatus;
+
             }
+
         }
+
+
 
         protected override void OnOpened(EventArgs e)
+
         {
+
             base.OnOpened(e);
 
+
+
             if (Design.IsDesignMode)
+
                 return;
 
+
+
             // Maintains the aspect ratio of the emulator when resizing the window.
+
             // Corrections are debounced so we never fight the user's interactive drag.
+
             _lastStableClientSize = ClientSize;
+
             _resizeDebounce = new DispatcherTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(300) };
+
             _resizeDebounce.Tick += OnResizeSettled;
+
             // Avalonia.Reactive.Observable (the Subscribe(Action<T>) extension) is internal; the
+
             // overload this used to bind to came from System.Reactive, which Avalonia 12's
+
             // ReactiveUI.Avalonia no longer drags in. AnonymousObserver is Avalonia's own public
+
             // adapter for exactly this.
+
             this.GetObservable(Window.ClientSizeProperty)
+
                 .Subscribe(new AnonymousObserver<Size>(OnClientSizeChanged));
 
+
+
             // Full screen is watched the same way rather than only acted on in SetFullScreen: the
+
             // window manager can put us in or out of it without asking (a title-bar button, its
+
             // own shortcut), and the menu bar, the screen saver and the priority have to follow.
+
             this.GetObservable(Window.WindowStateProperty)
+
                 .Subscribe(new AnonymousObserver<WindowState>(OnWindowStateChanged));
 
+
+
             // Snap the startup size to the correct ratio once the first layout is done
+
             Dispatcher.UIThread.Post(EnforceAspectRatio, DispatcherPriority.Loaded);
 
+
+
             // Scrolls an idle drive label whose disk name does not fit the strip. Started here so
+
             // a disk inserted from the command line scrolls without waiting for the first FDC
+
             // command, and it stops itself as soon as nothing overflows.
+
             MarqueeTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(40) };
+
             MarqueeTimer.Tick += OnMarqueeTick;
+
             MarqueeTimer.Start();
 
+
+
+            // Centre each drive label in its clip from the height the font actually gives it, as
+
+            // the HDD label beside it is centred: a fixed Canvas.Top only suits one font, and the
+
+            // macOS system font's line box is a different height, which left the text riding high.
+
+            CentreInClip(TextBlockDriveStatus, DriveLabelClip);
+
+            CentreInClip(TextBlockDriveBStatus, DriveBLabelClip);
+
+
+
             // Attach SDL to the window
+
             var platformHandle = this.TryGetPlatformHandle();
 
+
+
             if (platformHandle != null)
+
             {
+
                 // On Linux the window about to be adopted is an X11 one (Avalonia has no Wayland
+
                 // backend), so SDL must be on its x11 driver. Verified instead of assumed: handing
+
                 // an X11 window id to the Wayland driver is not an error SDL reports back, it is a
+
                 // pointer dereference — on sdl2-compat it takes the whole process down with a
+
                 // segmentation fault right here, before anything is drawn or logged.
+
                 if (OperatingSystem.IsLinux() && !CanAdoptWindow(platformHandle))
+
                 {
+
                     Close();
+
                     return;
+
                 }
+
+
 
                 _nativeWindowHandle = platformHandle.Handle;
+
                 _sdlWindowPtr = SDL.SDL_CreateWindowFrom(platformHandle.Handle);
 
+
+
                 if (_sdlWindowPtr == IntPtr.Zero)
+
                 {
+
                     var error = SDL.SDL_GetError();
+
                     ColoredConsole.WriteLine($"Error SDL_CreateWindowFrom: [[red]]{error}[[/red]]");
 
+
+
                     TinyDialogs.MessageBox("Error", "Error when calling SDL_CreateWindowFrom, I can't continue like this.", MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
                     Close();
+
                     return;
+
                 }
 
+
+
                 // X11 hands over the window but not its input: unlike the Windows and macOS
+
                 // backends, SDL selects no event on a window it did not create, so without this
+
                 // it would never see the keyboard, the mouse capture or even the gamepad.
+
                 if (OperatingSystem.IsLinux() && !X11Input.AttachInput(_sdlWindowPtr, out string x11Error))
+
                     ColoredConsole.WriteLine($"Warning: could not attach the X11 input to the window ([[red]]{x11Error}[[/red]]): keyboard, mouse capture and gamepad will not work");
 
+
+
                 // If initialization is successful, start the emulator main loop
+
                 ASEMain.Init(this);
 
+
+
                 // The OpenGL control have a transparent overlay to capture input events
+
                 GlInputOverlay.PointerPressed += GL_OnPointerPressed;
+
                 GlInputOverlay.PointerReleased += GL_OnPointerReleased;
 
+
+
                 // Come up full screen when that is how it was left (or --fullscreen was passed).
+
                 // After Init, so the machine is already running behind the picture, and posted so
+
                 // the first layout has settled: the state change is applied to a window the
+
                 // platform has finished placing.
+
                 if (Config.ConfigOptions.RunninConfig.FullScreen)
+
                     Dispatcher.UIThread.Post(() => SetFullScreen(true), DispatcherPriority.Loaded);
 
+
+
                 ShowUpdateWindowIfNeeded();
+
+                StartInvitationLinks();
+
             }
+
         }
 
-        /// <summary>
-        /// Whether SDL can take this window over. Linux only, called before SDL_CreateWindowFrom.
-        /// The blocking condition is a video driver other than x11 (no X server was reachable, or
-        /// one was forced): there SDL would misread the window handle instead of rejecting it.
-        /// A handle that is not an XID is only reported — SDL is on X11 and will refuse it cleanly.
-        /// </summary>
-        /// <returns>false — after explaining it on the console and in an alert — when the window
-        /// must not be handed to SDL.</returns>
-        private static bool CanAdoptWindow(IPlatformHandle handle)
+
+
+        // Invitation links (NETPLAY.md §8.4). With the user's yes this ASE takes the links clicked
+
+        // while it runs, and keeps the ase: link type pointed at itself when it has moved; the
+
+        // link it was started with, if any, opens either way (it can only have come from a click
+
+        // the system routed here, or from --join).
+
+        void StartInvitationLinks()
+
         {
-            string driver = SDL.SDL_GetCurrentVideoDriver();
 
-            if (driver == "x11")
+            var config = ConfigOptions.RunninConfig;
+
+
+
+            if (config.NetplayOpenLinks == ConfigOptions.LinkChoices.Yes && Netplay.LinkScheme.Supported)
+
             {
-                if (handle.HandleDescriptor != "XID")
-                    ColoredConsole.WriteLine($"Warning: the window handle is a [[yellow]]{handle.HandleDescriptor}[[/yellow]], not an X11 XID: keyboard, mouse capture and gamepad may not work.");
 
-                return true;
+                ListenForInvitationLinks();
+
+
+
+                string launcher = Netplay.LinkScheme.LauncherSignature;
+
+                if (!Netplay.LinkScheme.IsRegistered || config.NetplayLinksLauncher != launcher)
+
+                {
+
+                    // Registering runs the system's tools (osacompile and company on macOS): off the
+
+                    // UI thread, and the answer the user gave once still stands
+
+                    Task.Run(() =>
+
+                    {
+
+                        bool ok = Netplay.LinkScheme.Register(out string error);
+
+                        Dispatcher.UIThread.Post(() =>
+
+                        {
+
+                            if (ok)
+
+                            {
+
+                                config.NetplayLinksLauncher = launcher;
+
+                                Program.Config.DumpJsonConfig();
+
+                                ColoredConsole.WriteLine("Online play: invitation links now open this copy of ASE", ConfigOptions.DebugModes.Quiet);
+
+                            }
+
+                            else
+
+                            {
+
+                                ColoredConsole.WriteLine($"Online play: [[yellow]]invitation links could not be pointed at this copy of ASE[[/yellow]]: {error}", ConfigOptions.DebugModes.Quiet);
+
+                            }
+
+                        });
+
+                    });
+
+                }
+
             }
 
+
+
+            if (Config.StartupJoinLink is { } link)
+
+            {
+
+                Config.StartupJoinLink = null;
+
+                Dispatcher.UIThread.Post(() => OpenInvitationLink(link), DispatcherPriority.Loaded);
+
+            }
+
+        }
+
+
+
+        /// <summary>Takes the invitation links other ASE processes hand over (a link clicked while
+
+        /// this one runs). Harmless twice.</summary>
+
+        public void ListenForInvitationLinks() =>
+
+            Netplay.LinkScheme.Listen(link => Dispatcher.UIThread.Post(() => OpenInvitationLink(link)));
+
+
+
+        /// <summary>Opens the Online play window on joining over the Internet, with the link in
+
+        /// the box: joining is still the user's press of Join.</summary>
+
+        public void OpenInvitationLink(string link)
+
+        {
+
+            if (_closed)
+
+                return;
+
+
+
+            ColoredConsole.WriteLine("Online play: an invitation link arrived", ConfigOptions.DebugModes.Quiet);
+
+            OpenNetplayWindow(NetplayWindow.Modes.Join);
+
+            _netplayWindow?.ShowJoinLink(link);
+
+            _netplayWindow?.Activate();
+
+        }
+
+
+
+        /// <summary>
+
+        /// Whether SDL can take this window over. Linux only, called before SDL_CreateWindowFrom.
+
+        /// The blocking condition is a video driver other than x11 (no X server was reachable, or
+
+        /// one was forced): there SDL would misread the window handle instead of rejecting it.
+
+        /// A handle that is not an XID is only reported — SDL is on X11 and will refuse it cleanly.
+
+        /// </summary>
+
+        /// <returns>false — after explaining it on the console and in an alert — when the window
+
+        /// must not be handed to SDL.</returns>
+
+        private static bool CanAdoptWindow(IPlatformHandle handle)
+
+        {
+
+            string driver = SDL.SDL_GetCurrentVideoDriver();
+
+
+
+            if (driver == "x11")
+
+            {
+
+                if (handle.HandleDescriptor != "XID")
+
+                    ColoredConsole.WriteLine($"Warning: the window handle is a [[yellow]]{handle.HandleDescriptor}[[/yellow]], not an X11 XID: keyboard, mouse capture and gamepad may not work.");
+
+
+
+                return true;
+
+            }
+
+
+
             string message = $"SDL is using the '{driver}' video driver, but the ASE window is an X11 one, " +
+
                              "so SDL cannot read its keyboard, mouse or gamepad. Inside a Wayland session ASE " +
+
                              "runs through XWayland: check that it is installed, and that SDL_VIDEODRIVER is " +
+
                              "not forced to another driver in your environment.";
+
+
 
             ColoredConsole.WriteLine($"[[red]]{message}[[/red]]");
 
+
+
             TinyDialogs.MessageBox("ASE cannot start", message,
+
                 MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
 
+
+
             return false;
+
         }
+
+
 
         /// <summary>
+
         /// Announces the newer release found at startup. The query itself runs in the background
+
         /// (started by Program.Main, before Avalonia is up), so its answer is awaited here rather
+
         /// than the launch waiting for GitHub: the machine boots straight away and the window
+
         /// appears when the reply lands — normally within the first second, and from there it
+
         /// holds a UI pause, so the machine does wait frozen for what the user decides. Awaited
+
         /// and then still posted, because a query that had already finished would continue
+
         /// synchronously and ShowDialog needs an owner whose OnOpened has returned.
+
         /// </summary>
+
         private void ShowUpdateWindowIfNeeded()
+
         {
+
             // Automatic update popup permanently suppressed: Community Edition protects against upstream overwrites.
+
         }
+
+
 
         protected override void OnClosing(WindowClosingEventArgs e)
+
         {
+
             base.OnClosing(e);
 
+
+
             // Read here and not in OnClosed: by then the window is gone and its position
+
             // and size no longer mean anything.
+
             WindowLayouts.Remember(this, LayoutKey, rememberSize: true);
 
+
+
             // Full screen is a setting, so it goes to config.json — but the file is only ever
+
             // written when something deliberately changes it (no window here saves it on the way
+
             // out), and it would carry along whatever this session's command line overrode. So it
+
             // is written only when the user actually toggled full screen at some point.
+
             if (Config.ConfigOptions.RunninConfig.FullScreen != _fullScreenAtStartup
+
                 || Config.ConfigOptions.RunninConfig.DriveBEnabled != _driveBAtStartup)
+
                 Program.Config.DumpJsonConfig();
+
         }
+
+
 
         protected override void OnClosed(EventArgs e)
+
         {
+
             base.OnClosed(e);
+            _closed = true;
+
+
+
+            // The other players get their CLOSE instead of waiting out a timeout, and the
+
+            // router closes the port it opened
+
+            Netplay.NetSession.Shutdown();
+
+
+
             ASEMain.Shutdown();
+
         }
 
+
+
         private void GL_OnPointerPressed(object sender, PointerPressedEventArgs e)
+
         {
+
             // SDL can't capture mouse button presses directly from Avalonia, so
+
             // I have to do it manually here and forward it to the ACIA mouse handling.
 
+
+
             var ctrl = (Control)sender!;
+
             var p = e.GetCurrentPoint(ctrl);
 
+
+
             // Middle button toggles input capture like F12 (works captured or not). The same
+
             // press may also arrive through the SDL queue; ASEMain edge-guards the toggle.
+
             if (p.Properties.IsMiddleButtonPressed)
+
             {
+
                 ASEMain.MiddleButtonDown();
+
                 e.Handled = true;
+
                 return;
+
             }
+
+
 
             bool isDouble = e.ClickCount >= 2;
 
+
+
             // If mouse is not yet captured, clicking anywhere on the emulation canvas captures it!
+
             if (!ASEMain.IsMouseCaptured &&
+
                 (p.Properties.IsLeftButtonPressed || p.Properties.IsRightButtonPressed))
+
             {
+
                 Services.AtariExecutableLauncher.CancelDesktopAutoClick();
+
                 ASEMain.CaptureMouse(true);
+
                 ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true, isDoubleClick: isDouble);
+
                 e.Handled = true;
+
                 return;
+
             }
+
+
 
             // Transmit the button press to the ACIA mouse handling. The same click usually
+
             // arrives through the SDL queue as well; ACIA.MouseButtonChanged edge-guards it.
+
             if (ASEMain.IsMouseCaptured &&
+
                 (p.Properties.IsLeftButtonPressed || p.Properties.IsRightButtonPressed))
+
             {
-                ACIA.MouseButtonChanged(left: p.Properties.IsLeftButtonPressed, pressed: true, isDoubleClick: isDouble);
+
+                Netplay.MachineInput.MouseButton(left: p.Properties.IsLeftButtonPressed, pressed: true, isDoubleClick: isDouble);
+
                 e.Handled = true;
+
             }
+
         }
+
+
 
         private void GL_OnPointerReleased(object sender, PointerReleasedEventArgs e)
+
         {
+
             // SDL can't capture mouse button releases directly from Avalonia, so
+
             // I have to do it manually here and forward it to the ACIA mouse handling.
+
             // I’m sure there are better ways to do this, but for now it does what
+
             // I need it to do and that’s enough by now.
 
+
+
             if (e.InitialPressMouseButton == MouseButton.Middle)
+
             {
+
                 ASEMain.MiddleButtonUp();
+
                 e.Handled = true;
+
                 return;
+
             }
+
+
 
             if (ASEMain.IsMouseCaptured &&
+
                 (e.InitialPressMouseButton == MouseButton.Left ||
+
                  e.InitialPressMouseButton == MouseButton.Right))
+
             {
-                ACIA.MouseButtonChanged(left: e.InitialPressMouseButton == MouseButton.Left,
-                                        pressed: false);
+
+                Netplay.MachineInput.MouseButton(left: e.InitialPressMouseButton == MouseButton.Left,
+
+                                                 pressed: false);
+
                 e.Handled = true;
+
             }
+
         }
+
+
 
         public void ShowMenu(bool show)
+
         {
+
             _menuEnabled = show;
+
             ApplyMenuVisibility();
+
         }
+
+
 
         /// <summary>
+
         /// Applies the menu-bar and status-bar policy: disabled while input is captured (so accelerators
+
         /// don't eat keystrokes meant for the ST) and, in full screen Zen Mode, folds away completely —
+
         /// the picture owns the whole screen with no bars or host mouse cursor. The bars return the moment
+
         /// input is released with F12 or middle-click. In normal windowed mode they stay visible.
+
         /// </summary>
+
         private void ApplyMenuVisibility()
+
         {
+
             MainMenu.IsEnabled = _menuEnabled;
+
             MainMenu.IsVisible = !IsFullScreen || _menuEnabled;
+
             BottomStatusBar.IsVisible = !IsFullScreen || _menuEnabled;
+
         }
 
+
+
         /// <summary>Whether the window is currently in full screen.</summary>
+
         public bool IsFullScreen => WindowState == WindowState.FullScreen;
+
+
 
         public void OnToggleFullScreenClick(object sender, RoutedEventArgs e) => ToggleFullScreen();
 
+
+
         /// <summary>
+
         /// Enters or leaves full screen. This is Avalonia's own <see cref="WindowState.FullScreen"/>
+
         /// — the same window, still with its menu, status bar and dialogs — and not a maximized
+
         /// undecorated window: it is the one the platform implements itself (Win32 style change,
+
         /// <c>_NET_WM_STATE_FULLSCREEN</c> on X11, <c>toggleFullScreen:</c> on macOS), it covers
+
         /// the taskbar without us computing screen bounds, and above all it leaves the native
+
         /// window handle alone — the handle SDL adopted with SDL_CreateWindowFrom, and which the
+
         /// keyboard, the mouse capture and the gamepad all hang from (see VerifyNativeHandle).
+
         /// </summary>
+
         public void ToggleFullScreen() => SetFullScreen(!IsFullScreen);
 
+
+
         public void SetFullScreen(bool fullScreen)
+
         {
+
             if (fullScreen == IsFullScreen)
+
                 return;
+
+
 
             // Remembered so leaving gives back the window the user had, maximized or not.
+
             if (fullScreen)
+
                 _stateBeforeFullScreen = WindowState == WindowState.Minimized ? WindowState.Normal : WindowState;
 
+
+
             // Everything that follows from the change is applied by OnWindowStateChanged, which
+
             // also catches the window manager doing this on its own.
+
             WindowState = fullScreen ? WindowState.FullScreen : _stateBeforeFullScreen;
+
         }
 
+
+
         /// <summary>
+
         /// Reacts to the window entering or leaving full screen, whoever caused it — us, or the
+
         /// window manager (some let the user do it from the title bar or a keyboard shortcut of
+
         /// their own). Minimizing is ignored: an iconified full-screen window is still full
+
         /// screen as far as everything here is concerned, and it comes back as one.
+
         /// </summary>
+
         private void OnWindowStateChanged(WindowState state)
+
         {
+
             if (state == WindowState.Minimized)
+
                 return;
+
+
 
             bool fullScreen = state == WindowState.FullScreen;
 
+
+
             if (fullScreen == _fullScreenApplied)
+
                 return;
+
+
 
             _fullScreenApplied = fullScreen;
 
+
+
             if (fullScreen)
+
             {
+
                 ASEMain.CaptureMouse(true);
+
             }
+
+
 
             ApplyMenuVisibility();
+
             ApplyFullScreenSystemState(fullScreen);
+
             Config.ConfigOptions.RunninConfig.FullScreen = fullScreen;
 
+
+
             // The aspect ratio is the GL control's business while we are full screen (it bars the
+
             // picture itself); on the way back the window has to be snapped to the right shape
+
             // again, once the platform has restored its normal geometry.
+
             if (!fullScreen)
+
             {
+
                 Dispatcher.UIThread.Post(() =>
+
                 {
+
                     // From the restored size, not from the screen-sized one we were just at:
+
                     // EnforceAspectRatio reads the difference to tell which dimension the user
+
                     // dragged, and a full-screen "drag" of several hundred pixels is not one.
+
                     _lastStableClientSize = ClientSize;
+
                     EnforceAspectRatio();
+
                 }, DispatcherPriority.Loaded);
+
             }
+
+
 
             Dispatcher.UIThread.Post(VerifyNativeHandle, DispatcherPriority.Loaded);
+
         }
 
+
+
         /// <summary>
+
         /// Screen saver and process priority, both tied to being full screen: that is the "I am
+
         /// playing" state. The screen saver goes through SDL, which covers the three platforms at
+
         /// once. Priority is best-effort by nature — on Windows it just works, while on Linux and
+
         /// macOS a negative nice value needs privileges the emulator does not have, so the failure
+
         /// is reported once and dropped (there the answer is to launch it with <c>nice</c>).
+
         /// </summary>
+
         private static void ApplyFullScreenSystemState(bool fullScreen)
+
         {
+
             if (fullScreen)
+
                 SDL.SDL_DisableScreenSaver();
+
             else
+
                 SDL.SDL_EnableScreenSaver();
 
+
+
             try
+
             {
+
                 using var process = System.Diagnostics.Process.GetCurrentProcess();
 
+
+
                 // AboveNormal, not High: High competes with the system's own input handling and
+
                 // makes the machine feel worse, not better.
+
                 process.PriorityClass = fullScreen
+
                     ? System.Diagnostics.ProcessPriorityClass.AboveNormal
+
                     : System.Diagnostics.ProcessPriorityClass.Normal;
+
             }
+
             catch (Exception ex)
+
             {
+
                 if (!_priorityWarned)
+
                 {
+
                     _priorityWarned = true;
+
                     ColoredConsole.WriteLine($"Could not change the process priority ([[red]]{ex.Message}[[/red]]). On Linux/macOS raising it needs privileges: launch ASE with [[cyan]]nice -n -5[[/cyan]] if you want it.");
+
                 }
+
             }
+
         }
 
+
+
         /// <summary>
+
         /// Checks that the platform window SDL was handed at startup is still the one this window
+
         /// owns. Changing the window state is not supposed to recreate it on any backend — that is
+
         /// the whole reason full screen is done with WindowState rather than by dropping the
+
         /// decorations — but if a platform ever did, the symptom (no keyboard, no mouse capture, no
+
         /// gamepad, and on X11 no event mask either) would be baffling without this line.
+
         /// </summary>
+
         private void VerifyNativeHandle()
+
         {
+
             if (_nativeWindowHandle == IntPtr.Zero)
+
                 return;
+
+
 
             IntPtr current = this.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
 
+
+
             if (current != _nativeWindowHandle)
+
                 ColoredConsole.WriteLine($"Warning: the platform window changed (0x{_nativeWindowHandle.ToInt64():X} -> 0x{current.ToInt64():X}); the SDL input is still attached to the old one.");
+
         }
+
+
 
         /// <summary>Aspect ratio of the picture the GL control shows, which is what the window is
+
         /// kept at. It lives in <see cref="GLControl"/> because that is where the picture is
+
         /// fitted to the surface (letterbox); both sides must read the same value or the window
+
         /// would settle at a shape the renderer then bars.</summary>
+
         private static double DisplayAspectRatio => GLControl.DisplayAspectRatio;
 
+
+
         /// <summary>Re-applies the window aspect ratio to the current video mode. Called after a
+
         /// reset that may have switched the monitor type (colour ↔ monochrome).</summary>
+
         public void RefreshAspectRatio() => EnforceAspectRatio();
 
+
+
         private void OnClientSizeChanged(Size newSize)
+
         {
+
             // Ignore the echo of our own correction (and the initial emission)
+
             if (Math.Abs(newSize.Width - _lastStableClientSize.Width) < 1 &&
+
                 Math.Abs(newSize.Height - _lastStableClientSize.Height) < 1)
+
                 return;
+
+
 
             // Debounce: correct only after the user stops dragging, otherwise we would
+
             // fight the interactive resize and the window becomes impossible to stretch
+
             _resizeDebounce.Stop();
+
             _resizeDebounce.Start();
+
         }
+
+
 
         private void OnResizeSettled(object sender, EventArgs e)
+
         {
+
             _resizeDebounce.Stop();
+
             EnforceAspectRatio();
+
         }
 
+
+
         private void EnforceAspectRatio()
+
         {
+
             if (Config.ConfigOptions.RunninConfig.StretchToFill)
+
             {
+
                 _lastStableClientSize = ClientSize;
+
                 return;
+
             }
+
+
 
             // Never fight a maximized/minimized window
+
             if (WindowState != WindowState.Normal)
+
             {
+
                 _lastStableClientSize = ClientSize;
+
                 return;
+
             }
 
+
+
             double barsHeight = MainMenu.Bounds.Height + BottomStatusBar.Bounds.Height;
+
             Size size = ClientSize;
 
+
+
             // Height available for the GL viewport
+
             double glHeight = size.Height - barsHeight;
+
             if (glHeight <= 1) return;
+
+
 
             double ratio = DisplayAspectRatio;
 
+
+
             if (Math.Abs(size.Width / glHeight - ratio) < 0.01)
+
             {
+
                 _lastStableClientSize = size;
+
                 return;
+
             }
 
+
+
             // Honor the dimension the user actually dragged and derive the other one
+
             double dw = Math.Abs(size.Width - _lastStableClientSize.Width);
+
             double dh = Math.Abs(size.Height - _lastStableClientSize.Height);
 
+
+
             Size target = dw >= dh
+
                 ? new Size(size.Width, size.Width / ratio + barsHeight)  // width led -> adjust height
+
                 : new Size(glHeight * ratio, size.Height);               // height led -> adjust width
+
+
 
             _lastStableClientSize = target;
 
+
+
             // Window.Width/Height are the *client* size in Avalonia (the OS frame is not included).
+
             // If the OS clamps this (screen edge, minimum size), the resulting ClientSize change
+
             // re-enters through the debounce and converges from the clamped size.
+
             Width = target.Width;
+
             Height = target.Height;
+
         }
+
+
 
         /// <summary>Turns a floppy drive's LED on/off (0 = A, 1 = B); <paramref name="activity"/>
+
         /// ("A: T05 S09", captured by the WD1772 when the command starts) replaces the drive
+
         /// letter next to the LED and goes back to just the letter when the LED goes off.</summary>
+
         public void DriveLed(int drive, bool On, string activity = "")
+
         {
+
             var led = drive == 1 ? DriveBLedImage : DriveLedImage;
+
             var text = drive == 1 ? TextBlockDriveBStatus : TextBlockDriveStatus;
 
+
+
             // Any label change starts from the left; only the idle one is ever scrolled.
+
             Canvas.SetLeft(text, 0);
 
+
+
             if (On)
+
             {
+
                 TimeLastDriveOn[drive] = DateTime.Now;
+
                 led.Source = BitmapLedDriveOn;
+
                 text.Opacity = 1.0;
+
                 DriveLabelIdle[drive] = false;
 
+
+
                 if (!string.IsNullOrEmpty(activity))
+
                     text.Text = activity;
+
             }
+
             else
+
             {
+
                 led.Source = BitmapLedDriveOff;
 
+
+
                 // Idle: the block keeps the drive letter, dimmed like the HDD label, so two
+
                 // lights side by side are still telling you which drive is which, and names the
+
                 // disk in it - with no head position to show, the light alone cannot say whether
+
                 // the drive is loaded, let alone with what.
+
                 text.Text = (drive == 1 ? "B: " : "A: ") + DriveDiskLabel(drive);
+
                 text.Opacity = 0.5;
 
+
+
                 DriveLabelIdle[drive] = true;
+
                 DriveLabelSince[drive] = DateTime.Now;
 
+
+
                 if (MarqueeTimer != null && !MarqueeTimer.IsEnabled)
+
                     MarqueeTimer.Start();
+
             }
+
         }
+
+
 
         /// <summary>The disk half of a drive idle label: the image file name, or "Empty" with no
+
         /// disk in the drive ("Disc" for a disk whose path we do not have).</summary>
+
         static string DriveDiskLabel(int drive)
+
         {
+
             var floppy = drive == 1 ? ASEMain.driveB : ASEMain.driveA;
 
+
+
             if (!floppy.HasDisk)
+
                 return "Empty";
 
+
+
             return string.IsNullOrEmpty(floppy.DisplayName) ? "Disc" : floppy.DisplayName;
+
         }
 
-        /// <summary>Slides an idle drive label left and back when its disk name is wider than the
-        /// status-bar strip, so a long file name can be read in full. Stops itself once nothing
-        /// overflows; <see cref="DriveLed"/> starts it again.</summary>
-        void OnMarqueeTick(object sender, EventArgs e)
+
+
+        static void CentreInClip(TextBlock text, Canvas clip)
+
         {
+
+            void Apply(double height) => Canvas.SetTop(text, Math.Round((clip.Height - height) / 2));
+
+
+
+            // The first layout may already have run by OnOpened, so apply once now as well.
+
+            if (text.Bounds.Height > 0)
+
+                Apply(text.Bounds.Height);
+
+            text.SizeChanged += (_, e) => Apply(e.NewSize.Height);
+
+        }
+
+
+
+        /// <summary>Slides an idle drive label left and back when its disk name is wider than the
+
+        /// status-bar strip, so a long file name can be read in full. Stops itself once nothing
+
+        /// overflows; <see cref="DriveLed"/> starts it again.</summary>
+
+        void OnMarqueeTick(object sender, EventArgs e)
+
+        {
+
             bool anyPending = false;
 
+
+
             for (int d = 0; d < DriveLabelIdle.Length; d++)
+
             {
+
                 var clip = d == 1 ? DriveBLabelClip : DriveLabelClip;
+
                 var text = d == 1 ? TextBlockDriveBStatus : TextBlockDriveStatus;
 
+
+
                 if (!clip.IsVisible || !DriveLabelIdle[d])
+
                 {
+
                     Canvas.SetLeft(text, 0);
+
                     continue;
+
                 }
+
+
 
                 // A label whose text was just replaced has not been laid out yet: keep the timer
+
                 // alive rather than deciding from a zero width that there is nothing to scroll.
+
                 if (text.Bounds.Width <= 0)
+
                 {
+
                     anyPending = true;
+
                     continue;
+
                 }
+
+
 
                 // The canvas measures the label unconstrained, so Bounds.Width is the text's own
+
                 // width and the difference is exactly what is hidden past the right edge.
+
                 double overflow = text.Bounds.Width - clip.Bounds.Width;
 
+
+
                 if (overflow <= 0.5)
+
                 {
+
                     Canvas.SetLeft(text, 0);
+
                     continue;
+
                 }
+
+
 
                 anyPending = true;
 
+
+
                 double t = (DateTime.Now - DriveLabelSince[d]).TotalSeconds - MarqueeIdleDelay;
 
+
+
                 if (t < 0)
+
                 {
+
                     Canvas.SetLeft(text, 0);
+
                     continue;
+
                 }
+
+
 
                 // One cycle is out, hold, back, hold: a ping-pong rather than a wrap-around, so
+
                 // the drive letter at the head of the label always comes back into view.
+
                 double travel = overflow / MarqueeSpeed;
+
                 double cycle = 2 * travel + 2 * MarqueeEndPause;
+
                 double p = t % cycle;
 
+
+
                 double offset =
+
                     p < travel ? p * MarqueeSpeed :
+
                     p < travel + MarqueeEndPause ? overflow :
+
                     p < 2 * travel + MarqueeEndPause ? overflow - (p - travel - MarqueeEndPause) * MarqueeSpeed :
+
                     0;
 
+
+
                 Canvas.SetLeft(text, -offset);
+
             }
+
+
 
             if (!anyPending)
+
                 MarqueeTimer.Stop();
+
         }
+
+
 
         public void SetStatusBarText(string text)
+
         {
+
             TextBlockStatusBar.Classes.Remove("fadeOut");
+
             TextBlockStatusBar.Opacity = 1.0;
+
             TextBlockStatusBar.Text = text;
+
             TimeLastTimeTextBlock = DateTime.Now;
+
         }
+
         
+
         public void RefreshDriveLed()
+
         {
+
             /*
+
              * This logic should reside within the disk drive emulation, 
+
              * toggling the LED according to the floppy motor state. 
+
              * Currently, I've implemented a 2-second timeout to turn off 
+
              * the LED after the last drive access
+
              */
+
             for (int d = 0; d < TimeLastDriveOn.Length; d++)
+
             {
+
                 bool idle = (DateTime.Now - TimeLastDriveOn[d]).TotalSeconds > 2;
+
                 // ImagePath, not DisplayName: this runs on the emulation thread once per
+
                 // frame and only needs to notice a change, so it must not allocate a string.
+
                 string disk = d == 1 ? ASEMain.driveB.ImagePath : ASEMain.driveA.ImagePath;
 
+
+
                 // Repaint on the on->off edge and also when the disk in an already idle drive
+
                 // changed, since the label names it.
+
                 bool repaint = idle && (idle != DriveLedOffPosted[d] || disk != DriveLedDiskPosted[d]);
 
+
+
                 DriveLedOffPosted[d] = idle;
+
                 DriveLedDiskPosted[d] = disk;
 
+
+
                 if (repaint)
+
                 {
+
                     int drive = d;
+
                     Dispatcher.UIThread.InvokeAsync(() => {
+
                         ASEMain.MainWindow.DriveLed(drive, false);
+
                     }, DispatcherPriority.Background);
+
                 }
+
             }
+
+
 
             // Hard disk light: polled here (once per frame) rather than posted per access,
+
             // and only pushed to the UI on a change — the disk can be hit thousands of
+
             // times a second and every access would otherwise queue dispatcher work.
+
             bool hdOn = ASEMain.HardDiskActive;
 
+
+
             if (hdOn != HDLedIsOn)
+
             {
+
                 HDLedIsOn = hdOn;
+
                 Dispatcher.UIThread.InvokeAsync(() => {
+
                     HDLedImage.Source = hdOn ? BitmapLedHDOn : BitmapLedHDOff;
+
                 }, DispatcherPriority.Background);
+
             }
+
+
 
             // Update text in the statusbar
+
             if ((DateTime.Now - TimeLastTimeTextBlock).TotalSeconds > 10)
+
             {
+
                 Dispatcher.UIThread.InvokeAsync(() => {
+
                     TextBlockStatusBar.Classes.Add("fadeOut");
+
                 }, DispatcherPriority.Background);
+
             }
+
         }
+
+
 
         public void OnExitClick(object sender, RoutedEventArgs e)
+
         {
+
             ASEMain.Shutdown();
+
             Close();
+
         }
 
+
+
         private void OnDrop(object sender, DragEventArgs e)
+
         {
+
+            e.Handled = true;
+
+
+
+            if (RefusedDuringSession("Changing disks", onlyDuringPlayback: true))
+
+                return;
+
+
+
             bool HasValidFile = false;
+
+
 
             var files = e.DataTransfer.GetItems(DataFormat.File);
 
+
+
             foreach (var file in files)
+
             {
+
                 IStorageItem storageItem = file.TryGetFile();
 
+
+
                 // Get the first valid file
+
                 if (storageItem != null)
+
                 {
+
                     string s = storageItem.TryGetLocalPath();
 
+
+
                     if (s.EndsWith(".st", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".msa", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".stx", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".prg", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".tos", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".ttp", StringComparison.OrdinalIgnoreCase)
+
                         || s.EndsWith(".app", StringComparison.OrdinalIgnoreCase)
+
                         )
+
                     {
+
                         HasValidFile = true;
+
                         InsertDisk(0, s, null);
+
                         break;
+
                     }
+
                 }
+
             }
 
+
+
             if(!HasValidFile)
+
                 SetStatusBarText($"❌ Dropped file is not a supported disk image or executable");
 
+
+
             e.Handled = true;
+
         }
+
+
 
         public void OnOpenImageClick(object sender, RoutedEventArgs e) => OpenImageInto(0);
 
+
+
         public void OnOpenImageBClick(object sender, RoutedEventArgs e) => OpenImageInto(1);
 
+
+
         async void OpenImageInto(int drive)
+
         {
+
+            if (RefusedDuringSession("Changing disks", onlyDuringPlayback: true))
+
+                return;
+
+
+
             ASEMain.CaptureMouse(false);
 
+
+
             var (canceled, selpath) = await Dialogs.OpenFile($"Select disk image file for drive {DriveLetter(drive)}:",
+
                 Config.DialogStartFolder(Config.ConfigOptions.RunninConfig.DiskImagesPath),
+
                 new FileFilter("ST disk images & executables", ["*.st", "*.msa", "*.stx", "*.zip", "*.prg", "*.tos", "*.ttp", "*.app"]));
 
+
+
             if (!canceled && selpath.Count() == 1)
+
                 InsertDisk(drive, selpath.ElementAt(0), null);
+
         }
+
+
 
         public void OnChangeDiskClick(object sender, RoutedEventArgs e)
+
         {
+
+            if (RefusedDuringSession("Changing disks", onlyDuringPlayback: true))
+
+                return;
+
+
+
             // Another disk of the same zip is still the same game, so it keeps whatever
+
             // library entry (and MT-32 profile) is already loaded.
+
             InsertDisk(0, ZipFile[0], MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+
         }
 
-        public void OnChangeDiskBClick(object sender, RoutedEventArgs e) => InsertDisk(1, ZipFile[1], null, isDiskSwap: true);
 
-        /// <summary>The two floppy drives, by index: 0 = A, 1 = B.</summary>
-        static FloppyImage Drive(int drive) => drive == 1 ? ASEMain.driveB : ASEMain.driveA;
+
+        public void OnChangeDiskBClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (!RefusedDuringSession("Changing disks", onlyDuringPlayback: true))
+
+                InsertDisk(1, ZipFile[1], null, isDiskSwap: true);
+
+        }
+
+
+
+        static FloppyImage Drive(int drive) => ASEMain.Drive(drive);
+
+
 
         static char DriveLetter(int drive) => drive == 1 ? 'B' : 'A';
 
+
+
         /// <summary>
+
         /// Puts a disk image in a drive with the emulation thread parked at a frame boundary, so
+
         /// the image contents and geometry never change under a sector read in flight. Failures of
+
         /// the load itself (truncated image, corrupt zip) come back in <paramref name="message"/>
+
         /// instead of escaping the async void handlers that call this.
+
         /// </summary>
+
         static bool InsertIntoDrive(int drive, string imageFile, out string message)
+
         {
+
+            // A shared machine changes disk on every computer at once, at the frame this
+
+            // player's next input lands on: the disk is read here and travels with that frame.
+
+            if (Netplay.Lockstep.Active)
+
+                return ScheduleDisk(drive, imageFile, out message);
+
+
+
             bool inserted = false;
+
             string loadMessage = "";
 
-            if (!ASEMain.RunWhilePaused(() => inserted = Drive(drive).Insert(imageFile, out loadMessage),
-                                        out string error))
+
+
+            if (!ASEMain.RunWhilePaused(() =>
+
+                {
+
+                    object before = Drive(drive).MediaToken;
+
+                    try
+
+                    {
+
+                        inserted = Drive(drive).Insert(imageFile, out loadMessage);
+
+                    }
+
+                    finally
+
+                    {
+
+                        // A recording replays the swap at the start of the frame about to run.
+
+                        // Whatever changed counts, a load that failed half-way included.
+
+                        if (Drive(drive).MediaToken != before)
+
+                            Netplay.MachineInput.NoteMediaChange(drive);
+
+                    }
+
+                }, out string error))
+
                 loadMessage = $"Could not read [[red]]{imageFile}[[/red]]: {error}";
 
+
+
             message = loadMessage;
+
             return inserted;
+
         }
 
+
+
         /// <summary>
-        /// Loads a disk image into a drive and, for drive A, boots or offers the reboot.
-        /// <paramref name="libraryGame"/> is the catalogue entry the image came from, or null for
-        /// anything opened by hand: it is what decides the game's MT-32 instrument mapping
-        /// (see <see cref="MT32.Mt32Profiles"/>).
+
+        /// A shared game's disk swap (see InsertIntoDrive): the image is loaded into a drive of
+
+        /// its own, and what the drive would hold is sent to every machine as a frame command.
+
+        /// The same failures as an ordinary insert, a zip holding several images included.
+
         /// </summary>
-        async void InsertDisk(int drive, string ImageFile, Models.LibraryItem libraryGame, bool isDiskSwap = false)
+
+        static bool ScheduleDisk(int drive, string imageFile, out string message)
+
         {
+
+            var scratch = new FloppyImage();
+
+
+
+            try
+
+            {
+
+                if (!scratch.Insert(imageFile, out message))
+
+                    return false;
+
+
+
+                byte[] media = Snapshot.Pack(w => scratch.SaveMedia(w, fileNameOnly: true));
+
+                if (!Netplay.MachineInput.Schedule(new Netplay.FrameCommand(Netplay.CommandKind.Media, drive, media)))
+
+                {
+
+                    message = "The shared game has just ended: insert the disk again.";
+
+                    return false;
+
+                }
+
+            }
+
+            catch (Exception ex)
+
+            {
+
+                message = $"Could not read [[red]]{imageFile}[[/red]]: {ex.Message}";
+
+                return false;
+
+            }
+
+
+
+            return true;
+
+        }
+
+
+
+        /// <summary>
+
+        /// Loads a disk image into a drive and, for drive A, boots or offers the reboot.
+
+        /// <paramref name="libraryGame"/> is the catalogue entry the image came from, or null for
+
+        /// anything opened by hand: it is what decides the game's MT-32 instrument mapping
+
+        /// (see <see cref="MT32.Mt32Profiles"/>).
+
+        /// </summary>
+
+        async void InsertDisk(int drive, string ImageFile, Models.LibraryItem libraryGame, bool isDiskSwap = false)
+
+        {
+
             DisableEjectMenu(drive);
+
+
 
             bool inserted = InsertIntoDrive(drive, ImageFile, out string message);
 
+
+
             if (!inserted)
+
             {
+
                 if (ImageFile.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+
                 {
+
                     // zip contains more than one image disk
+
                     var dialog = new FileList(message);
+
                     var selectedFile = await dialog.ShowDialog<string>(this);
 
+
+
                     // Nothing picked: whatever was in the drive is still in it, no disk change
+
                     if (selectedFile == null)
+
                     {
+
                         RefreshDiskMenus(drive);
+
                         return;
+
                     }
+
+
 
                     if (!InsertIntoDrive(drive, $"{ImageFile}|{selectedFile}", out message))
+
                     {
+
                         await Dialogs.MessageBox("Error", message, MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
                         return;
+
                     }
+
+
 
                     ZipFile[drive] = ImageFile;
+
                     ChangeDiskItem(drive).IsEnabled = true;
+
                     ImageFile = selectedFile;
+
                 }
+
                 else
+
                 {
+
                     await Dialogs.MessageBox("Error", message, MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
                     return;
+
                 }
+
             }
+
             else
+
             {
+
                 ColoredConsole.WriteLine(message);
+
             }
+
+
 
             // Drive A is where the game goes: it is the one that carries the MT-32 mapping and
+
             // the only one worth rebooting for. A disk put in B: is data for whatever is already
+
             // running, so it just goes in — the FDC reports the change on its own
+
             // (FloppyImage.SignalDiskTransition) and the program picks it up.
+
             if (drive == 0)
+
             {
+
+                // A floppy game in A: is the end of a hard-disk game from the library: the next
+
+                // power-on boots the machine's own disks again (the running one keeps its disk
+
+                // until then, so answering No below changes nothing for it yet).
+
+                HardDiskGames.End();
+
+
+
                 // Applied before the reboot prompt on purpose: a power-cycle re-sends the mapped
+
                 // programs to a fresh module (MidiManager.Initialize), so the game comes up with
+
                 // its instruments already in place.
+
                 MT32.Mt32Profiles.SetCurrentGame(libraryGame);
 
+
+
                 // Check for multi-disc companion (Disk 2 / Side B)
+
                 bool multiDiscFound = false;
+
                 string effectivePath = !string.IsNullOrEmpty(Drive(0).ImagePath) ? Drive(0).ImagePath : ImageFile;
 
+
+
                 // Auto-detect ST vs STE model and matching TOS BIOS based on folder and tags
+
                 MachineModelSelector.ModelDecision modelDecision = null;
+
                 if (!isDiskSwap)
+
                 {
+
                     modelDecision = MachineModelSelector.DetectAndApply(effectivePath, libraryGame);
+
                 }
+
+
 
                 string companionDisk = !isDiskSwap ? DiskSetManager.FindCompanionDisk(effectivePath, 2) : null;
+
                 if (!string.IsNullOrEmpty(companionDisk) &&
+
                     !string.Equals(companionDisk, effectivePath, StringComparison.OrdinalIgnoreCase) &&
+
                     !string.Equals(companionDisk, ImageFile, StringComparison.OrdinalIgnoreCase))
+
                 {
+
                     if (!Config.ConfigOptions.RunninConfig.DriveBEnabled)
+
                         ApplyDriveBConnection(true);
 
+
+
                     if (InsertIntoDrive(1, companionDisk, out _))
+
                     {
+
                         multiDiscFound = true;
+
                         EjectDiskItem(1).IsEnabled = true;
+
                         if (companionDisk.Contains(".zip|", StringComparison.OrdinalIgnoreCase))
+
                         {
+
                             ZipFile[1] = companionDisk.Split('|')[0];
+
                             ChangeDiskItem(1).IsEnabled = true;
+
                         }
+
                     }
+
                 }
+
                 else if (!isDiskSwap && Drive(1).HasDisk)
+
                 {
+
                     // Cleanly eject Drive B on new game load if no companion exists,
+
                     // so stale disks or duplicate Disk 1s never linger in Drive B.
+
                     EjectFrom(1);
+
                 }
+
+
 
                 if (isDiskSwap)
+
                 {
+
                     // Multi-disk swap during gameplay: do not reboot
+
                 }
+
+                else if (Netplay.InputRecording.IsRecording || Netplay.Lockstep.Active)
+
+                {
+
+                    // In a shared game or during recording, do not offer reboot dialog
+
+                }
+
                 else if (Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad || (modelDecision != null && modelDecision.Changed))
+
                 {
+
                     ASEMain.HardReset();
+
                 }
+
                 else
+
                 {
+
                     // Answering No is a real option now: the FDC reports the disk change to the running
+
                     // program (see FloppyImage.SignalDiskTransition), which is what multi-disk games and
+
                     // GEMDOS need to pick up the new disk without rebooting.
+
                     var response = await Dialogs.MessageBox("Disk inserted", "Reboot?", MessageBoxDialogType.YesNo, MessageBoxIconType.Question, MessageBoxButton.Yes);
 
+
+
                     if (response == MessageBoxButton.Yes)
+
                         ASEMain.HardReset();
+
                 }
+
+
 
                 EjectDiskItem(drive).IsEnabled = true;
 
-                if (modelDecision != null && modelDecision.Changed)
+
+
+                if (Netplay.Lockstep.Active)
+
                 {
+
+                    SetStatusBarText($"Disk {Path.GetFileName(ImageFile)} goes into drive {DriveLetter(drive)} of every player's machine");
+
+                }
+
+                else if (modelDecision != null && modelDecision.Changed)
+
+                {
+
                     string modelName = modelDecision.TargetModel == Config.ConfigOptions.STModels.STE ? "Atari STE" : "Atari ST";
+
                     string tosName = Path.GetFileName(modelDecision.TosPath);
+
                     SetStatusBarText($"Auto-configured {modelName} ({tosName}) — {modelDecision.Reason}");
+
                 }
+
                 else if (multiDiscFound)
+
                 {
+
                     var allDisks = DiskSetManager.GetAllDisksInSet(effectivePath);
+
                     string countInfo = allDisks.Count > 2 ? $" ({allDisks.Count} disks)" : "";
+
                     SetStatusBarText($"Multi-disc game{countInfo}: Disk 1 in A: ({Drive(0).DisplayName}), Disk 2 in B: ({Drive(1).DisplayName})");
+
                 }
+
                 else
+
                     SetStatusBarText($"Disk {Path.GetFileName(ImageFile)} inserted in drive {DriveLetter(drive)}");
 
+
+
                 RefreshDiskMenus(drive);
+
                 return;
+
             }
+
+
 
             EjectDiskItem(drive).IsEnabled = true;
 
-            SetStatusBarText($"Disk {Path.GetFileName(ImageFile)} inserted in drive {DriveLetter(drive)}");
+
+
+            SetStatusBarText(Netplay.Lockstep.Active
+
+                ? $"Disk {Path.GetFileName(ImageFile)} goes into drive {DriveLetter(drive)} of every player's machine"
+
+                : $"Disk {Path.GetFileName(ImageFile)} inserted in drive {DriveLetter(drive)}");
+
             RefreshDiskMenus(drive);
+
         }
+
+
 
         public void OnSwapDisksClick(object sender, RoutedEventArgs e) => SwapOrCycleDisks(reverse: false);
 
+
+
         public void OnPrevDiskClick(object sender, RoutedEventArgs e) => SwapOrCycleDisks(reverse: true);
 
+
+
         void SwapOrCycleDisks(bool reverse = false)
+
         {
+
             string pathA = ASEMain.driveA.ImagePath;
+
             string pathB = ASEMain.driveB.ImagePath;
 
+
+
             string activePath = !string.IsNullOrEmpty(pathA) ? pathA : pathB;
+
             var allDisks = !string.IsNullOrEmpty(activePath) ? DiskSetManager.GetAllDisksInSet(activePath) : new List<string>();
 
+
+
             // Case 1: Exactly 2 disks in set, both drives have disks loaded -> standard in-memory swap
+
             if (allDisks.Count == 2 && ASEMain.driveA.HasDisk && ASEMain.driveB.HasDisk)
+
             {
+
                 SwapDrivesAB();
+
                 return;
+
             }
+
+
 
             // Case 2: 3+ disks in set
+
             if (allDisks.Count > 2)
+
             {
+
                 // If Drive B has a disk, cycle Drive B through the sequence
+
                 if (ASEMain.driveB.HasDisk)
+
                 {
+
                     int currentIndex = allDisks.FindIndex(d => string.Equals(d, pathB, StringComparison.OrdinalIgnoreCase));
+
                     int nextIndex;
+
                     if (currentIndex >= 0)
+
                     {
+
                         nextIndex = reverse
+
                             ? (currentIndex - 1 + allDisks.Count) % allDisks.Count
+
                             : (currentIndex + 1) % allDisks.Count;
 
+
+
                         // Skip disk that is currently loaded in Drive A
+
                         if (string.Equals(allDisks[nextIndex], pathA, StringComparison.OrdinalIgnoreCase))
+
                         {
+
                             nextIndex = reverse
+
                                 ? (nextIndex - 1 + allDisks.Count) % allDisks.Count
+
                                 : (nextIndex + 1) % allDisks.Count;
+
                         }
-                    }
-                    else
-                    {
-                        // Current disk in B not in set list, advance to Disk 2 (index 1)
-                        nextIndex = allDisks.Count > 1 ? 1 : 0;
+
                     }
 
+                    else
+
+                    {
+
+                        // Current disk in B not in set list, advance to Disk 2 (index 1)
+
+                        nextIndex = allDisks.Count > 1 ? 1 : 0;
+
+                    }
+
+
+
                     string nextDisk = allDisks[nextIndex];
+
                     InsertDisk(1, nextDisk, null, isDiskSwap: true);
+
                     string cleanName = Path.GetFileName(nextDisk.Split('|').Last());
+
                     SetStatusBarText($"Drive B: swapped to {cleanName} (Disk {nextIndex + 1} of {allDisks.Count})");
+
                     UpdateMultiDiskMenu();
+
                     return;
+
                 }
+
+
 
                 // Drive B is not active, but Drive A has a disk -> cycle Drive A through the full set
+
                 if (ASEMain.driveA.HasDisk)
+
                 {
+
                     int currentIndex = allDisks.FindIndex(d => string.Equals(d, pathA, StringComparison.OrdinalIgnoreCase));
+
                     int nextIndex = currentIndex >= 0
+
                         ? (reverse ? (currentIndex - 1 + allDisks.Count) % allDisks.Count : (currentIndex + 1) % allDisks.Count)
+
                         : 0;
 
+
+
                     string nextDisk = allDisks[nextIndex];
+
                     InsertDisk(0, nextDisk, MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+
                     string cleanName = Path.GetFileName(nextDisk.Split('|').Last());
+
                     SetStatusBarText($"Drive A: swapped to {cleanName} (Disk {nextIndex + 1} of {allDisks.Count})");
+
                     UpdateMultiDiskMenu();
+
                     return;
+
                 }
+
             }
+
+
 
             // Case 3: 2-disk set or general set with only Drive A loaded
+
             if (ASEMain.driveA.HasDisk && allDisks.Count > 1)
+
             {
+
                 int currentIndex = allDisks.FindIndex(d => string.Equals(d, pathA, StringComparison.OrdinalIgnoreCase));
+
                 int nextIndex = currentIndex >= 0
+
                     ? (reverse ? (currentIndex - 1 + allDisks.Count) % allDisks.Count : (currentIndex + 1) % allDisks.Count)
+
                     : 1;
 
+
+
                 string nextDisk = allDisks[nextIndex];
+
                 InsertDisk(0, nextDisk, MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+
                 string cleanName = Path.GetFileName(nextDisk.Split('|').Last());
+
                 SetStatusBarText($"Drive A: swapped to {cleanName} (Disk {nextIndex + 1} of {allDisks.Count})");
+
                 UpdateMultiDiskMenu();
+
                 return;
+
             }
+
+
 
             // Case 4: Both drives have arbitrary disks (not detected in set) -> standard in-memory swap
+
             if (ASEMain.driveA.HasDisk && ASEMain.driveB.HasDisk)
+
             {
+
                 SwapDrivesAB();
+
                 return;
+
             }
+
+
 
             // Case 5: Drive B has disk but Drive A is empty -> move Drive B disk to Drive A
+
             if (!ASEMain.driveA.HasDisk && ASEMain.driveB.HasDisk)
+
             {
+
                 string diskB = ASEMain.driveB.ImagePath;
+
                 EjectFrom(1);
+
                 InsertDisk(0, diskB, null, isDiskSwap: true);
+
                 SetStatusBarText($"Moved disk from Drive B: to Drive A: ({ASEMain.driveA.DisplayName})");
+
                 UpdateMultiDiskMenu();
+
                 return;
+
             }
+
+
 
             SetStatusBarText("No multi-disc game or companion disk detected to swap.");
+
         }
+
+
 
         void SwapDrivesAB()
+
         {
+
             if (!ASEMain.driveA.HasDisk || !ASEMain.driveB.HasDisk)
+
             {
+
                 SetStatusBarText("Both drives must contain a disk to swap.");
+
                 return;
+
             }
+
+
 
             ASEMain.RunWhilePaused(() =>
+
             {
+
                 var tempConfig = ASEMain.driveA.DiskConfig;
+
                 var tempData = ASEMain.driveA.Data;
+
                 var tempStx = ASEMain.driveA.Stx;
+
                 var tempWp = ASEMain.driveA.WriteProtected;
+
                 var tempPath = ASEMain.driveA.ImagePath;
 
+
+
                 ASEMain.driveA.DiskConfig = ASEMain.driveB.DiskConfig;
+
                 ASEMain.driveA.Data = ASEMain.driveB.Data;
+
                 ASEMain.driveA.Stx = ASEMain.driveB.Stx;
+
                 ASEMain.driveA.WriteProtected = ASEMain.driveB.WriteProtected;
+
                 ASEMain.driveA.ImagePath = ASEMain.driveB.ImagePath;
 
+
+
                 ASEMain.driveB.DiskConfig = tempConfig;
+
                 ASEMain.driveB.Data = tempData;
+
                 ASEMain.driveB.Stx = tempStx;
+
                 ASEMain.driveB.WriteProtected = tempWp;
+
                 ASEMain.driveB.ImagePath = tempPath;
 
+
+
                 string tempZip = ZipFile[0];
+
                 ZipFile[0] = ZipFile[1];
+
                 ZipFile[1] = tempZip;
 
+
+
                 ASEMain.driveA.SignalDiskTransition();
+
                 ASEMain.driveB.SignalDiskTransition();
+
             }, out _);
 
+
+
             RefreshDiskMenus(0);
+
             RefreshDiskMenus(1);
+
             DriveLed(0, false);
+
             DriveLed(1, false);
 
+
+
             SetStatusBarText($"Swapped disks: A: is now {ASEMain.driveA.DisplayName}, B: is now {ASEMain.driveB.DisplayName}");
+
             UpdateMultiDiskMenu();
+
         }
+
+
 
         void UpdateMultiDiskMenu()
+
         {
+
             if (ItemMenuMultiDiskSet == null)
+
                 return;
+
+
 
             string pathA = ASEMain.driveA.ImagePath;
+
             string pathB = ASEMain.driveB.ImagePath;
+
             string activePath = !string.IsNullOrEmpty(pathA) ? pathA : pathB;
 
+
+
             if (string.IsNullOrEmpty(activePath))
+
             {
+
                 ItemMenuMultiDiskSet.IsVisible = false;
+
                 return;
+
             }
+
+
 
             var allDisks = DiskSetManager.GetAllDisksInSet(activePath);
+
             if (allDisks.Count <= 1)
+
             {
+
                 ItemMenuMultiDiskSet.IsVisible = false;
+
                 return;
+
             }
+
+
 
             ItemMenuMultiDiskSet.IsVisible = true;
+
             ItemMenuMultiDiskSet.Header = $"Multi-disk set ({allDisks.Count} disks)…";
 
+
+
             var menuA = new MenuItem { Header = "Insert into Drive A:" };
+
             var menuB = new MenuItem { Header = "Insert into Drive B:" };
 
+
+
             for (int i = 0; i < allDisks.Count; i++)
+
             {
+
                 string diskPath = allDisks[i];
+
                 int diskNum = i + 1;
+
                 string entryName = Path.GetFileName(diskPath.Split('|').Last());
 
+
+
                 bool isCurrentA = string.Equals(pathA, diskPath, StringComparison.OrdinalIgnoreCase);
+
                 bool isCurrentB = string.Equals(pathB, diskPath, StringComparison.OrdinalIgnoreCase);
 
+
+
                 var itemA = new MenuItem
+
                 {
+
                     Header = $"Disk {diskNum}: {entryName}" + (isCurrentA ? " (Current in A:)" : ""),
+
                     FontWeight = isCurrentA ? FontWeight.Bold : FontWeight.Normal
+
                 };
+
                 itemA.Click += (s, e) =>
+
                 {
+
                     InsertDisk(0, diskPath, MT32.Mt32Profiles.CurrentGame, isDiskSwap: true);
+
                 };
+
                 menuA.Items.Add(itemA);
 
+
+
                 var itemB = new MenuItem
+
                 {
+
                     Header = $"Disk {diskNum}: {entryName}" + (isCurrentB ? " (Current in B:)" : ""),
+
                     FontWeight = isCurrentB ? FontWeight.Bold : FontWeight.Normal
+
                 };
+
                 itemB.Click += (s, e) =>
+
                 {
+
                     if (!Config.ConfigOptions.RunninConfig.DriveBEnabled)
+
                         ApplyDriveBConnection(true);
 
+
+
                     InsertDisk(1, diskPath, null, isDiskSwap: true);
+
                 };
+
                 menuB.Items.Add(itemB);
+
             }
 
+
+
             ItemMenuMultiDiskSet.Items.Clear();
+
             ItemMenuMultiDiskSet.Items.Add(menuA);
+
             ItemMenuMultiDiskSet.Items.Add(menuB);
 
+
+
             var itemNextB = new MenuItem { Header = "Next disk in Drive B (Ctrl+D)", InputGesture = new KeyGesture(Key.D, KeyModifiers.Control) };
+
             itemNextB.Click += (s, e) => SwapOrCycleDisks(reverse: false);
+
             ItemMenuMultiDiskSet.Items.Add(itemNextB);
 
+
+
             var itemPrevB = new MenuItem { Header = "Previous disk in Drive B (Ctrl+Shift+D)", InputGesture = new KeyGesture(Key.D, KeyModifiers.Control | KeyModifiers.Shift) };
+
             itemPrevB.Click += (s, e) => SwapOrCycleDisks(reverse: true);
+
             ItemMenuMultiDiskSet.Items.Add(itemPrevB);
 
+
+
             var itemSwap = new MenuItem { Header = "Swap Drive A ↔ Drive B" };
+
             itemSwap.Click += (s, e) => SwapDrivesAB();
+
             ItemMenuMultiDiskSet.Items.Add(itemSwap);
+
         }
 
-        public void OnEjecImageClick(object sender, RoutedEventArgs e) => EjectFrom(0);
 
-        public void OnEjecImageBClick(object sender, RoutedEventArgs e) => EjectFrom(1);
+
+        public void OnEjecImageClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (!RefusedDuringSession("Changing disks", onlyDuringPlayback: true))
+
+                EjectFrom(0);
+
+        }
+
+
+
+        public void OnEjecImageBClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (!RefusedDuringSession("Changing disks", onlyDuringPlayback: true))
+
+                EjectFrom(1);
+
+        }
+
+
 
         void EjectFrom(int drive)
+
         {
+
+            // A shared machine ejects on every computer at once, like a swap (see InsertIntoDrive)
+
+            if (Netplay.Lockstep.Active)
+
+            {
+
+                Netplay.MachineInput.Schedule(new Netplay.FrameCommand(Netplay.CommandKind.Media, drive,
+
+                    Snapshot.Pack(w => new FloppyImage().SaveMedia(w))));
+
+                ZipFile[drive] = "";
+
+                DisableEjectMenu(drive);
+
+                return;
+
+            }
+
+
+
             // Same rendezvous as inserting: the emulation thread must not be reading the image
+
             // while it is taken away from under it.
-            ASEMain.RunWhilePaused(Drive(drive).Eject, out _);
+
+            ASEMain.RunWhilePaused(() =>
+
+            {
+
+                Drive(drive).Eject();
+
+
+
+                // An eject always tells TOS the disk changed, an empty drive included, so a
+
+                // recording always replays it.
+
+                Netplay.MachineInput.NoteMediaChange(drive);
+
+            }, out _);
+
             ZipFile[drive] = "";
 
+
+
             // Empty drive A: no library game any more, so the MT-32 mapping goes with it. B: never
+
             // carried one, so ejecting from it leaves the running game's instruments alone.
+
             if (drive == 0)
+
                 MT32.Mt32Profiles.SetCurrentGame(null);
 
+
+
             DisableEjectMenu(drive);
+
         }
+
+
 
         MenuItem ChangeDiskItem(int drive) => drive == 1 ? ItemMenuChangeDiskB : ItemMenuChangeDisk;
 
+
+
         MenuItem EjectDiskItem(int drive) => drive == 1 ? ItemMenuEjectDiskB : ItemMenuEjectDisk;
 
+
+
         void DisableEjectMenu(int drive)
+
         {
+
             ChangeDiskItem(drive).IsEnabled = false;
+
             EjectDiskItem(drive).IsEnabled = false;
+
             UpdateMultiDiskMenu();
+
         }
+
+
 
         /// <summary>Puts a drive's disk menu entries back in sync with what is actually in it.</summary>
+
         void RefreshDiskMenus(int drive)
+
         {
+
             // A disconnected drive B has no entries to enable, whatever it is holding.
+
             bool present = drive == 0 || Config.ConfigOptions.RunninConfig.DriveBEnabled;
 
+
+
             EjectDiskItem(drive).IsEnabled = present && Drive(drive).HasDisk;
+
             ChangeDiskItem(drive).IsEnabled = present && !string.IsNullOrEmpty(ZipFile[drive]);
+
             UpdateMultiDiskMenu();
+
         }
 
+
+
         /// <summary>
+
         /// Plugs the external drive B: in or out. It is a cable, not a setting that waits for a
+
         /// reset: the FDC stops answering for B: the moment it goes (see WD1772.DriveSelected),
+
         /// and TOS' own floppy count follows within a frame (ASEMain.EnforceFloppyDriveCount).
+
         /// A program already running may still have the old drive map cached, which is what the
+
         /// reset in the message is for.
+
         /// </summary>
+
         public void OnConnectDriveBClick(object sender, RoutedEventArgs e)
+
         {
+
+            if (RefusedDuringSession("Plugging drive B:"))
+
+                return;
+
+
+
             bool connect = !Config.ConfigOptions.RunninConfig.DriveBEnabled;
 
+
+
             // Unplugging takes the disk with it: a drive that is not there cannot be holding one.
+
             if (!connect)
+
                 EjectFrom(1);
+
+
 
             ApplyDriveBConnection(connect);
 
+
+
             SetStatusBarText(connect
+
                 ? "Drive B: connected, reset ST if a program is already running"
+
                 : "Drive B: disconnected");
+
         }
+
+
 
         /// <summary>Applies the drive B connection to the config, the File menu and the status
+
         /// bar light. Called from the constructor too, so a drive left connected in config.json
+
         /// comes back with its menu entries and its LED already in place.</summary>
+
         void ApplyDriveBConnection(bool connected)
+
         {
+
             Config.ConfigOptions.RunninConfig.DriveBEnabled = connected;
 
+
+
             // A drive that is not there has no zip left to change disks from either
+
             if (!connected)
+
                 ZipFile[1] = "";
 
+
+
             ItemMenuConnectDriveB.Header = connected ? "Disconnect drive B:" : "Connect drive B:";
+
             ItemMenuOpenDiskB.IsEnabled = connected;
+
             RefreshDiskMenus(1);
 
+
+
             DriveBLedImage.IsVisible = connected;
+
             DriveBLabelClip.IsVisible = connected;
+
         }
+
+
 
         /// <summary>
+
         /// Decides the Emulation entries that depend on machine state, right when the user
+
         /// opens the menu — no polling, and no event plumbing from the places that can
+
         /// change it (the Configuration window, a restored snapshot, a reset).
+
         /// </summary>
+
         private void OnEmulationMenuOpened(object sender, RoutedEventArgs e)
+
         {
+
             // Single instance, and only meaningful with the built-in module wired up: with
+
             // any other MIDI mode there is no front panel to open, however many library
+
             // games carry a YM->MT-32 mapping.
+
             ItemMenuMt32Toolbox.IsEnabled = _mt32Toolbox == null && Mt32ModuleWiredUp;
+
+
+
             ItemMenuAutoReboot.Header = Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad
+
                 ? "Auto-reboot on game load: On"
+
                 : "Auto-reboot on game load: Off";
+
             ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
+
                 ? "Auto-run desktop programs: On"
+
                 : "Auto-run desktop programs: Off";
+
             ItemMenuAutoModelTos.Header = Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos
+
                 ? "Auto-select ST / STE & BIOS: On"
+
                 : "Auto-select ST / STE & BIOS: Off";
+
             ItemMenuShowBorders.Header = Config.ConfigOptions.RunninConfig.ShowBorders
+
                 ? "Show screen borders: On"
+
                 : "Show screen borders: Off";
+
+
+
+            // One session at a time: each entry stops its own, and is out of reach while the
+
+            // other kind runs.
+
+            bool recording = Netplay.InputRecording.IsRecording;
+
+            bool replaying = Netplay.InputRecording.IsReplaying;
+
+
+
+            bool shared = Netplay.Lockstep.Active;
+
+
+
+            ItemMenuRecordInput.Header = recording ? "Stop recording" : "Record input";
+
+            ItemMenuRecordInput.IsEnabled = !replaying && !shared;
+
+            ItemMenuPlayRecording.Header = replaying ? "Stop playback" : "Play back recording…";
+
+            ItemMenuPlayRecording.IsEnabled = !recording && !shared;
+
         }
+
+
 
         public void OnToggleAutoRebootClick(object sender, RoutedEventArgs e)
+
         {
+
             Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad = !Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad;
+
             Program.Config.DumpJsonConfig();
+
             SetStatusBarText($"Auto-reboot on game load: {(Config.ConfigOptions.RunninConfig.AutoRebootOnGameLoad ? "Enabled" : "Disabled")}");
+
         }
+
+
 
         public void OnToggleAutoRunDesktopClick(object sender, RoutedEventArgs e)
+
         {
+
             Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms = !Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms;
+
             Program.Config.DumpJsonConfig();
+
             ItemMenuAutoRunDesktop.Header = Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms
+
                 ? "Auto-run desktop programs: On"
+
                 : "Auto-run desktop programs: Off";
+
             SetStatusBarText($"Auto-run desktop programs: {(Config.ConfigOptions.RunninConfig.AutoRunDesktopPrograms ? "Enabled" : "Disabled")}");
+
         }
+
+
 
         public void OnToggleAutoModelTosClick(object sender, RoutedEventArgs e)
+
         {
+
             Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos = !Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos;
+
             Program.Config.DumpJsonConfig();
+
             ItemMenuAutoModelTos.Header = Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos
+
                 ? "Auto-select ST / STE & BIOS: On"
+
                 : "Auto-select ST / STE & BIOS: Off";
+
             SetStatusBarText($"Auto-select ST / STE & BIOS: {(Config.ConfigOptions.RunninConfig.AutoDetectModelAndTos ? "Enabled" : "Disabled")}");
+
         }
 
+
+
         public void OnSpeedNormalClick(object sender, RoutedEventArgs e) => ASEMain.ResetSpeed();
+
         public void OnSpeedUpClick(object sender, RoutedEventArgs e) => ASEMain.SpeedUp();
+
         public void OnSpeedDownClick(object sender, RoutedEventArgs e) => ASEMain.SlowDown();
+
         public void OnSpeedMaxClick(object sender, RoutedEventArgs e) => ASEMain.ToggleMaxSpeed();
+
+
 
         public void OnToggleShowBordersClick(object sender, RoutedEventArgs e) => ToggleShowBorders();
 
+
+
         public void ToggleShowBorders()
+
         {
+
             Config.ConfigOptions.RunninConfig.ShowBorders = !Config.ConfigOptions.RunninConfig.ShowBorders;
+
             Program.Config.DumpJsonConfig();
+
             RefreshAspectRatio();
+
             SetStatusBarText($"Screen borders: {(Config.ConfigOptions.RunninConfig.ShowBorders ? "Enabled" : "Disabled (Cropped)")}");
+
         }
 
+
+
         /// <summary>Whether the machine was last powered on wired to the built-in MT-32 —
+
         /// not whether the module actually came up (bad ROMs still open the toolbox, dark
+
         /// and inert, which is how the user finds out).</summary>
+
         static bool Mt32ModuleWiredUp =>
+
             MidiManager.Mode == ConfigOptions.MIDIEmulationOptions.BuiltInMT32;
 
+
+
         /// <summary>
+
         /// Opens the MT-32 front panel (volume knob + LCD). Single instance: the menu entry
+
         /// is greyed out while the window is up and comes back when it closes. It is shown
+
         /// non-modally and holds no UI pause — unlike the emulator's dialogs, it is only
+
         /// useful with the machine running. The toolbox closes itself if the MIDI mode moves
+
         /// away from the module later on.
+
         /// </summary>
+
         public void OnMt32ToolboxClick(object sender, RoutedEventArgs e)
+
         {
+
             if (_mt32Toolbox != null)
+
             {
+
                 _mt32Toolbox.Activate();
+
                 return;
+
             }
 
+
+
             // The menu entry is already greyed out in this case; this is the guard for any
+
             // other way in (a hotkey, a future command) rather than a second UI decision.
+
             if (!Mt32ModuleWiredUp)
+
                 return;
+
+
 
             ItemMenuMt32Toolbox.IsEnabled = false;
 
+
+
             _mt32Toolbox = new MT32.Mt32Toolbox();
 
+
+
             // Only clears the slot: whether the entry comes back enabled is recomputed when
+
             // the menu is next opened, since the toolbox may have closed itself precisely
+
             // because the module went away.
+
             _mt32Toolbox.Closed += (_, _) => _mt32Toolbox = null;
 
+
+
             _mt32Toolbox.Show(this);
+
         }
 
-        public async void OnResetClick(object sender, RoutedEventArgs e)
+
+
+        // ==================== Online play ====================
+
+
+
+        public void OnOnlinePlayClick(object sender, RoutedEventArgs e) => OpenNetplayWindow();
+
+
+
+        /// <summary>Ends the session: stops hosting, or leaves the game joined (which goes back
+
+        /// to looking for games if the Online play window is open).</summary>
+
+        public void OnNetDisconnectClick(object sender, RoutedEventArgs e)
+
         {
-            var response = await Dialogs.MessageBox("Reset ST", "Are you sure?", MessageBoxDialogType.YesNo, MessageBoxIconType.Question, MessageBoxButton.Yes);
 
-            // HardReset stops the emulation thread before re-initializing: InitCpu alone would
-            // race the running loop (flaky resets) and never starts the thread if the machine
-            // is off (first launch without TOS).
-            if (response == MessageBoxButton.Yes)
-                ASEMain.HardReset();
-        }
+            if (Netplay.NetSession.Role == Netplay.NetSession.Roles.Guest)
 
-        public void OnSaveSnapshotClick(object sender, RoutedEventArgs e) => DoSaveSnapshot();
+                Netplay.NetSession.Leave();
 
-        /// <summary>Saves a machine snapshot into the configured snapshots directory. Reached
-        /// from the File menu and from F11 (posted here by ASEMain.HandleEvents). UI thread.</summary>
-        public void DoSaveSnapshot()
-        {
-            if (ASEMain.SaveSnapshot(out string path, out string error))
-                SetStatusBarText($"Snapshot saved: {Path.GetFileName(path)}");
             else
-                SetStatusBarText($"❌ Could not save snapshot: {error}");
+
+                Netplay.NetSession.Stop();
+
+
+
+            SetStatusBarText("Online play ended");
+
         }
 
-        /// <summary>Saves the current ST screen as PNG into the configured screenshots
-        /// directory. Reached from Shift+F11. UI thread.</summary>
-        public void DoSaveScreenshot()
+
+
+        /// <summary>Names the last Online entry after the session it would end, and greys it out
+
+        /// when there is none — decided when the menu opens, like the Emulation menu.</summary>
+
+        private void OnOnlineMenuOpened(object sender, RoutedEventArgs e)
+
         {
-            if (ASEMain.SaveScreenshot(out string path, out string error))
-                SetStatusBarText($"Screenshot saved: {Path.GetFileName(path)}");
-            else
-                SetStatusBarText($"❌ Could not save screenshot: {error}");
+
+            bool joined = Netplay.NetSession.Role == Netplay.NetSession.Roles.Guest
+
+                          && Netplay.NetSession.GuestState != Netplay.NetSession.GuestStates.Searching;
+
+
+
+            ItemMenuNetDisconnect.Header = Netplay.NetSession.Role == Netplay.NetSession.Roles.Host ? "Stop hosting"
+
+                                         : joined ? "Leave the game"
+
+                                         : "Disconnect";
+
+            ItemMenuNetDisconnect.IsEnabled = Netplay.NetSession.Role == Netplay.NetSession.Roles.Host || joined;
+
         }
 
-        public async void OnRestoreSnapshotClick(object sender, RoutedEventArgs e)
+
+
+        /// <summary>
+
+        /// Opens the Online play window at the role choice, or at a requested role for an
+
+        /// invitation or join request. An active session always opens at its lobby.
+
+        /// Single instance and non-modal, holding no UI pause: a session runs alongside the
+
+        /// machine (see NetplayWindow).
+
+        /// </summary>
+
+        void OpenNetplayWindow(NetplayWindow.Modes? mode = null)
+
         {
+
+            if (_netplayWindow != null)
+
+            {
+
+                _netplayWindow.ShowMode(mode);
+
+                _netplayWindow.Activate();
+
+                return;
+
+            }
+
+
+
             ASEMain.CaptureMouse(false);
 
-            var (canceled, selpath) = await Dialogs.OpenFile("Restore ST snapshot",
+
+
+            _netplayWindow = new NetplayWindow(mode);
+
+            _netplayWindow.Closed += (_, _) => _netplayWindow = null;
+
+            _netplayWindow.Show(this);
+
+        }
+
+
+
+        /// <summary>What happens to a session is worth a line in the status bar; a request to
+
+        /// join needs an answer, so it brings the Online play window up.</summary>
+
+        void OnNetEvent(Netplay.NetEvent e)
+
+        {
+
+            switch (e)
+
+            {
+
+                case Netplay.JoinRequest request:
+
+                    SetStatusBarText(request.WithCode ? $"{request.Name} asks to join your game, with your code" : $"{request.Name} asks to join your game");
+
+                    if (_netplayWindow == null)
+
+                        OpenNetplayWindow(NetplayWindow.Modes.Host);
+
+                    else
+
+                        _netplayWindow.Activate();
+
+                    break;
+
+
+
+                case Netplay.PeerConnected connected:
+
+                    SetStatusBarText(Netplay.NetSession.Role == Netplay.NetSession.Roles.Host
+
+                        ? $"{connected.Name} joined your game"
+
+                        : $"Joined {connected.Name}'s game");
+
+                    break;
+
+
+
+                case Netplay.PeerLeft left when left.WasConnected:
+
+                    SetStatusBarText(Netplay.NetSession.Role == Netplay.NetSession.Roles.Host
+
+                        ? $"{left.Name} left: {left.Reason}"
+
+                        : $"Online play ended: {left.Reason}");
+
+                    break;
+
+            }
+
+        }
+
+
+
+        void RefreshNetStatus()
+
+        {
+
+            string text = Netplay.NetSession.StatusText;
+
+
+
+            PanelNetStatus.IsVisible = text != null;
+
+            if (text != null && TextBlockNetStatus.Text != text)
+
+                TextBlockNetStatus.Text = text;
+
+        }
+
+
+
+        /// <summary>
+
+        /// Starts recording the input of the running machine, or stops the recording running.
+
+        /// The file goes to the snapshots directory: a recording is a snapshot plus every
+
+        /// frame's input, and it is played back to prove the emulation repeats itself exactly
+
+        /// (see Netplay.InputRecording, and NETPLAY.md for what it is the groundwork of).
+
+        /// </summary>
+
+        public async void OnRecordInputClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (Netplay.InputRecording.IsRecording)
+
+            {
+
+                // The status bar gets the summary once the file is closed (OnSessionEnded)
+
+                Netplay.InputRecording.Stop();
+
+                return;
+
+            }
+
+
+
+            if (Netplay.InputRecording.StartRecording(out string path, out string error))
+
+            {
+
+                SetStatusBarText($"Recording input into {Path.GetFileName(path)}");
+
+                return;
+
+            }
+
+
+
+            await Dialogs.MessageBox("Record input", $"Could not start recording: {error}",
+
+                MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
+        }
+
+
+
+        /// <summary>Plays an input recording back, checking it stays in sync, or stops the
+
+        /// playback running. The machine carries on live from wherever the playback ends.</summary>
+
+        public async void OnPlayRecordingClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (Netplay.InputRecording.IsReplaying)
+
+            {
+
+                Netplay.InputRecording.Stop();
+
+                return;
+
+            }
+
+
+
+            ASEMain.CaptureMouse(false);
+
+
+
+            var (canceled, selpath) = await Dialogs.OpenFile("Play back input recording",
+
                 Config.DialogStartFolder(Config.SnapshotsDir),
-                new FileFilter("ASE snapshot", ["*.snap"]));
+
+                new FileFilter("ASE input recording", ["*." + Netplay.InputRecording.Extension]));
+
+
 
             if (canceled || selpath.Count() != 1)
+
                 return;
+
+
 
             string path = selpath.ElementAt(0);
 
-            if (!ASEMain.RestoreSnapshot(path, out string error))
+
+
+            if (!Netplay.InputRecording.StartReplay(path, out string error))
+
             {
-                await Dialogs.MessageBox("Error", $"Could not restore snapshot: {error}",
+
+                await Dialogs.MessageBox("Play back recording", $"Could not play back the recording: {error}",
+
                     MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
                 return;
+
             }
 
-            // The snapshot carries the drives: which disks were in them, and whether B: was
-            // even plugged in.
+
+
+            // The recording brings its own machine: its drives, and whether B: is plugged in
+
             ApplyDriveBConnection(Config.ConfigOptions.RunninConfig.DriveBEnabled);
+
             RefreshDiskMenus(0);
 
-            SetStatusBarText($"Snapshot {Path.GetFileName(path)} restored");
+
+
+            SetStatusBarText($"Playing back {Path.GetFileName(path)}");
+
         }
+
+
+
+        /// <summary>A recording or a playback ended (posted by Netplay.InputRecording, which has
+
+        /// already written the details to the console): report it, and put the disk menus back
+
+        /// in step with drives a playback may have changed.</summary>
+
+        public void OnSessionEnded(string summary)
+
+        {
+
+            SetStatusBarText(summary);
+
+            RefreshDiskMenus(0);
+
+            RefreshDiskMenus(1);
+
+        }
+
+
+
+        /// <summary>
+
+        /// Refuses, with a word in the status bar, what would make a running recording or
+
+        /// playback stop describing the machine: the configuration (it applies live), the
+
+        /// debugger, plugging drive B. With <paramref name="onlyDuringPlayback"/>, things a
+
+        /// recording logs but a playback must leave alone, since the recording supplies them —
+
+        /// the disks above all. True when refused.
+
+        /// </summary>
+
+        bool RefusedDuringSession(string what, bool onlyDuringPlayback = false)
+
+        {
+
+            bool replaying = Netplay.InputRecording.IsReplaying;
+
+            bool refused = onlyDuringPlayback ? replaying : Netplay.MachineInput.Deterministic;
+
+
+
+            if (refused)
+
+                SetStatusBarText(Netplay.Lockstep.Active
+
+                    ? $"❌ {what} is not available while playing together online: every computer runs the same machine"
+
+                    : $"❌ {what} is not available while {(replaying ? "a recording plays back" : "recording input")}: stop it first (Emulation menu)");
+
+
+
+            return refused;
+
+        }
+
+
+
+        /// <summary>
+
+        /// Refuses, with a word in the status bar, what would replace the machine on a guest of a
+
+        /// shared game: the machine is the host's, which shares a new one whenever it replaces
+
+        /// its own. True when refused.
+
+        /// </summary>
+
+        bool RefusedToGuest(string what)
+
+        {
+
+            if (!Netplay.Lockstep.IsGuest)
+
+                return false;
+
+
+
+            SetStatusBarText($"❌ {what} is the host's to do while playing on its machine");
+
+            return true;
+
+        }
+
+
+
+        /// <summary>A shared game started a machine on this computer, or gave this one its own
+
+        /// back: the drives and drive B come with it.</summary>
+
+        public void OnSharedMachineChanged()
+
+        {
+
+            ApplyDriveBConnection(Config.ConfigOptions.RunninConfig.DriveBEnabled);
+
+            RefreshDiskMenus(0);
+
+            RefreshDiskMenus(1);
+
+        }
+
+
+
+        public async void OnResetClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (RefusedToGuest("Resetting"))
+
+                return;
+
+
+
+            var response = await Dialogs.MessageBox("Reset ST", "Are you sure?", MessageBoxDialogType.YesNo, MessageBoxIconType.Question, MessageBoxButton.Yes);
+
+
+
+            // HardReset stops the emulation thread before re-initializing: InitCpu alone would
+
+            // race the running loop (flaky resets) and never starts the thread if the machine
+
+            // is off (first launch without TOS).
+
+            if (response == MessageBoxButton.Yes)
+
+                ASEMain.HardReset();
+
+        }
+
+
+
+        public void OnSaveSnapshotClick(object sender, RoutedEventArgs e) => DoSaveSnapshot();
+
+
+
+        /// <summary>Saves a machine snapshot into the configured snapshots directory. Reached
+
+        /// from the File menu and from F11 (posted here by ASEMain.HandleEvents). UI thread.</summary>
+
+        public void DoSaveSnapshot()
+
+        {
+
+            // Saving completes an STX command in flight, a change the recording being played
+
+            // knows nothing about (while recording, it is logged and replayed instead).
+
+            if (RefusedDuringSession("A snapshot", onlyDuringPlayback: true))
+
+                return;
+
+
+
+            // In a shared game the snapshot is taken a few frames from now, where every machine
+
+            // completes the floppy command in flight with it (see Lockstep.ScheduleSnapshot)
+
+            if (Netplay.Lockstep.Active)
+
+            {
+
+                if (Netplay.Lockstep.ScheduleSnapshot(out string scheduled))
+
+                    SetStatusBarText($"Saving snapshot {Path.GetFileName(scheduled)}");
+
+                return;
+
+            }
+
+
+
+            if (ASEMain.SaveSnapshot(out string path, out string error))
+
+                SetStatusBarText($"Snapshot saved: {Path.GetFileName(path)}");
+
+            else
+
+                SetStatusBarText($"❌ Could not save snapshot: {error}");
+
+        }
+
+
+
+        /// <summary>Saves the current ST screen as PNG into the configured screenshots
+
+        /// directory. Reached from Shift+F11. UI thread.</summary>
+
+        public void DoSaveScreenshot()
+
+        {
+
+            if (ASEMain.SaveScreenshot(out string path, out string error))
+
+                SetStatusBarText($"Screenshot saved: {Path.GetFileName(path)}");
+
+            else
+
+                SetStatusBarText($"❌ Could not save screenshot: {error}");
+
+        }
+
+
+
+        /// <summary>Ctrl+Shift+F10, or a gamepad button set to go back: <paramref name="seconds"/>
+
+        /// back in the game (TimeWarp.StepBack).</summary>
+
+        public void DoTimeWarpStep(int seconds = TimeWarp.StepSeconds)
+
+        {
+
+            int went = TimeWarp.StepBack(seconds, out string error);
+
+            SetStatusBarText(went >= 0 ? $"Time warp: back {went} s" : $"Time warp: {error}");
+
+        }
+
+
+
+        public void OnTimeWarpClick(object sender, RoutedEventArgs e) => OpenTimeWarp();
+
+
+
+        /// <summary>
+
+        /// Opens the time warp: the last minute of play as a strip of pictures, to pick the moment
+
+        /// the game carries on from. From the menu, Ctrl+Shift+F10 or a gamepad button; once at a
+
+        /// time. It opens whatever the time warp can do right now — its switch is in it, and it
+
+        /// says why there is nothing to pick when there is not. Holds a UI pause like the
+
+        /// emulator's dialogs, and gives input capture back when it closes if it had it: whoever
+
+        /// opened it from the keys or the pad is still playing.
+
+        /// </summary>
+
+        public async void OpenTimeWarp()
+
+        {
+
+            if (TimeWarpWindow.Current != null)
+
+                return;
+
+
+
+            bool captured = ASEMain.IsMouseCaptured;
+
+            ASEMain.CaptureMouse(false);
+
+
+
+            await new TimeWarpWindow().ShowDialog(this);
+
+
+
+            if (captured)
+
+                ASEMain.CaptureMouse(true);
+
+        }
+
+
+
+        public async void OnRestoreSnapshotClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (RefusedToGuest("Restoring a snapshot"))
+
+                return;
+
+
+
+            ASEMain.CaptureMouse(false);
+
+
+
+            var (canceled, selpath) = await Dialogs.OpenFile("Restore ST snapshot",
+
+                Config.DialogStartFolder(Config.SnapshotsDir),
+
+                new FileFilter("ASE snapshot", ["*.snap"]));
+
+
+
+            if (canceled || selpath.Count() != 1)
+
+                return;
+
+
+
+            string path = selpath.ElementAt(0);
+
+
+
+            if (!ASEMain.RestoreSnapshot(path, out string error))
+
+            {
+
+                await Dialogs.MessageBox("Error", $"Could not restore snapshot: {error}",
+
+                    MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
+                return;
+
+            }
+
+
+
+            // The snapshot carries the drives: which disks were in them, and whether B: was
+
+            // even plugged in.
+
+            ApplyDriveBConnection(Config.ConfigOptions.RunninConfig.DriveBEnabled);
+
+            RefreshDiskMenus(0);
+
+
+
+            SetStatusBarText($"Snapshot {Path.GetFileName(path)} restored");
+
+        }
+
+
 
         private async void OnLibraryClick(object sender, RoutedEventArgs e)
+
         {
+
+            if (RefusedDuringSession("The library", onlyDuringPlayback: true))
+
+                return;
+
+
+
             ASEMain.CaptureMouse(false);
+
+
 
             var library = new LibraryWindow();
+
             string gameFile = await library.ShowDialog<string>(this);
 
-            if (!string.IsNullOrEmpty(gameFile))
+
+
+            if (string.IsNullOrEmpty(gameFile))
+
+                return;
+
+
+
+            if (library.SelectedGame?.PPAdapted == true)
+
+                LaunchHardDiskGame(gameFile, library.SelectedGame);
+
+            else
+
                 InsertDisk(0, gameFile, library.SelectedGame);
+
         }
+
+
 
         private async void OnDownloadGamesClick(object sender, RoutedEventArgs e)
+
         {
+
             ASEMain.CaptureMouse(false);
+
+
 
             var downloadWindow = new DownloadGamesWindow();
+
             string gameFile = await downloadWindow.ShowDialog<string>(this);
 
+
+
             if (!string.IsNullOrEmpty(gameFile))
+
                 InsertDisk(0, gameFile, null);
+
         }
-        
+
+
+
+        /// <summary>
+
+        /// Boots one of PPutnik's hard-disk adaptations: builds its disk (see
+
+        /// <see cref="HardDiskGames"/>) and powers the machine on from it. Unlike a floppy there
+
+        /// is nothing to ask — the game can only start from a power-on.
+
+        /// </summary>
+
+        async void LaunchHardDiskGame(string source, Models.LibraryItem game)
+
+        {
+
+            if (RefusedToGuest("Starting a hard-disk game"))
+
+                return;
+
+
+
+            string title = LibraryWindow.GameEntry.DisplayName(game);
+
+
+
+            if (!HardDiskGames.Start(source, title, out string error, out string warning))
+
+            {
+
+                await Dialogs.MessageBox("Error", error, MessageBoxDialogType.Ok, MessageBoxIconType.Error, MessageBoxButton.Ok);
+
+                return;
+
+            }
+
+
+
+            // A floppy left in A: would boot before the hard disk does
+
+            ASEMain.RunWhilePaused(Drive(0).Eject, out _);
+
+            ZipFile[0] = "";
+
+            DisableEjectMenu(0);
+
+
+
+            // Same as a floppy from the library: the game brings its MT-32 mapping along, and the
+
+            // power-on below hands it to a fresh module
+
+            MT32.Mt32Profiles.SetCurrentGame(game);
+
+
+
+            ASEMain.HardReset();
+
+
+
+            SetStatusBarText($"Hard-disk game {title} started");
+
+
+
+            if (warning != null)
+
+                await Dialogs.MessageBox("Hard-disk game", warning, MessageBoxDialogType.Ok, MessageBoxIconType.Information, MessageBoxButton.Ok);
+
+        }
+
+
+
         private void OnConfigureLibraryClick(object sender, RoutedEventArgs e)
+
         {
+
             var configureLibrary = new LibraryConfigurationWindow();
+
             configureLibrary.ShowDialog(this);
+
         }
+
         
+
         private async void OnTosecCollectionClick(object sender, RoutedEventArgs e)
+
         {
+
             ASEMain.CaptureMouse(false);
+
+
 
             string tosecDefault = Config.GetDefaultTosecPath();
+
             var library = new LibraryWindow(!string.IsNullOrEmpty(tosecDefault) && Directory.Exists(tosecDefault) ? tosecDefault : null);
+
             string gameFile = await library.ShowDialog<string>(this);
 
+
+
             if (!string.IsNullOrEmpty(gameFile))
+
                 InsertDisk(0, gameFile, library.SelectedGame);
+
         }
+
+
 
         private async void OnRandomGameClick(object sender, RoutedEventArgs e)
+
         {
+
             ASEMain.CaptureMouse(false);
+
+
 
             string libPath = Config.ConfigOptions.RunninConfig.LibraryPath;
+
             if (string.IsNullOrEmpty(libPath) || !Directory.Exists(libPath))
+
                 libPath = Config.GetDefaultTosecPath();
 
+
+
             if (string.IsNullOrEmpty(libPath) || !Directory.Exists(libPath))
+
             {
+
                 await Dialogs.MessageBox("No Library Configured", "Please configure your library path in File -> Configure Library.", MessageBoxDialogType.Ok, MessageBoxIconType.Warning, MessageBoxButton.Ok);
+
                 return;
+
             }
+
+
 
             string chosenFile = null;
+
             Models.LibraryItem chosenItem = null;
 
+
+
             // 1. Check for library cache file in libPath or Games subfolder
+
             string cachePath = Path.Combine(libPath, ".ase_library_cache.json");
+
             if (!File.Exists(cachePath))
+
             {
+
                 string gamesSub = Path.Combine(libPath, "Games", ".ase_library_cache.json");
+
                 if (File.Exists(gamesSub))
+
                     cachePath = gamesSub;
+
             }
+
+
 
             if (File.Exists(cachePath))
+
             {
+
                 try
+
                 {
+
                     string json = await File.ReadAllTextAsync(cachePath);
+
                     var cache = System.Text.Json.JsonSerializer.Deserialize<LibraryWindow.LibraryCacheData>(json);
+
                     if (cache?.Items != null && cache.Items.Count > 0)
+
                     {
+
                         // Filter out Disk 2, Disk 3, etc. so we only pick bootable primary disks
+
                         var primaryItems = cache.Items.Where(it =>
+
                             !DiskSetManager.IsSecondaryDisk(it.Name?.FirstOrDefault()?.Text) &&
+
                             !DiskSetManager.IsSecondaryDisk(it.Filename)).ToList();
 
+
+
                         var pool = primaryItems.Count > 0 ? primaryItems : cache.Items;
+
                         var rng = new Random();
+
                         int idx = rng.Next(pool.Count);
+
                         chosenItem = pool[idx];
+
                         string fullPath = Path.IsPathRooted(chosenItem.Filename)
+
                             ? chosenItem.Filename
+
                             : Path.Combine(Path.GetDirectoryName(cachePath), chosenItem.Filename);
+
                         if (File.Exists(fullPath))
+
                             chosenFile = fullPath;
+
                     }
+
                 }
+
                 catch { }
+
             }
+
+
 
             // 2. Fallback: scan disk images directly
+
             if (string.IsNullOrEmpty(chosenFile))
+
             {
+
                 var validExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".st", ".stx", ".msa", ".zip" };
+
                 try
+
                 {
+
                     var files = Directory.EnumerateFiles(libPath, "*.*", new EnumerationOptions
+
                     {
+
                         RecurseSubdirectories = true,
+
                         MaxRecursionDepth = 4,
+
                         IgnoreInaccessible = true
+
                     })
+
                     .Where(f => validExtensions.Contains(Path.GetExtension(f)))
+
                     .Take(1000)
+
                     .ToList();
 
+
+
                     if (files.Count > 0)
+
                     {
+
                         // Filter out Disk 2, Disk 3, Side B, etc.
+
                         var primaryFiles = files.Where(f => !DiskSetManager.IsSecondaryDisk(Path.GetFileName(f))).ToList();
+
                         var pool = primaryFiles.Count > 0 ? primaryFiles : files;
+
                         var rng = new Random();
+
                         chosenFile = pool[rng.Next(pool.Count)];
+
                     }
+
                 }
+
                 catch { }
+
             }
+
+
 
             // Extra safeguard: if chosenFile still denotes a secondary disk, resolve Disk 1 in the same directory
+
             if (!string.IsNullOrEmpty(chosenFile) && DiskSetManager.IsSecondaryDisk(chosenFile))
+
             {
+
                 string disk1 = DiskSetManager.FindCompanionDisk(chosenFile, 1);
+
                 if (!string.IsNullOrEmpty(disk1) && File.Exists(disk1))
+
                     chosenFile = disk1;
+
             }
+
+
 
             if (!string.IsNullOrEmpty(chosenFile) && File.Exists(chosenFile))
+
             {
+
                 InsertDisk(0, chosenFile, chosenItem);
+
                 SetStatusBarText($"🎲 Playing random game: {Path.GetFileNameWithoutExtension(chosenFile)}");
+
             }
+
             else
+
             {
+
                 await Dialogs.MessageBox("Random Game", "Could not find any playable games in your library folder.", MessageBoxDialogType.Ok, MessageBoxIconType.Information, MessageBoxButton.Ok);
+
             }
+
         }
+
+
 
         public void OnQuest3ShareClick(object sender, RoutedEventArgs e)
+
         {
+
             ASEMain.CaptureMouse(false);
+
             var shareWindow = new Quest3ShareWindow();
+
             shareWindow.ShowDialog(this);
+
         }
+
+
 
         public void OnConfigurationClick(object sender, RoutedEventArgs e)
-        {
-            var configWindow = new ConfigurationWindow();
-            configWindow.ShowDialog(this);
-        }
 
-        public void OnDebugClick(object sender, RoutedEventArgs e)
         {
-            var debugWindow = new DebugWindow();
-            debugWindow.ShowDialog(this);
-        }
 
-        private void OnAboutClick(object sender, RoutedEventArgs e)
-        {
-            var aboutWindow = new AboutWindow();
-            aboutWindow.ShowDialog(this);
-        }
-        
-        private async void OnManualClick(object sender, RoutedEventArgs e)
-        {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel is null)
+            // Playing together online, the Input tab is still this player's own: which device
+
+            // goes into each port reaches the shared machine as ordinary input. The rest belongs
+
+            // to the shared machine.
+
+            if (Netplay.Lockstep.Active)
+
+            {
+
+                new ConfigurationWindow(inputOnly: true).ShowDialog(this);
+
                 return;
 
-            await topLevel.Launcher.LaunchUriAsync(new Uri("https://github.com/thebitculture/ase/wiki"));
+            }
+
+
+
+            // Its settings apply live, and most of them change how the machine runs.
+
+            if (RefusedDuringSession("The configuration"))
+
+                return;
+
+
+
+            var configWindow = new ConfigurationWindow();
+
+            configWindow.ShowDialog(this);
+
         }
+
+
+
+        public void OnDebugClick(object sender, RoutedEventArgs e)
+
+        {
+
+            if (RefusedDuringSession("The debugger"))
+
+                return;
+
+
+
+            var debugWindow = new DebugWindow();
+
+            debugWindow.ShowDialog(this);
+
+        }
+
+
+
+        private void OnAboutClick(object sender, RoutedEventArgs e)
+
+        {
+
+            var aboutWindow = new AboutWindow();
+
+            aboutWindow.ShowDialog(this);
+
+        }
+
+        
+
+        private async void OnManualClick(object sender, RoutedEventArgs e)
+
+        {
+
+            var topLevel = TopLevel.GetTopLevel(this);
+
+            if (topLevel is null)
+
+                return;
+
+
+
+            await topLevel.Launcher.LaunchUriAsync(new Uri("https://github.com/thebitculture/ase/wiki"));
+
+        }
+
     }
+
 }
+

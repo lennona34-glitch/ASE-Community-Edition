@@ -179,6 +179,13 @@ public partial class ScraperWindow : Window
                             _validfiles.Add(file);
                     }
 
+                    // PPutnik's hard-disk adaptations may also sit in the library as plain folders
+                    foreach (var dir in Directory.GetDirectories(Config.ConfigOptions.RunninConfig.LibraryPath))
+                    {
+                        if (HardDiskGames.Identify(dir).Count > 0)
+                            _validfiles.Add(dir);
+                    }
+
                     if (_validfiles.Count > 0)
                     {
                         for (int i = 0; i < _validfiles.Count; i++)
@@ -188,10 +195,37 @@ public partial class ScraperWindow : Window
                             ProgressScraper.Value = i * 100 / _validfiles.Count;
                             TextFilename.Text = _validfiles[i];
 
+                            string fileName = Path.GetFileName(_validfiles[i]);
+
+                            // A zip or folder PPAdaptedGames.json names, with its launcher inside
+                            var hardDiskGames = HardDiskGames.Identify(_validfiles[i]);
+
                             // File already scrapered
-                            if (libraryCollection.Collection.Find(x => x.Filename == Path.GetFileName(_validfiles[i])) != null)
+                            var scraped = libraryCollection.Collection.FindAll(x => x.Filename == fileName);
+
+                            if (scraped.Count > 0)
                             {
-                                File.AppendAllText(logFile, $"{Path.GetFileName(_validfiles[i])} -> File already scrapered" + Environment.NewLine);
+                                if (hardDiskGames.Count > 0 && scraped.Any(x => !x.PPAdapted))
+                                {
+                                    // Catalogued before hard-disk games were recognised: as a floppy
+                                    // it could never start
+                                    scraped.ForEach(x => x.PPAdapted = true);
+                                    File.AppendAllText(logFile, $"{fileName} -> Marked as a hard-disk game" + Environment.NewLine);
+                                    continue;
+                                }
+
+                                if (hardDiskGames.Count == 0 || scraped.Any(x => !string.IsNullOrEmpty(x.Id)))
+                                {
+                                    File.AppendAllText(logFile, $"{fileName} -> File already scrapered" + Environment.NewLine);
+                                    continue;
+                                }
+
+                                // A hard-disk game ScreenScraper did not know last time: ask again
+                            }
+
+                            if (hardDiskGames.Count > 0)
+                            {
+                                await ScrapeHardDiskGame(_validfiles[i], hardDiskGames, scraped);
                                 continue;
                             }
 
@@ -303,14 +337,70 @@ public partial class ScraperWindow : Window
     }
 
     /// <summary>
-    /// Scrapea una imagen de disco de ST buscando sus datos mediante la API de Screenscraper.fr
+    /// Scrapes one of PPutnik's hard-disk adaptations (a zip or a folder): looked up by the
+    /// title PPAdaptedGames.json gives it, since its own name is an 8-letter folder name
+    /// ScreenScraper does not know. One entry per title (a few adaptations bundle two). A game
+    /// ScreenScraper has never heard of still goes in under the catalogue's title, without
+    /// artwork: it is playable all the same, and the next scan asks again — which is what
+    /// <paramref name="replacing"/> holds, the entries such a scan left: they are swapped for the
+    /// new ones only once the lookup has run, so a scan stopped half way loses nothing.
     /// </summary>
-    /// <param name="filenameOrName">Si el fichero se identifica como gamemenu, se pasa el nombre del juego encontrado, si no, se pasa el nombre del archivo.</param>
-    /// <param name="filelenght">Tamaño del fichero. Screenscraper lo usará como referencia para hacer la búsqueda y desempatar cuando haya más de una coincidencia.</param>
-    /// <param name="FileSHA">Checksum del fichero. Screenscraper lo usará como referencia para hacer la búsqueda y desempatar cuando haya más de una coincidencia.</param>
-    /// <param name="OriginalFilename">Nombre del fichero original, ya que en el parámetro filenameOrName podría venir el nombre del juego y no el del fichero. En realidad este parámetro sólo es útil para el log.</param>
+    async Task ScrapeHardDiskGame(string path, List<PPAdaptedGame> titles, List<LibraryItem> replacing)
+    {
+        string fileName = Path.GetFileName(path);
+        bool folder = Directory.Exists(path);
+        long size = folder ? 0 : new FileInfo(path).Length;
+        string sha = folder ? "" : FileUtils.CalculateSHA1(path);
+        var found = new List<LibraryItem>();
+
+        foreach (var title in titles)
+        {
+            _scanCts.Token.ThrowIfCancellationRequested();
+
+            LibraryItem item = await ScrapeTitle(title.Name, size, sha, fileName, ppAdapted: true);
+
+            // One adaptation listed under two names (French and English, say) is still one game
+            if (item != null && !found.Exists(x => x.Id == item.Id))
+            {
+                item.Filename = fileName;
+                item.PPAdapted = true;
+                found.Add(item);
+            }
+        }
+
+        // Out of credits or cancelled: not "unknown", just not asked
+        _scanCts.Token.ThrowIfCancellationRequested();
+
+        if (found.Count == 0)
+        {
+            found.Add(new LibraryItem
+            {
+                Name = new List<LibraryItem.RegionText> { new() { Region = "ss", Text = titles[0].Name } },
+                Filename = fileName,
+                PPAdapted = true,
+            });
+
+            File.AppendAllText(logFile, $"{fileName} -> Added as '{titles[0].Name}', without metadata" + Environment.NewLine);
+        }
+
+        // The MT-32 mapping an unidentified entry may have been given meanwhile stays with it
+        var previousProfile = replacing.Find(x => x.Mt32PresetsProfile != null)?.Mt32PresetsProfile;
+        found[0].Mt32PresetsProfile ??= previousProfile;
+
+        libraryCollection.Collection.RemoveAll(replacing.Contains);
+        libraryCollection.Collection.AddRange(found);
+    }
+
+    /// <summary>
+    /// Scrapes an ST disk image, looking up its data through the Screenscraper.fr API.
+    /// </summary>
+    /// <param name="filenameOrName">If the file is identified as a game menu, the name of the game found; otherwise the file name.</param>
+    /// <param name="filelenght">File size. Screenscraper uses it in the search and to break ties when there is more than one match.</param>
+    /// <param name="FileSHA">File checksum. Screenscraper uses it in the search and to break ties when there is more than one match.</param>
+    /// <param name="OriginalFilename">Name of the original file, since <paramref name="filenameOrName"/> may hold the game's name rather than the file's. Only used for the log.</param>
+    /// <param name="ppAdapted">A hard-disk adaptation: a different entry from the floppy of the same game, which may well be in the library too.</param>
     /// <returns></returns>
-    async Task<LibraryItem> ScrapeTitle(string filenameOrName, long filelenght, string FileSHA, string OriginalFilename = "")
+    async Task<LibraryItem> ScrapeTitle(string filenameOrName, long filelenght, string FileSHA, string OriginalFilename = "", bool ppAdapted = false)
     {
         if(string.IsNullOrEmpty(OriginalFilename))
             OriginalFilename = filenameOrName;
@@ -334,8 +424,9 @@ public partial class ScraperWindow : Window
             return null;
         }
 
-        // Game already scrapered (by id)
-        if (libraryCollection.Collection.Find(x => x.Id == GameInfo.Data.Id) != null)
+        // Game already scrapered (by id), in the same form: the floppy and the hard-disk
+        // adaptation of one game are two entries
+        if (libraryCollection.Collection.Find(x => x.Id == GameInfo.Data.Id && x.PPAdapted == ppAdapted) != null)
         {
             File.AppendAllText(logFile, $"{filenameOrName} -> Already scrapered (Id={GameInfo.Data.Id})" + Environment.NewLine);
             return null;

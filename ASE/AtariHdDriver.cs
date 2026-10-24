@@ -165,7 +165,7 @@ namespace ASE
         /// it — the partition itself is never touched either way. The driver reads that same
         /// partition table at boot, so there is no geometry to patch anywhere.
         /// </summary>
-        public static bool Install(FileStream fs, byte[] rootSector)
+        public static bool Install(Stream fs, byte[] rootSector)
         {
             if (!Validate(out string problem))
             {

@@ -3,8 +3,8 @@
  * VideoTiming.cs
  *
  * Models the Atari ST GLUE/Shifter video timing with cycle precision *within a line*
- * (not per pixel). The emulation loop keeps running the CPU in 448 + 64 cycle chunks,
- * but this module:
+ * (not per pixel). The emulation loop runs the CPU a line at a time, stopping where the
+ * display ends (Timer B) and where the line ends (HBL), but this module:
  *
  *   - Tracks the CPU clock at the start of every scanline (LineStartClock).
  *   - Captures writes to the sync register ($FF820A) and the resolution register
@@ -40,7 +40,7 @@ namespace ASE
         // is decided by the frequency in effect AT cycle 508 — see ResolveLineCycles.
         const int COLOR_CYCLES_PER_LINE_60 = 508;
         const int COLOR_SCANLINES  = 313;
-        const int COLOR_DE_STOP    = 376;   // where the emulation loop fires the HBL / Timer B
+        const int COLOR_DE_STOP    = 376;   // where the emulation loop fires Timer B
 
         const int DE_START_50 = 56;
         const int DE_STOP_50  = 376;   // (376-56)/2 = 160 bytes
@@ -69,7 +69,7 @@ namespace ASE
         const int MONO_V_START         = 36;                    // first displayed scanline
         const int MONO_V_STOP          = MONO_V_START + MONO_HEIGHT;   // 436
         const int MONO_DE_START        = 24;                    // left edge of the fetched data
-        const int MONO_DE_STOP         = MONO_DE_START + 160;   // where the loop fires HBL / Timer B
+        const int MONO_DE_STOP         = MONO_DE_START + 160;   // where the loop fires Timer B
 
         // ===================== Visible window (what a real colour TV shows, centred) =====================
         // Horizontal units are "low-res pixels" == DE cycles; each maps to 2 texture pixels
@@ -116,7 +116,8 @@ namespace ASE
         public static int  BUFFER_HEIGHT       { get; private set; } = COLOR_HEIGHT;
         public static int  CYCLES_PER_LINE     { get; private set; } = COLOR_CYCLES_PER_LINE;
         public static int  SCANLINES_PER_FRAME { get; private set; } = COLOR_SCANLINES;
-        public static int  DE_STOP_CYCLE       { get; private set; } = COLOR_DE_STOP;       // loop HBL/Timer B split
+        public static int  DE_STOP_CYCLE       { get; private set; } = COLOR_DE_STOP;       // loop Timer B split
+        public static int  SHORTEST_LINE_CYCLES { get; private set; } = COLOR_CYCLES_PER_LINE_60; // earliest a line can end
         public static int  RENDER_TOP_LINE     { get; private set; } = VISIBLE_TOP_LINE;    // scanline shown at buffer row 0
         public static double FRAME_SECONDS     { get; private set; } = (double)COLOR_SCANLINES * COLOR_CYCLES_PER_LINE / 8_000_000.0;
 
@@ -132,12 +133,14 @@ namespace ASE
             {
                 BUFFER_WIDTH = MONO_WIDTH; BUFFER_HEIGHT = MONO_HEIGHT;
                 CYCLES_PER_LINE = MONO_CYCLES_PER_LINE; SCANLINES_PER_FRAME = MONO_SCANLINES;
+                SHORTEST_LINE_CYCLES = MONO_CYCLES_PER_LINE;
                 DE_STOP_CYCLE = MONO_DE_STOP; RENDER_TOP_LINE = MONO_V_START;
             }
             else
             {
                 BUFFER_WIDTH = COLOR_WIDTH; BUFFER_HEIGHT = COLOR_HEIGHT;
                 CYCLES_PER_LINE = COLOR_CYCLES_PER_LINE; SCANLINES_PER_FRAME = COLOR_SCANLINES;
+                SHORTEST_LINE_CYCLES = COLOR_CYCLES_PER_LINE_60;
                 DE_STOP_CYCLE = COLOR_DE_STOP; RENDER_TOP_LINE = VISIBLE_TOP_LINE;
             }
 

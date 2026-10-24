@@ -545,6 +545,12 @@ namespace ASE
         /// protection timing the sector data would see the tail arrive instantly, so avoid
         /// snapshotting in the middle of a protected load.
         /// </summary>
+        /// <summary>Whether a timed STX command is delivering its data right now — the one thing
+        /// a snapshot has to finish before it can be taken, so the time warp waits for a frame
+        /// without one instead (a command parked waiting for index pulses does not count: it
+        /// travels in the snapshot as it is).</summary>
+        public static bool TimedOpInFlight => stxOp != null && !stxOp.WaitingForIndex;
+
         public static void FlushPendingOp()
         {
             // FinishStxOp can chain the next sector of a multi-sector command; keep
@@ -1255,6 +1261,7 @@ namespace ASE
 
                 for (int j = 0; j < bps; j++)
                     ActiveDrive.Data[offset + j] = ASEMain._mem.Read8(dmaAddress++);
+                ActiveDrive.NoteWrite();
 
                 if (dmaSectorCount > 0) dmaSectorCount--;
 
@@ -1394,6 +1401,7 @@ namespace ASE
                     {
                         for (int j = 0; j < bps; j++)
                             ActiveDrive.Data[offset + j] = stream[i + 1 + j];
+                        ActiveDrive.NoteWrite();
                     }
                     i += bps;
                     curSector = -1;
@@ -1670,7 +1678,7 @@ namespace ASE
                 byte b = sec.Data[i];
                 // Fuzzy bits: mask bit 1 = stable, 0 = reads randomly on every pass
                 if (sec.FuzzyMask != null)
-                    b = (byte)((b & sec.FuzzyMask[i]) | (Random.Shared.Next(256) & ~sec.FuzzyMask[i]));
+                    b = (byte)((b & sec.FuzzyMask[i]) | (MachineRandom.NextByte() & ~sec.FuzzyMask[i]));
                 bytes[i] = b;
             }
 
@@ -1929,7 +1937,7 @@ namespace ASE
             if (track == null)
             {
                 byte[] noise = new byte[STXImage.TRACK_BYTES_STANDARD];
-                Random.Shared.NextBytes(noise);
+                MachineRandom.NextBytes(noise);
                 return noise;
             }
 
@@ -2016,6 +2024,7 @@ namespace ASE
                 for (int i = 0; i < data.Length; i++)
                     data[i] = ASEMain._mem.Read8(dmaAddress++);
                 sec.Data = data;
+                ActiveDrive.NoteWrite();
                 // freshly written data reads back clean, at the standard rate
                 sec.FuzzyMask = null;
                 sec.TimingData = null;

@@ -16,6 +16,7 @@ namespace ASE.Models
         public List<RegionText>? Name { get; set; }
         public List<RegionText>? Synopsis { get; set; }
         public string? Filename { get; set; }
+        public bool PPAdapted { get; set; } = false;
         public string? Developer { get; set; }
         public string? Publisher { get; set; }
         public List<RegionText>? Date { get; set; }

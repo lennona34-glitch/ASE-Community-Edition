@@ -42,9 +42,23 @@ namespace ASE
                 RAM_4MB = 3,
             }
 
+            /// <summary>What a gamepad button does: a joystick direction or the fire button, an ST
+            /// key, or the time warp — going back 5 or 10 seconds, or opening its window. Stored as
+            /// its number, so new actions go at the end.</summary>
             public enum GamepadButtonsMapping
             {
-                None, Fire, Space, Up, Y, N, T
+                None, Fire, Space, Up, Y, N, T, Back5Seconds, Back10Seconds, OpenTimeWarp
+            }
+
+            /// <summary>
+            /// What is plugged into one of the IKBD's two ports: nothing, the host mouse, or a
+            /// joystick driven by the keyboard joystick, the gamepad or both. The order is the
+            /// one of the Input tab's combos. Only port 0 can take the mouse: the IKBD decodes
+            /// a mouse there and nowhere else, so on port 1 it reads as an empty port.
+            /// </summary>
+            public enum PortDevices
+            {
+                Disconnected, Mouse, KeysAndGamepad, KeysOnly, GamepadOnly
             }
 
             public enum MIDIEmulationOptions
@@ -118,11 +132,11 @@ namespace ASE
             /// </summary>
             public static ConfigOptions RunninConfig = new ConfigOptions();
 
-            public string TOSPath { get; set; } = "tos.rom";
+            public string TOSPath { get; set; } = "emutos.rom";
 
             // Hardware flags
-            public STModels STModel { get; set; } = STModels.ST;
-            public RAMConfigurations RAMConfiguration { get; set; } = RAMConfigurations.RAM_1MB;
+            public STModels STModel { get; set; } = STModels.STE;
+            public RAMConfigurations RAMConfiguration { get; set; } = RAMConfigurations.RAM_2MB;
             public  bool MaxSpeed { get; set; } = false;
             public string FloppyImagePath { get; set; } = "";
 
@@ -347,6 +361,14 @@ namespace ASE
             public float Mask { get; set; } = 0.50f;
             public float Noise { get; set; } = 0.05f;
 
+            // What is plugged into the IKBD's ports (see PortDevices). Port 0 is the mouse port,
+            // and a joystick there is joystick 0; port 1 is joystick 1. Applied live, like
+            // plugging a controller into a running ST.
+            [JsonConverter(typeof(EnumNameJsonConverter<PortDevices>))]
+            public PortDevices Port0Device { get; set; } = PortDevices.Mouse;
+            [JsonConverter(typeof(EnumNameJsonConverter<PortDevices>))]
+            public PortDevices Port1Device { get; set; } = PortDevices.KeysAndGamepad;
+
             // Joystick emulation
             public SDL_Scancode KeyJoy1Up { get; set; } = SDL_Scancode.SDL_SCANCODE_KP_8;
             public SDL_Scancode KeyJoy1Down { get; set; } = SDL_Scancode.SDL_SCANCODE_KP_5;
@@ -403,6 +425,56 @@ namespace ASE
             /// mixer (Mt32Backend.MixInto), so the slider works without a reset.
             /// </summary>
             public int Mt32Volume { get; set; } = 200;
+
+            /// <summary>
+            /// Whether the time warp keeps moments (the switch in Emulation ▸ Time warp…). Null
+            /// until the user chooses: on, except on a Raspberry Pi (<see cref="Config.HostIsRaspberryPi"/>),
+            /// where a copy of the memory and its compression every second are a real share of a
+            /// small board's processor and RAM.
+            /// </summary>
+            public bool? TimeWarpEnabled { get; set; }
+
+            /// <summary>
+            /// How far back the time warp reaches, in seconds (Emulation ▸ Time warp…,
+            /// Ctrl+Shift+F10): one moment of the machine is kept per second, compressed, for this
+            /// long. 0 keeps none, like switching it off.
+            /// </summary>
+            public int TimeWarpSeconds { get; set; } = 60;
+
+            // Online play (NETPLAY.md). Only what belongs to online play itself is kept here:
+            // the machine a session runs is the host's and never touches the guest's settings.
+
+            /// <summary>The name other players see when this one hosts or joins a game.</summary>
+            public string NetplayPlayerName { get; set; } = "";
+
+            /// <summary>
+            /// UDP port a hosted game listens on, and the one a search on the local network asks
+            /// (NETPLAY.md §7.2). Fixed rather than random so it can be forwarded in a router for
+            /// players outside the local network; a guest joining over the Internet takes it too
+            /// when it is free, and one on the local network an ephemeral port.
+            /// </summary>
+            public int NetplayPort { get; set; } = Netplay.NetTransport.DefaultPort;
+
+            /// <summary>
+            /// The website that passes invitation links between two ASEs (NETPLAY.md §8), contacted
+            /// only when a link is made or used. Empty: no links, only the manual codes.
+            /// </summary>
+            public string NetplayWebUrl { get; set; } = "https://thebitculture.com";
+
+            /// <summary>Whether invitation links open ASE (NETPLAY.md §8.4): not asked yet, yes (the
+            /// "ase:" link type is on this system), or no. Never added without the user saying so
+            /// in the Online play window.</summary>
+            public enum LinkChoices { Ask = 0, Yes = 1, No = 2 }
+
+            [JsonConverter(typeof(EnumNameJsonConverter<LinkChoices>))]
+            public LinkChoices NetplayOpenLinks { get; set; } = LinkChoices.Ask;
+
+            /// <summary>The command the ase: link type was last pointed at; when this ASE starts
+            /// from somewhere else, the type is pointed here again.</summary>
+            public string NetplayLinksLauncher { get; set; } = "";
+
+            /// <summary>The address last typed into the Join box, offered again next time.</summary>
+            public string NetplayLastAddress { get; set; } = "";
 
             // Screenscraper
             public string ScreenScraperUser { get; set; }
@@ -509,6 +581,17 @@ namespace ASE
         // Snapshot to restore on the first power-on (--snapshot=<path>). Launch-only
         // argument: it is never persisted to the config file.
         public static string StartupSnapshot = "";
+
+        // Input recording from the command line (--record, --record-frames=N, --replay=<path>,
+        // --exit-when-done). Launch-only, never persisted: see Netplay.InputRecording.
+        public static bool StartupRecord;
+        public static long StartupRecordFrames;
+        public static string StartupReplay = "";
+
+        /// <summary>An online play invitation link to open when ASE starts (--join=, or the bare
+        /// ase: link the system passes); null for none.</summary>
+        public static string StartupJoinLink;
+        public static bool ExitWhenSessionEnds;
 
         const string AppName = "ASE";
         const string DefaultConfigFileName = "config.json";
@@ -635,6 +718,28 @@ namespace ASE
                             ColoredConsole.WriteLine($"Using default sensitivity [[cyan]]{ConfigOptions.RunninConfig.MouseSensitivity}[[/cyan]].");
                         }
                         break;
+                    case "--port0":
+                    case "--port1":
+                        {
+                            bool port1 = parts[0].Equals("--port1", StringComparison.OrdinalIgnoreCase);
+                            if (parts.Length > 1 && TryParseOption(parts[1], out ConfigOptions.PortDevices _pd,
+                                    ("none", ConfigOptions.PortDevices.Disconnected), ("off", ConfigOptions.PortDevices.Disconnected),
+                                    ("joystick", ConfigOptions.PortDevices.KeysAndGamepad),
+                                    ("keys", ConfigOptions.PortDevices.KeysOnly), ("keyboard", ConfigOptions.PortDevices.KeysOnly),
+                                    ("gamepad", ConfigOptions.PortDevices.GamepadOnly), ("pad", ConfigOptions.PortDevices.GamepadOnly))
+                                && !(port1 && _pd == ConfigOptions.PortDevices.Mouse))
+                            {
+                                if (port1) ConfigOptions.RunninConfig.Port1Device = _pd;
+                                else ConfigOptions.RunninConfig.Port0Device = _pd;
+                            }
+                            else
+                            {
+                                ColoredConsole.WriteLine($"Invalid device [[red]]{(parts.Length > 1 ? parts[1] : "")}[[/red]] for {parts[0]}. " +
+                                    (port1 ? "Use joystick|keys|gamepad|disconnected (the mouse only works on port 0)."
+                                           : "Use mouse|joystick|keys|gamepad|disconnected."));
+                            }
+                        }
+                        break;
                     case "--cycleexact":
                         ConfigOptions.RunninConfig.CycleExactBus =
                             parts.Length < 2 || !bool.TryParse(parts[1], out bool _ce) || _ce;
@@ -661,6 +766,27 @@ namespace ASE
                     case "--snapshots-dir":
                         if (parts.Length > 1)
                             ConfigOptions.RunninConfig.SnapshotsPath = parts[1];
+                        break;
+                    case "--record":
+                        StartupRecord = true;
+                        break;
+                    case "--record-frames":
+                        if (parts.Length > 1 && long.TryParse(parts[1], out long _rf) && _rf > 0)
+                        {
+                            StartupRecordFrames = _rf;
+                            StartupRecord = true;
+                        }
+                        else
+                        {
+                            ColoredConsole.WriteLine("Invalid frame count. Use [[cyan]]--record-frames=N[[/cyan]] with N > 0 (50 frames are one second).");
+                        }
+                        break;
+                    case "--replay":
+                        if (parts.Length > 1)
+                            StartupReplay = parts[1];
+                        break;
+                    case "--exit-when-done":
+                        ExitWhenSessionEnds = true;
                         break;
                     case "--screenshots-dir":
                         if (parts.Length > 1)
@@ -776,12 +902,42 @@ namespace ASE
                         }
                         break;
 
+                    case "--player-name":
+                        if (parts.Length > 1)
+                            ConfigOptions.RunninConfig.NetplayPlayerName = parts[1].Trim();
+                        break;
+                    case "--join":
+                        if (parts.Length > 1)
+                            StartupJoinLink = arg[(arg.IndexOf('=') + 1)..];
+                        break;
+                    case "--netplay-web":
+                        ConfigOptions.RunninConfig.NetplayWebUrl = parts.Length > 1 ? parts[1].Trim() : "";
+                        break;
+                    case "--netplay-port":
+                        if (parts.Length > 1 && int.TryParse(parts[1], out int _np) && _np is > 0 and < 65536)
+                        {
+                            ConfigOptions.RunninConfig.NetplayPort = _np;
+                        }
+                        else
+                        {
+                            ColoredConsole.WriteLine("Invalid port. Use [[cyan]]--netplay-port=N[[/cyan]] with N between 1 and 65535.");
+                            ColoredConsole.WriteLine($"Keeping the configured port [[cyan]]{ConfigOptions.RunninConfig.NetplayPort}[[/cyan]].");
+                        }
+                        break;
+
                     default:
                         // A bare path instead of an option: that is what the shell appends when a
                         // file is opened with ASE (the installer registers the .st/.msa/.stx/.snap
                         // associations) and what a file dropped on the executable arrives as. Note
                         // it takes `arg`, not `parts[0]`: the split on '=' above would cut a path
                         // that contains one.
+                        // An ase: invitation link, as the system passes it when one is clicked
+                        if (arg.StartsWith(Netplay.LinkScheme.Scheme + ":", StringComparison.OrdinalIgnoreCase))
+                        {
+                            StartupJoinLink = arg;
+                            break;
+                        }
+
                         if (!parts[0].StartsWith("-"))
                         {
                             OpenPathArgument(arg);
@@ -829,8 +985,12 @@ namespace ASE
                     StartupSnapshot = path;
                     break;
 
+                case ".asrec":
+                    StartupReplay = path;
+                    break;
+
                 default:
-                    ColoredConsole.WriteLine($"Don't know what to do with [[red]]{path}[[/red]]: expected a disk image (.st, .msa, .stx, .zip) or a snapshot (.snap).");
+                    ColoredConsole.WriteLine($"Don't know what to do with [[red]]{path}[[/red]]: expected a disk image (.st, .msa, .stx, .zip), a snapshot (.snap) or an input recording (.asrec).");
                     break;
             }
         }
@@ -898,7 +1058,8 @@ namespace ASE
 
             ColoredConsole.WriteLine("Usage: [[white]]ASE[[/white]] [options] [<file>]");
             ColoredConsole.WriteLine("       A file given on its own is opened by its extension: a disk image");
-            ColoredConsole.WriteLine("       (.st/.msa/.stx/.zip) goes into drive A, a .snap is restored.");
+            ColoredConsole.WriteLine("       (.st/.msa/.stx/.zip) goes into drive A, a .snap is restored, an .asrec");
+            ColoredConsole.WriteLine("       input recording is played back.");
 
             HelpSection("Machine");
             HelpOption("--tos", "=<path>", "TOS ROM image (192 KB for ST/Mega, 256 KB for STE)");
@@ -917,6 +1078,12 @@ namespace ASE
             HelpOption("--snapshots-dir", "=<path>", "Where F11 saves machine snapshots");
             HelpOption("--screenshots-dir", "=<path>", "Where Shift+F11 saves PNG screenshots");
 
+            HelpSection("Input recording");
+            HelpOption("--record", "", "Record the input from power-on into the snapshots directory (.asrec)");
+            HelpOption("--record-frames", "=N", "Stop that recording by itself after N frames (50 = 1 s); implies --record");
+            HelpOption("--replay", "=<path>", "Play back an input recording and check that it stays in sync");
+            HelpOption("--exit-when-done", "", "Close ASE when that recording or playback ends (exit code 1: failed or out of sync)");
+
             HelpSection("Display and input");
             HelpOption("--fullscreen", "[=true|false]", "Start in full screen (Alt+Enter toggles it)");
             HelpOption("--monochrome", "[=true|false]", "Monochrome (SM124) monitor: 640x400 high resolution");
@@ -928,6 +1095,8 @@ namespace ASE
             HelpOption("--persistence", "=N", "Phosphor persistence: share of the previous frame blended in, 0-50 percent");
             HelpOption("--anti-aliasing", "=<mode>", "Anti-aliasing of lines and polygon edges: none, fxaa or smaa. Also --aa");
             HelpOption("--mouse-sensitivity", "=N", $"Mouse movement divisor: higher is slower (default: {def.MouseSensitivity})");
+            HelpOption("--port0", "=<device>", "Mouse port: mouse, joystick (keys and gamepad), keys, gamepad or none (default: mouse)");
+            HelpOption("--port1", "=<device>", "Joystick port: joystick (keys and gamepad), keys, gamepad or none (default: joystick)");
 
             HelpSection("MIDI");
             HelpOption("--midi", "=<mode>", "MIDI emulation: none|system|mt32");
@@ -935,6 +1104,12 @@ namespace ASE
             HelpOption("--midi-out", "=<name>", "Host MIDI output port, by name (system mode)");
             HelpOption("--mt32-roms", "=<path>", "Folder with the Roland MT-32 ROM images (mt32 mode)");
             HelpOption("--mt32-volume", "=N", $"Built-in MT-32 volume in percent, 0-{Mt32Backend.MaxVolume} (default: {def.Mt32Volume})");
+
+            HelpSection("Online play");
+            HelpOption("--player-name", "=<name>", "The name other players see");
+            HelpOption("--netplay-port", "=N", $"UDP port a hosted game listens on (default: {def.NetplayPort})");
+            HelpOption("--join", "=LINK", "Opens the Online play window to join with an invitation link");
+            HelpOption("--netplay-web", "=URL", $"Website for online play's invitation links; empty for none (default: {def.NetplayWebUrl})");
 
             HelpSection("Timing (advanced)");
             HelpOption("--cycleexact", "[=true|false]", $"Cycle-exact bus wait states (default: {(def.CycleExactBus ? "on" : "off")})");
@@ -977,6 +1152,35 @@ namespace ASE
 
             return appFolderPath;
         }
+
+        /// <summary>
+        /// Whether ASE runs on a Raspberry Pi. The board's device tree names it ("Raspberry Pi 4
+        /// Model B Rev 1.4"), on Raspberry Pi OS and the other Linux distributions for it alike,
+        /// which is more than a guess from the processor or the memory could say. Read once;
+        /// false anywhere else, or when neither file can be read.
+        /// </summary>
+        public static bool HostIsRaspberryPi => _hostIsRaspberryPi.Value;
+
+        static readonly Lazy<bool> _hostIsRaspberryPi = new(() =>
+        {
+            if (!OperatingSystem.IsLinux())
+                return false;
+
+            foreach (string path in new[] { "/proc/device-tree/model", "/sys/firmware/devicetree/base/model" })
+            {
+                try
+                {
+                    if (File.Exists(path))
+                        return File.ReadAllText(path).StartsWith("Raspberry Pi", StringComparison.Ordinal);
+                }
+                catch (Exception)
+                {
+                    // Unreadable: try the other one, or take it for something else
+                }
+            }
+
+            return false;
+        });
 
         /// <summary>Directory where Shift+F11 saves PNG screenshots (configured value, or the
         /// default "Screenshots" folder next to config.json when unset).</summary>
@@ -1035,6 +1239,20 @@ namespace ASE
                 ? dir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar
                 : "";
 
+        /// <summary>Where a file path from the configuration really points. A relative path is
+        /// looked up in the working directory first, as it always was, and then next to the
+        /// executable: the bundled EmuTOS is configured as a plain "emutos.rom", and a macOS app
+        /// started from Finder runs with "/" as its working directory, so the file sitting beside
+        /// the binary would never be found. Returns the path unchanged when neither exists.</summary>
+        public static string ResolveFilePath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || Path.IsPathRooted(path) || File.Exists(path))
+                return path;
+
+            string besideExecutable = Path.Combine(AppContext.BaseDirectory, path);
+            return File.Exists(besideExecutable) ? besideExecutable : path;
+        }
+
         public void LoadJsonConfig(string ConfigFile = "")
         {
             if(string.IsNullOrEmpty(ConfigFile))
@@ -1077,6 +1295,14 @@ namespace ASE
             Environment.Exit(1);
         }
 
+        /// <summary>
+        /// Puts back, in a copy of the running configuration about to be written, the settings a
+        /// shared game borrowed from the host (Netplay.Lockstep): the machine the guest runs is
+        /// the host's until its next power-on, and config.json must never get it (NETPLAY.md
+        /// §5.1). Null when nothing is borrowed.
+        /// </summary>
+        public static Action<ConfigOptions> PersistOverlay;
+
         public void DumpJsonConfig(string ConfigFile = "")
         {
             if (string.IsNullOrEmpty(ConfigFile))
@@ -1089,7 +1315,15 @@ namespace ASE
                     WriteIndented = true,
                 };
 
-                string json = JsonSerializer.Serialize(ConfigOptions.RunninConfig, options);
+                var config = ConfigOptions.RunninConfig;
+                var overlay = PersistOverlay;
+                if (overlay != null)
+                {
+                    config = JsonSerializer.Deserialize<ConfigOptions>(JsonSerializer.Serialize(config, options));
+                    overlay(config);
+                }
+
+                string json = JsonSerializer.Serialize(config, options);
 
                 File.WriteAllText(ConfigFile, json);
             }

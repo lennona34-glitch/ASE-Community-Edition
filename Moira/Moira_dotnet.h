@@ -18,13 +18,13 @@ extern "C" {
 
     typedef void* moira_handle;
 
-    // Callbacks de memoria (lo que Moira necesita)
+    // Memory callbacks (what Moira needs)
     typedef uint8_t(*moira_read8_fn)(void* user, uint32_t addr);
     typedef uint16_t(*moira_read16_fn)(void* user, uint32_t addr);
     typedef void     (*moira_write8_fn)(void* user, uint32_t addr, uint8_t v);
     typedef void     (*moira_write16_fn)(void* user, uint32_t addr, uint16_t v);
 
-    // Opcionales (Moira los tiene como virtual con default)
+    // Optional (virtual with a default implementation in Moira)
     typedef void     (*moira_sync_fn)(void* user, int cycles);
     typedef uint16_t(*moira_read_irq_user_vector_fn)(void* user, uint8_t level);
 
@@ -34,8 +34,8 @@ extern "C" {
         moira_read16_fn read16;
         moira_write8_fn write8;
         moira_write16_fn write16;
-        moira_sync_fn sync; // puede ser NULL
-        moira_read_irq_user_vector_fn readIrqUserVector; // puede ser NULL
+        moira_sync_fn sync; // may be NULL
+        moira_read_irq_user_vector_fn readIrqUserVector; // may be NULL
     } moira_callbacks;
 
     // Stack Frame structure (for exception handling)
@@ -49,11 +49,11 @@ extern "C" {
         uint16_t ssw;
     } moira_stackframe;
 
-    // Lifecycle mínimo
+    // Minimal lifecycle
     MOIRA_C_API moira_handle moira_create(const moira_callbacks* cb);
     MOIRA_C_API void         moira_destroy(moira_handle h);
 
-    // Running CPU (1:1 con Moira)
+    // Running CPU (1:1 with Moira)
     MOIRA_C_API void moira_reset(moira_handle h);
     MOIRA_C_API void moira_execute(moira_handle h);
     MOIRA_C_API void moira_execute_cycles(moira_handle h, int64_t cycles);
@@ -63,7 +63,7 @@ extern "C" {
     MOIRA_C_API int64_t moira_getClock(moira_handle h);
     MOIRA_C_API void    moira_setClock(moira_handle h, int64_t v);
 
-    // Registros (1:1)
+    // Registers (1:1)
     MOIRA_C_API uint32_t moira_getD(moira_handle h, int n);
     MOIRA_C_API void     moira_setD(moira_handle h, int n, uint32_t v);
 

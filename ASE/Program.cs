@@ -256,6 +256,11 @@ namespace ASE
             // parsed below, by which time the log is already running.
             ConsoleHost.Initialize(args);
 
+            // An invitation link clicked while ASE is already running goes to that ASE, and this
+            // one ends here, before it opens a single thing (NETPLAY.md §8.4)
+            if (Netplay.LinkScheme.LinkIn(args) is { } link && Netplay.LinkScheme.TryForward(link))
+                return;
+
             RegisterNativeLibraryResolvers();
 
             Config = new Config();

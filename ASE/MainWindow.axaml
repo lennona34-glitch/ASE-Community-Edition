@@ -203,6 +203,29 @@
 						<Svg Path="avares://ASE/Assets/Icons/tv.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
+				<Separator/>
+				<!-- Input recording: a session snapshot plus every frame's input, played back to
+				     prove the emulation repeats itself exactly (Netplay.InputRecording; the
+				     groundwork of online play, see NETPLAY.md). The headers flip to "Stop ..."
+				     while a session runs (MainWindow.OnEmulationMenuOpened). -->
+				<MenuItem Header="Record input" Name="ItemMenuRecordInput" Click="OnRecordInputClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/camera.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Play back recording…" Name="ItemMenuPlayRecording" Click="OnPlayRecordingClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/play-fill.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<!-- The time warp: back to any second of the last minute (TimeWarp). Always
+				     there: its window holds the switch, and says why when it cannot go back. -->
+				<MenuItem Header="Time warp…" Name="ItemMenuTimeWarp" Click="OnTimeWarpClick" InputGesture="Ctrl+Shift+F10">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/clock-history.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<Separator/>
 				<MenuItem Header="Toggle full screen" Click="OnToggleFullScreenClick" InputGesture="Alt+Enter">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/arrows-fullscreen.svg" Width="16" Height="16"/>
@@ -217,6 +240,23 @@
 				<MenuItem Header="_Quit" Click="OnExitClick">
 					<MenuItem.Icon>
 						<Svg Path="avares://ASE/Assets/Icons/power.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+			</MenuItem>
+
+			<!-- Online play (NETPLAY.md). The wizard chooses host or guest; an active
+			     session opens on its lobby. The last entry ends that session and is named
+			     after it (MainWindow.OnOnlineMenuOpened). -->
+			<MenuItem Header="Online" SubmenuOpened="OnOnlineMenuOpened">
+				<MenuItem Header="Online play…" Click="OnOnlinePlayClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/globe2.svg" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<Separator/>
+				<MenuItem Header="Disconnect" Name="ItemMenuNetDisconnect" Click="OnNetDisconnectClick">
+					<MenuItem.Icon>
+						<Svg Path="avares://ASE/Assets/Icons/x-lg.svg" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
 			</MenuItem>
@@ -252,6 +292,23 @@
 						</LinearGradientBrush>
 					</Border.Background>
 					<StackPanel Orientation="Horizontal">
+						<!-- Online play: shown while a game is hosted or joined (NetSession.StatusText) -->
+						<StackPanel Name="PanelNetStatus"
+						            Orientation="Horizontal"
+						            IsVisible="False">
+							<Svg Path="avares://ASE/Assets/Icons/globe2.svg"
+							     Width="13" Height="13"
+							     VerticalAlignment="Center" />
+							<TextBlock Name="TextBlockNetStatus"
+							           Margin="6,0,0,0"
+							           FontSize="12"
+							           Opacity="0.7"
+							           VerticalAlignment="Center" />
+							<Border Width="2"
+							        Background="#10FFFFFF"
+							        Margin="10,0"/>
+						</StackPanel>
+
 						<Image Name="DriveLedImage"
 						       Source="./Assets/drive_led_off.png"
 						       VerticalAlignment="Center"
@@ -262,7 +319,7 @@
 						        VerticalAlignment="Center"
 						        Margin="5,0,0,0">
 							<TextBlock Name="TextBlockDriveStatus"
-							           Canvas.Left="0" Canvas.Top="1"
+							           Canvas.Left="0"
 							           FontSize="12"
 							           Opacity="0.5"
 							           Text="A: Empty"
@@ -280,7 +337,7 @@
 						        Margin="5,0,0,0"
 						        IsVisible="False">
 							<TextBlock Name="TextBlockDriveBStatus"
-							           Canvas.Left="0" Canvas.Top="1"
+							           Canvas.Left="0"
 							           FontSize="12"
 							           Opacity="0.5"
 							           Text="B: Empty"

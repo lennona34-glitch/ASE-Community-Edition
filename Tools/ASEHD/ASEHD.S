@@ -1,5 +1,5 @@
 ;=============================================================================
-; ASEHD.S - resident part of the ASEHD ACSI hard disk driver, version 2.0
+; ASEHD.S - resident part of the ASEHD ACSI hard disk driver, version 2.1
 ;
 ; The boot sector (BOOT.S) loads this file from the reserved sectors behind
 ; the root sector into memory it Mallocs, and calls the init entry at +0.
@@ -30,6 +30,7 @@ flock       equ     $43E            ; non-zero locks the DMA against the VBL
 hdv_bpb     equ     $472            ; vector: return a drive's BPB
 hdv_rw      equ     $476            ; vector: read/write logical sectors
 hdv_mediach equ     $47E            ; vector: has the medium changed?
+_bootdev    equ     $446            ; drive TOS boots from (0 = A:)
 _drvbits    equ     $4C2            ; bitmap of mounted drives
 
 ;--------------------------------- DMA / HDC registers -----------------------
@@ -75,6 +76,7 @@ S_START     equ     4               ; long: first physical sector, absolute
 S_PSIZE     equ     8               ; long: length in physical sectors
 S_BPB       equ     12              ; 9 words: recsiz clsiz clsizb rdlen fsiz
                                     ;          fatrec datrec numcl bflags
+S_FLAGS     equ     30              ; byte: the table's flag byte, bit 7 = boot
 
 ;=============================================================================
 ; Header. The BRA.W must stay 4 bytes - BOOT.S jumps to +0 and the installer
@@ -84,7 +86,7 @@ S_BPB       equ     12              ; 9 words: recsiz clsiz clsizb rdlen fsiz
 driver:     bra.w   d_init
             dc.b    'ASEHD2',0,0    ; +4: magic checked by BOOT.S and installer
 
-            dc.b    'ASEHD driver 2.0',0
+            dc.b    'ASEHD driver 2.1',0
             even
 
 ;=============================================================================
@@ -188,6 +190,7 @@ in_mnt:     move.w  d5,-(sp)
             or.l    d7,_drvbits.w   ; publish the new drives
             move    (sp)+,sr
 
+            bsr     d_bootdrv
             bsr     d_banner
             move.l  d7,d0           ; tell the bootstrap something is mounted
             movem.l (sp)+,d1-d7/a0-a6
@@ -266,6 +269,7 @@ ap_room:    move.w  n_found(pc),d2
             move.l  d0,S_START(a1)
             move.l  d1,S_PSIZE(a1)
             move.w  #-1,S_DRV(a1)   ; not mounted yet
+            move.b  (a2),S_FLAGS(a1) ; every caller has a2 on the entry
             addq.w  #1,d2
             lea     n_found(pc),a1
             move.w  d2,(a1)
@@ -482,6 +486,38 @@ ms_take:    bset    d0,d6
             bset    d0,d7
             move.w  d0,S_DRV(a3)
 ms_bad:     rts
+
+;-----------------------------------------------------------------------------
+; d_bootdrv - make the first mounted partition the table flags bootable (bit
+; 7 of its flag byte, AHDI's convention) the drive the machine boots from.
+;
+; GEMDOS took its current drive from _bootdev BEFORE any disk booted (TOS
+; never writes _bootdev itself), so setting the variable alone is not enough:
+; _bootdev is what TOS reads after this - the AUTO folder check, the shell's
+; PATH - and Dsetdrv moves the current drive the AUTO folder and the
+; desktop's INF file are read from. A disk with no flagged partition leaves
+; both alone, and the machine keeps booting from A: as before.
+;-----------------------------------------------------------------------------
+d_bootdrv:  movem.l d0-d2/a0-a3,-(sp)  ; trap #1 clobbers d0-d2/a0-a2
+            lea     slots(pc),a3
+            move.w  #MAXSLOTS-1,d1
+bd_loop:    move.w  S_DRV(a3),d0
+            bmi.s   bd_next
+            btst    #7,S_FLAGS(a3)
+            bne.s   bd_take
+bd_next:    lea     SLOTSIZE(a3),a3
+            dbra    d1,bd_loop
+            bra.s   bd_out
+
+bd_take:    lea     boot_drv(pc),a0
+            move.w  d0,(a0)         ; for the banner
+            move.w  d0,_bootdev.w
+            move.w  d0,-(sp)
+            move.w  #$0E,-(sp)      ; Dsetdrv
+            trap    #1
+            addq.l  #4,sp
+bd_out:     movem.l (sp)+,d0-d2/a0-a3
+            rts
 
 ;-----------------------------------------------------------------------------
 ; find_slot - d0.w = drive number; returns EQ with a3 -> its slot, NE when no
@@ -869,9 +905,10 @@ dx_wok:     moveq   #0,d0
 ;-----------------------------------------------------------------------------
 ; d_banner - the sign-on, printed once by init:
 ;
-;     ASEHD 2.0 - ACSI hard disk driver
+;     ASEHD 2.1 - ACSI hard disk driver
 ;     Drive C: 512 MB
 ;     Drive D: 100 MB
+;     Boot drive C:          (only when d_bootdrv picked one)
 ;
 ; Cconws is available: the hard disk boot happens with GEMDOS already
 ; running, which is the same reason the bootstrap can call Malloc.
@@ -920,7 +957,17 @@ bn_num:     bsr.s   d_decimal
 bn_next:    lea     SLOTSIZE(a3),a3
             dbra    d3,bn_loop
 
-            pea     msg_nl(pc)
+            move.w  boot_drv(pc),d0
+            bmi.s   bn_end
+            lea     boot_letter(pc),a0
+            addi.b  #'A',d0
+            move.b  d0,(a0)
+            pea     msg_boot(pc)
+            move.w  #9,-(sp)
+            trap    #1
+            addq.l  #6,sp
+
+bn_end:     pea     msg_nl(pc)
             move.w  #9,-(sp)
             trap    #1
             addq.l  #6,sp
@@ -967,6 +1014,7 @@ old_mediach:
 
 disk_size:  dc.l    0               ; hd_siz from the root sector (0 = unknown)
 n_found:    dc.w    0               ; candidates collected in phase 1
+boot_drv:   dc.w    -1              ; the drive d_bootdrv made the boot drive
 
 slots:      dcb.b   MAXSLOTS*SLOTSIZE,0
 parttab:    dcb.b   12*12,0         ; the root's tables, copied out of secbuf
@@ -976,11 +1024,14 @@ exttab:     dcb.b   4*12,0          ; one extended root's entries, ditto
 secbuf:     dcb.b   512,0           ; DMA bounce / init-time sector buffer
 
 ;--------------------------------- banner text -------------------------------
-msg_head:   dc.b    13,10,'ASEHD 2.0 - ACSI hard disk driver',13,10,'https://github.com/thebitculture/ase',13,10,13,10,0
+msg_head:   dc.b    13,10,'ASEHD 2.1 - ACSI hard disk driver',13,10,'https://github.com/thebitculture/ase',13,10,13,10,0
 msg_drive:  dc.b    'Drive '
 drv_letter: dc.b    'C',': ',0
 msg_mb:     dc.b    ' MB',13,10,0
 msg_kb:     dc.b    ' KB',13,10,0
+msg_boot:   dc.b    'Boot drive '
+boot_letter:
+            dc.b    'C',':',13,10,0
 msg_nl:     dc.b    13,10,0
 msg_noroot: dc.b    13,10,'ASEHD: cannot read the partition table',13,10,0
 msg_nopart: dc.b    13,10,'ASEHD: no mountable GEM/BGM partition',13,10,0

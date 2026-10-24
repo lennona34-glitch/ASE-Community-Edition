@@ -61,7 +61,7 @@ namespace ASE
                         _output = HostMidiOutput.Open(cfg.MidiOutDevice);
 
                     if (!string.IsNullOrEmpty(cfg.MidiInDevice))
-                        _input = HostMidiInput.Open(cfg.MidiInDevice, MidiAcia.Receive);
+                        _input = HostMidiInput.Open(cfg.MidiInDevice, FromHostPort);
 
                     if (_output == null && _input == null)
                         ColoredConsole.WriteLine("MIDI: system mode with no host port connected.", ConfigOptions.DebugModes.Quiet);
@@ -117,6 +117,34 @@ namespace ASE
             catch { /* a failing module must not take the frame loop down */ }
         }
 
+        /// <summary>
+        /// Silences whatever the ST's MIDI OUT left sounding — All Sound Off and All Notes Off on
+        /// every channel — and starts the YM->MT-32 mapper clean. For the time warp: the machine
+        /// goes back to a moment whose notes are not the ones the module is holding, and the
+        /// program plays its own again from there. Called with the emulation parked; never throws.
+        /// </summary>
+        public static void Silence()
+        {
+            var output = _output;
+            if (output != null)
+            {
+                try
+                {
+                    for (byte channel = 0; channel < 16; channel++)
+                    {
+                        output.ShortMessage((byte)(0xB0 | channel), 120, 0, 3);
+                        output.ShortMessage((byte)(0xB0 | channel), 123, 0, 3);
+                    }
+                }
+                catch
+                {
+                    // A failing port must not take the time warp down with it
+                }
+            }
+
+            YmMidiMapper.OnModulePowerOn();
+        }
+
         /// <summary>Tears the wiring down (host ports closed, MT-32 disposed). Safe to
         /// call twice; also the first step of <see cref="Initialize"/>.</summary>
         public static void Shutdown()
@@ -138,10 +166,17 @@ namespace ASE
         /// <summary>
         /// A byte the MIDI ACIA put on the wire (emulation thread). Never throws: the
         /// call originates inside the CPU's bus-write callback, where an escaped
-        /// exception would kill the process.
+        /// exception would kill the process. While an online session has the MIDI
+        /// sockets (Netplay.MidiCable), the byte goes there raw and nowhere else.
         /// </summary>
         public static void TransmitByte(byte b)
         {
+            if (Netplay.MidiCable.Plugged)
+            {
+                Netplay.MidiCable.Transmit(b);
+                return;
+            }
+
             var parser = _parser;
             if (parser == null)
                 return;
@@ -159,6 +194,17 @@ namespace ASE
                         $"MIDI: output to [[cyan]]{_output?.Description}[[/cyan]] failed ([[red]]{ex.GetType().Name}[[/red]]: {ex.Message}); further errors muted.");
                 }
             }
+        }
+
+        /// <summary>
+        /// Bytes from the host's MIDI IN port (its backend's thread). Ignored while an online
+        /// session has the ST's MIDI sockets: the IN socket takes one cable, and it is the
+        /// network's.
+        /// </summary>
+        static void FromHostPort(byte[] bytes)
+        {
+            if (!Netplay.MidiCable.Plugged)
+                MidiAcia.Receive(bytes);
         }
 
         /// <summary>

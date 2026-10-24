@@ -178,6 +178,11 @@ namespace ASE
             if (bytes == null || bytes.Length == 0)
                 return;
 
+            // A host MIDI device plays into the machine at the host's timing, which no recording
+            // or playback can reproduce: during one the IN socket is left unplugged.
+            if (Netplay.MachineInput.Deterministic)
+                return;
+
             lock (_syncLock)
             {
                 foreach (byte b in bytes)

@@ -1,0 +1,175 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="ASE.TimeWarpWindow"
+        Title="Time warp"
+        Classes="aseDialog"
+        Width="760"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True">
+
+    <Window.Styles>
+        <!-- A moment in the strip: its picture and how long ago it was; the chosen one framed -->
+        <Style Selector="Border.moment">
+            <Setter Property="Padding" Value="3"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Border.moment:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+        </Style>
+        <Style Selector="Border.moment.chosen">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentSelectedBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+        </Style>
+        <Style Selector="Border.moment TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Opacity" Value="0.75"/>
+        </Style>
+    </Window.Styles>
+
+    <!--
+        The last minute of play as a strip of pictures, one a second (TimeWarp). Choosing one
+        shows it large; Continue from here puts the machine back there. The machine stays paused
+        while the window is open.
+    -->
+    <Grid RowDefinitions="Auto,Auto,Auto">
+
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*"
+              Margin="24,20,24,16"
+              ColumnSpacing="14">
+
+            <Border Classes="dialogHeaderIcon">
+                <Svg Path="avares://ASE/Assets/Icons/clock-history.svg"
+                     Width="22"
+                     Height="22"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Grid.Column="1"
+                        Spacing="2"
+                        VerticalAlignment="Center">
+                <TextBlock Classes="windowTitle"
+                           Text="Time warp"/>
+                <TextBlock Classes="description"
+                           x:Name="TextSubtitle"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1"
+                    Margin="24,0,24,0"
+                    Spacing="12">
+
+            <!-- Why the time warp cannot go back right now (a hard disk attached, an online
+                 game…): first thing in the window, so it is not missed -->
+            <Border Classes="warningNote"
+                    x:Name="PanelWarning"
+                    IsVisible="False">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Svg Classes="warningIcon"
+                         Path="avares://ASE/Assets/Icons/exclamation-triangle-fill.svg"/>
+                    <TextBlock Grid.Column="1"
+                               Classes="warningText"
+                               x:Name="TextWarning"/>
+                </Grid>
+            </Border>
+
+            <!-- The chosen moment, large -->
+            <Border Classes="card" Padding="10">
+                <Grid RowDefinitions="*,Auto" RowSpacing="8">
+                    <Border Background="Black"
+                            CornerRadius="6"
+                            ClipToBounds="True"
+                            Height="300">
+                        <Image x:Name="ImagePreview"
+                               Stretch="Uniform"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                    </Border>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <TextBlock Classes="section"
+                                   x:Name="TextChosen"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                            <TextBlock Classes="description"
+                                       HorizontalAlignment="Right"
+                                       Text="Keys: ← → to move · Enter to continue · Esc to go back to the game"/>
+                            <TextBlock Classes="description"
+                                       HorizontalAlignment="Right"
+                                       Text="Gamepad: ◀ ▶ to move (LB RB, five at a time) · A to continue · B to go back"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- The strip -->
+            <ScrollViewer x:Name="ScrollStrip"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="PanelStrip"
+                            Orientation="Horizontal"
+                            Spacing="6"
+                            Margin="0,0,0,10"/>
+            </ScrollViewer>
+
+            <Slider x:Name="SliderMoment"
+                    Minimum="0"
+                    TickFrequency="1"
+                    IsSnapToTickEnabled="True"
+                    ValueChanged="OnSliderChanged"/>
+
+            <TextBlock x:Name="TextError"
+                       Classes="description"
+                       Foreground="#E06C6C"
+                       TextWrapping="Wrap"
+                       IsVisible="False"/>
+        </StackPanel>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                Classes="dialogFooter"
+                Margin="0,18,0,0">
+
+            <Grid ColumnDefinitions="*,auto">
+
+                <!-- Whether moments are kept at all (TimeWarp.SetEnabled); off by default on a
+                     Raspberry Pi, until the user says otherwise -->
+                <StackPanel Grid.Column="0" HorizontalAlignment="Left">
+                    <ToggleSwitch x:Name="SwitchTimeWarp"
+                                  OffContent="Time warp off"
+                                  OnContent="Time warp on"
+                                  IsCheckedChanged="OnSwitchChanged"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="10">
+
+                    <Button Classes="dialogAction"
+                            Content="Close"
+                            Click="OnCancelClick"/>
+
+                    <Button Classes="accent dialogAction"
+                            x:Name="ButtonContinue" Width="160"
+                            Content="Continue from here"
+                            Click="OnContinueClick"/>
+
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>
